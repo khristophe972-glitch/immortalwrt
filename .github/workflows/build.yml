@@ -21,13 +21,6 @@ jobs:
             lld llvm ninja-build patch pkgconf python3 python3-pip rsync \
             squashfs-tools subversion swig unzip wget xxd zlib1g-dev
 
-      - name: Apply cake_mq patches
-        run: |
-          for p in target/linux/generic/backport-6.6/700-0*.patch; do
-            echo "Applying $p"
-            patch -p1 < "$p"
-          done
-
       - name: Configure for GL-MT6000
         run: |
           echo "CONFIG_TARGET_mediatek=y" > .config
