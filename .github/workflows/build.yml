@@ -1,0 +1,56 @@
+name: Build ImmortalWrt GL-MT6000 with cake_mq
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint \
+            binutils bison build-essential bzip2 ccache clang cmake cpio curl \
+            device-tree-compiler flex gawk gettext gcc-multilib g++-multilib \
+            git libelf-dev libglib2.0-dev libncurses5-dev libssl-dev libtool \
+            lld llvm ninja-build patch pkgconf python3 python3-pip rsync \
+            squashfs-tools subversion swig unzip wget xxd zlib1g-dev
+
+      - name: Apply cake_mq patches
+        run: |
+          for p in target/linux/generic/backport-6.6/700-0*.patch; do
+            echo "Applying $p"
+            patch -p1 < "$p"
+          done
+
+      - name: Configure for GL-MT6000
+        run: |
+          echo "CONFIG_TARGET_mediatek=y" > .config
+          echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
+          echo "CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
+          make defconfig
+
+      - name: Download sources
+        run: make download -j8 || make download -j1
+
+      - name: Build
+        run: make -j$(nproc) V=s 2>&1 | tee build.log || make -j1 V=s
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: immortalwrt-gl-mt6000
+          path: bin/targets/mediatek/filogic/*gl-mt6000*
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
