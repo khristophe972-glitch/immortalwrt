@@ -45,4 +45,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kmod-sched-cake
-          path: bin/targets/mediatek/filogic/packages/kmod-sched-cake*.ipk
+          path: bin/**/kmod-sched-cake*.ipk
