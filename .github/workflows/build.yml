@@ -23,9 +23,7 @@ jobs:
 
       - name: Configure for GL-MT6000
         run: |
-          echo "CONFIG_TARGET_mediatek=y" > .config
-          echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
-          echo "CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
+          curl -o .config https://mirrors.ustc.edu.cn/immortalwrt/releases/24.10.5/targets/mediatek/filogic/config.buildinfo
           echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
           make defconfig
 
