@@ -18,20 +18,31 @@ jobs:
             gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev \
             python3 rsync unzip zlib1g-dev
 
+      - name: Feeds
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
       - name: Configure
         run: |
           curl -o .config https://mirrors.ustc.edu.cn/immortalwrt/releases/24.10.5/targets/mediatek/filogic/config.buildinfo
           echo "CONFIG_PACKAGE_kmod-sched-cake=m" >> .config
           make defconfig
 
+      - name: Download sources
+        run: make download -j8
+
       - name: Build toolchain
         run: make toolchain/install -j$(nproc)
 
-      - name: Build kmod-sched-cake
-        run: make package/kernel/linux/compile V=s -j$(nproc) PACKAGE=kmod-sched-cake
+      - name: Compile kernel
+        run: make target/linux/compile -j$(nproc)
 
-      - name: Upload package
+      - name: Package kmod-sched-cake
+        run: make package/kernel/linux/compile -j$(nproc)
+
+      - name: Upload ipk
         uses: actions/upload-artifact@v4
         with:
           name: kmod-sched-cake
-          path: bin/packages/**/kmod-sched-cake*.ipk
+          path: bin/targets/mediatek/filogic/packages/kmod-sched-cake*.ipk
