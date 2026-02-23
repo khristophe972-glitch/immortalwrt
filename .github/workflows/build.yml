@@ -1,4 +1,4 @@
-name: Build ImmortalWrt GL-MT6000 with cake_mq
+name: Build kmod-sched-cake for ImmortalWrt 24.10.5 GL-MT6000
 
 on:
   workflow_dispatch:
@@ -14,34 +14,24 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint \
-            binutils bison build-essential bzip2 ccache clang cmake cpio curl \
-            device-tree-compiler flex gawk gettext gcc-multilib g++-multilib \
-            git libelf-dev libglib2.0-dev libncurses5-dev libssl-dev libtool \
-            lld llvm ninja-build patch pkgconf python3 python3-pip rsync \
-            squashfs-tools subversion swig unzip wget xxd zlib1g-dev
+          sudo apt install -y build-essential clang flex bison g++ gawk \
+            gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev \
+            python3 rsync unzip zlib1g-dev
 
-      - name: Configure for GL-MT6000
+      - name: Configure
         run: |
           curl -o .config https://mirrors.ustc.edu.cn/immortalwrt/releases/24.10.5/targets/mediatek/filogic/config.buildinfo
-          echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-sched-cake=m" >> .config
           make defconfig
 
-      - name: Download sources
-        run: make download -j8 || make download -j1
+      - name: Build toolchain
+        run: make toolchain/install -j$(nproc)
 
-      - name: Build
-        run: make -j$(nproc) V=s 2>&1 | tee build.log || make -j1 V=s
+      - name: Build kmod-sched-cake
+        run: make package/kernel/linux/compile V=s -j$(nproc) PACKAGE=kmod-sched-cake
 
-      - name: Upload firmware
+      - name: Upload package
         uses: actions/upload-artifact@v4
         with:
-          name: immortalwrt-gl-mt6000
-          path: bin/targets/mediatek/filogic/*gl-mt6000*
-
-      - name: Upload build log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
+          name: kmod-sched-cake
+          path: bin/packages/**/kmod-sched-cake*.ipk
