@@ -75,7 +75,7 @@ jobs:
           echo "CONFIG_PACKAGE_bash=y" >> .config
           echo "CONFIG_PACKAGE_coreutils-sleep=y" >> .config
           echo "CONFIG_ALL_KMODS=y" >> .config
-          echo "CONFIG_ALL_NONSHARED=y" >> .config
+          echo "CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
           make defconfig
 
       - name: Download packages
@@ -86,9 +86,10 @@ jobs:
       - name: Build firmware
         run: |
           cd openwrt
-          make -j$(nproc) IGNORE_ERRORS=m || make -j1 V=s IGNORE_ERRORS=m
+          make -j$(nproc) IGNORE_ERRORS=m
 
       - name: Upload firmware artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: immortalwrt-mt6000
@@ -96,6 +97,8 @@ jobs:
           retention-days: 7
 
       - name: Deploy kmods to gh-pages
+        if: always()
+        continue-on-error: true
         run: |
           KMOD_DIR=$(find openwrt/bin/targets/mediatek/filogic/kmods -maxdepth 1 -mindepth 1 -type d | head -1)
           if [ -z "$KMOD_DIR" ]; then
