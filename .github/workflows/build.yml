@@ -50,12 +50,9 @@ jobs:
           echo "CONFIG_PACKAGE_kmod-sched=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-core=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-sched-prio=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-ctinfo=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-bpf=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-flower=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-sched-act-vlan=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-sched-red=y" >> .config
           echo "CONFIG_PACKAGE_kmod-ifb=y" >> .config
           echo "CONFIG_PACKAGE_kmod-netem=y" >> .config
           echo "CONFIG_PACKAGE_kmod-veth=y" >> .config
@@ -63,12 +60,6 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-sqm=y" >> .config
           echo "CONFIG_PACKAGE_tc-full=y" >> .config
           echo "CONFIG_PACKAGE_ip-full=y" >> .config
-          echo "CONFIG_PACKAGE_iptables-nft=y" >> .config
-          echo "CONFIG_PACKAGE_iptables-mod-ipopt=y" >> .config
-          echo "CONFIG_PACKAGE_iptables-mod-conntrack-extra=y" >> .config
-          echo "CONFIG_PACKAGE_iptables-mod-extra=y" >> .config
-          echo "CONFIG_PACKAGE_iptables-mod-filter=y" >> .config
-          echo "CONFIG_PACKAGE_ip6tables-nft=y" >> .config
           echo "CONFIG_PACKAGE_miniupnpd-nftables=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-upnp=y" >> .config
           echo "CONFIG_PACKAGE_tcpdump=y" >> .config
@@ -78,16 +69,10 @@ jobs:
           echo "CONFIG_PACKAGE_mtr=y" >> .config
           echo "CONFIG_PACKAGE_ethtool-full=y" >> .config
           echo "CONFIG_PACKAGE_irqbalance=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-statistics=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-nlbwmon=y" >> .config
           echo "CONFIG_PACKAGE_nano=y" >> .config
           echo "CONFIG_PACKAGE_jq=y" >> .config
           echo "CONFIG_PACKAGE_htop=y" >> .config
           echo "CONFIG_PACKAGE_bash=y" >> .config
-          echo "CONFIG_PACKAGE_diffutils=y" >> .config
-          echo "CONFIG_PACKAGE_less=y" >> .config
-          echo "CONFIG_PACKAGE_luci-lib-jsonc=y" >> .config
-          echo "CONFIG_PACKAGE_lua=y" >> .config
           echo "CONFIG_PACKAGE_coreutils-sleep=y" >> .config
           echo "CONFIG_ALL_KMODS=y" >> .config
           echo "CONFIG_ALL_NONSHARED=y" >> .config
@@ -103,49 +88,30 @@ jobs:
           cd openwrt
           make -j$(nproc) IGNORE_ERRORS=m || make -j1 V=s IGNORE_ERRORS=m
 
-      - name: Debug build outputs
-        if: always()
-        run: |
-          cd openwrt
-          echo "=== Firmware files ==="
-          find bin/ -name "*sysupgrade*" -o -name "*factory*" 2>/dev/null
-          echo "=== APK files count ==="
-          find bin/ -name "*.apk" 2>/dev/null | wc -l
-          echo "=== bin/ total size ==="
-          du -sh bin/
-          echo "=== Disk space ==="
-          df -h
-
-      - name: Prepare package repository
-        if: always()
-        run: |
-          cd openwrt
-          mkdir -p /tmp/pkg-repo
-          cp -a bin/* /tmp/pkg-repo/ 2>/dev/null || true
-          echo "=== APK count ==="
-          find /tmp/pkg-repo -name "*.apk" 2>/dev/null | wc -l
-          du -sh /tmp/pkg-repo/
-
-      - name: Deploy to gh-pages
-        if: always()
-        run: |
-          cd /tmp/pkg-repo
-          FILE_COUNT=$(find . -type f | wc -l)
-          echo "Files to deploy: $FILE_COUNT"
-          if [ "$FILE_COUNT" -gt 0 ]; then
-            git init
-            git config user.name "GitHub Actions"
-            git config user.email "actions@github.com"
-            git checkout -b gh-pages
-            git add .
-            git commit -m "Package repo $(date -u +%Y-%m-%d_%H%M%S)"
-            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-            git push -f origin gh-pages
-          fi
-
       - name: Upload firmware artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: immortalwrt-mt6000-build
+          name: immortalwrt-mt6000
           path: openwrt/bin/
+          retention-days: 7
+
+      - name: Deploy kmods to gh-pages
+        run: |
+          KMOD_DIR=$(find openwrt/bin/targets/mediatek/filogic/kmods -maxdepth 1 -mindepth 1 -type d | head -1)
+          if [ -z "$KMOD_DIR" ]; then
+            echo "No kmods directory found"
+            exit 0
+          fi
+          mkdir -p /tmp/gh-pages
+          cp -a "$KMOD_DIR"/* /tmp/gh-pages/ 2>/dev/null || true
+          FILE_COUNT=$(find /tmp/gh-pages -type f | wc -l)
+          echo "Files to deploy: $FILE_COUNT"
+          cd /tmp/gh-pages
+          git init
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git checkout -b gh-pages
+          git add .
+          git commit -m "kmods $(date -u +%Y-%m-%d_%H%M%S)"
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push -f origin gh-pages
