@@ -77,8 +77,11 @@ jobs:
           echo "CONFIG_PACKAGE_diffutils=y" >> .config
           echo "CONFIG_PACKAGE_less=y" >> .config
           make defconfig
+          # Forcer GL-MT6000 après defconfig
+          echo "CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
+          make defconfig
           echo "=== Target vérifié ==="
-          grep "CONFIG_TARGET" .config | head -5
+          grep "CONFIG_TARGET.*glinet\|CONFIG_TARGET.*mediatek" .config | head -5
 
       - name: Download packages
         run: |
