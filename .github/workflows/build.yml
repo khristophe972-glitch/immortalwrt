@@ -59,6 +59,7 @@ jobs:
           echo "CONFIG_ALL_NONSHARED=y" >> .config
           echo "CONFIG_PACKAGE_kmod-nft-fullcone=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-sched-red=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-ctinfo=y" >> .config
           echo "CONFIG_PACKAGE_kmod-ifb=y" >> .config
           echo "CONFIG_PACKAGE_kmod-netem=y" >> .config
