@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
 
 jobs:
   build:
@@ -30,7 +29,7 @@ jobs:
         run: |
           git clone --branch openwrt-25.12 --single-branch https://github.com/khristophe972-glitch/immortalwrt.git openwrt
           cd openwrt
-          git log --oneline -5
+          git log --oneline -3
 
       - name: Update feeds
         run: |
@@ -45,14 +44,22 @@ jobs:
       - name: Import config
         run: |
           cd openwrt
-          wget https://downloads.immortalwrt.org/snapshots/targets/mediatek/filogic/config.buildinfo -O .config
+
+          # Config minimale GL-MT6000 uniquement (pas config.buildinfo qui cible tous les routeurs filogic)
+          cat > .config << 'EOF'
+          CONFIG_TARGET_mediatek=y
+          CONFIG_TARGET_mediatek_filogic=y
+          CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_glinet_gl-mt6000=y
+          CONFIG_ALL_KMODS=y
+          CONFIG_ALL_NONSHARED=y
+          EOF
+
+          # Fullcone
           echo "CONFIG_PACKAGE_kmod-nft-fullcone=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-sched=y" >> .config
+
+          # QoS / cake
           echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-sched-core=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-ctinfo=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-sched-bpf=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-sched-flower=y" >> .config
           echo "CONFIG_PACKAGE_kmod-ifb=y" >> .config
           echo "CONFIG_PACKAGE_kmod-netem=y" >> .config
           echo "CONFIG_PACKAGE_kmod-veth=y" >> .config
@@ -60,8 +67,12 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-sqm=y" >> .config
           echo "CONFIG_PACKAGE_tc-full=y" >> .config
           echo "CONFIG_PACKAGE_ip-full=y" >> .config
+
+          # UPnP
           echo "CONFIG_PACKAGE_miniupnpd-nftables=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-upnp=y" >> .config
+
+          # Outils réseau
           echo "CONFIG_PACKAGE_tcpdump=y" >> .config
           echo "CONFIG_PACKAGE_iperf3=y" >> .config
           echo "CONFIG_PACKAGE_curl=y" >> .config
@@ -69,13 +80,16 @@ jobs:
           echo "CONFIG_PACKAGE_mtr=y" >> .config
           echo "CONFIG_PACKAGE_ethtool-full=y" >> .config
           echo "CONFIG_PACKAGE_irqbalance=y" >> .config
+
+          # Utilitaires système
           echo "CONFIG_PACKAGE_nano=y" >> .config
           echo "CONFIG_PACKAGE_jq=y" >> .config
           echo "CONFIG_PACKAGE_htop=y" >> .config
           echo "CONFIG_PACKAGE_bash=y" >> .config
           echo "CONFIG_PACKAGE_coreutils-sleep=y" >> .config
-          echo "CONFIG_ALL_KMODS=y" >> .config
-          echo "CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
+          echo "CONFIG_PACKAGE_diffutils=y" >> .config
+          echo "CONFIG_PACKAGE_less=y" >> .config
+
           make defconfig
 
       - name: Download packages
@@ -107,8 +121,7 @@ jobs:
           fi
           mkdir -p /tmp/gh-pages
           cp -a "$KMOD_DIR"/* /tmp/gh-pages/ 2>/dev/null || true
-          FILE_COUNT=$(find /tmp/gh-pages -type f | wc -l)
-          echo "Files to deploy: $FILE_COUNT"
+          echo "Files: $(find /tmp/gh-pages -type f | wc -l)"
           cd /tmp/gh-pages
           git init
           git config user.name "GitHub Actions"
