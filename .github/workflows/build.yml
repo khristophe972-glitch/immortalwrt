@@ -54,7 +54,7 @@ jobs:
           cd openwrt
           echo "CONFIG_TARGET_mediatek=y" > .config
           echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
-          echo "CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
+          echo "CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
           echo "CONFIG_ALL_KMODS=y" >> .config
           echo "CONFIG_ALL_NONSHARED=y" >> .config
           echo "CONFIG_PACKAGE_kmod-nft-fullcone=y" >> .config
