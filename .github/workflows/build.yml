@@ -86,6 +86,11 @@ jobs:
           echo "CONFIG_PACKAGE_diffutils=y" >> .config
           echo "CONFIG_PACKAGE_less=y" >> .config
           make defconfig
+          # Forcer packages après defconfig
+          echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-sched-red=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-ip6tables=y" >> .config
+          make defconfig
           echo "=== Target vérifié ==="
           grep "CONFIG_TARGET.*=y\|DEVICE.*glinet" .config | head -10
 
@@ -107,17 +112,18 @@ jobs:
           path: openwrt/bin/
           retention-days: 7
 
-      - name: Deploy kmods to gh-pages
+      - name: Deploy packages to gh-pages
         if: always()
         continue-on-error: true
         run: |
-          KMOD_DIR=$(find openwrt/bin/targets/mediatek/filogic/kmods -maxdepth 1 -mindepth 1 -type d | head -1)
-          if [ -z "$KMOD_DIR" ]; then
-            echo "No kmods directory found"
-            exit 0
-          fi
           mkdir -p /tmp/gh-pages
-          cp -a "$KMOD_DIR"/* /tmp/gh-pages/ 2>/dev/null || true
+          # Packages target (kmods inclus)
+          cp -a openwrt/bin/targets/mediatek/filogic/packages /tmp/gh-pages/target-packages 2>/dev/null || true
+          # Kmods
+          KMOD_DIR=$(find openwrt/bin/targets/mediatek/filogic/kmods -maxdepth 1 -mindepth 1 -type d | head -1)
+          [ -n "$KMOD_DIR" ] && cp -a "$KMOD_DIR" /tmp/gh-pages/kmods 2>/dev/null || true
+          # Packages feeds
+          cp -a openwrt/bin/packages /tmp/gh-pages/packages 2>/dev/null || true
           echo "Files: $(find /tmp/gh-pages -type f | wc -l)"
           cd /tmp/gh-pages
           git init
@@ -125,6 +131,6 @@ jobs:
           git config user.email "actions@github.com"
           git checkout -b gh-pages
           git add .
-          git commit -m "kmods $(date -u +%Y-%m-%d_%H%M%S)"
+          git commit -m "packages $(date -u +%Y-%m-%d_%H%M%S)"
           git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push -f origin gh-pages
