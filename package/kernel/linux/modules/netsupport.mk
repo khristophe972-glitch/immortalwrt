@@ -814,8 +814,8 @@ define KernelPackage/sched-cake
   TITLE:=Cake fq_codel/blue derived shaper
   DEPENDS:=+kmod-sched-core
   KCONFIG:=CONFIG_NET_SCH_CAKE CONFIG_NET_SCH_CAKE_MQ
-  FILES:=$(LINUX_DIR)/net/sched/sch_cake.ko $(LINUX_DIR)/net/sched/sch_cake_mq.ko
-  AUTOLOAD:=$(call AutoProbe,sch_cake sch_cake_mq)
+  FILES:=$(LINUX_DIR)/net/sched/sch_cake.ko
+  AUTOLOAD:=$(call AutoProbe,sch_cake)
 endef
 
 define KernelPackage/sched-cake/description
