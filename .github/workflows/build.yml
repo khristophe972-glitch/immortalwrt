@@ -41,23 +41,18 @@ jobs:
 
       - name: Apply RSS patches from pesa1234
         run: |
-          PESA_RAW="https://raw.githubusercontent.com/pesa1234/openwrt/next-r4.7.2.rss.mtk/target/linux/mediatek/patches-6.12"
-          PATCH_DIR="openwrt/target/linux/mediatek/patches-6.12"
-          # Patches RSS à intégrer (sans 999-9902 qui désactive RSS MT7981)
+          # Patches RSS MT7981 — sans 999-9902 (disable-RSS-mt7981)
+          BASE_URL="https://raw.githubusercontent.com/pesa1234/openwrt/next-r4.7.2.rss.mtk/target/linux/mediatek/patches-6.12"
           for patch in \
-            "999-2700-arm64-dts-mt7986-add-rss-irqs.patch" \
-            "999-2701-arm64-dts-mt7981-add-rss-irqs.patch" \
-            "999-2710-mt7986-rss-lro-registers.patch" \
-            "999-2711-mt7986-rss-support.patch" \
-            "999-9901-fix-RSS-mt7986.patch" \
-            "999-9903-fix-ethtool-hash-function.patch"; do
-            echo "Fetching $patch..."
-            curl -sSL "$PESA_RAW/$patch" -o "$PATCH_DIR/$patch" && echo "OK: $patch" || echo "SKIP (not found): $patch"
+            999-2710-net-ethernet-mtk_eth_soc-add-rss-lro-reg.patch \
+            999-2711-net-ethernet-mtk_eth_soc-add-rss-support.patch \
+            999-2701-arm64-dts-mt7981-add-rss-irqs.patch \
+            999-9901-fix-RSS-mt7986.patch \
+            999-9903-fix-ethtool-hash-function.patch; do
+            curl -fsSL "${BASE_URL}/${patch}" \
+              -o "openwrt/target/linux/mediatek/patches-6.12/${patch}"
+            echo "Downloaded: ${patch}"
           done
-          # Supprimer 999-9902 si présent dans le fork (désactive RSS MT7981 — obsolète)
-          rm -f "$PATCH_DIR/999-9902-disable-RSS-mt7981.patch"
-          echo "=== RSS patches applied ==="
-          ls "$PATCH_DIR"/999-27* "$PATCH_DIR"/999-99* 2>/dev/null
 
       - name: Update feeds
         run: |
@@ -106,6 +101,7 @@ jobs:
           echo "CONFIG_PACKAGE_diffutils=y" >> .config
           echo "CONFIG_PACKAGE_less=y" >> .config
           make defconfig
+          # Forcer packages après defconfig
           echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-red=y" >> .config
           echo "CONFIG_PACKAGE_kmod-ip6tables=y" >> .config
@@ -136,9 +132,12 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p /tmp/gh-pages
+          # Packages target (kmods inclus)
           cp -a openwrt/bin/targets/mediatek/filogic/packages /tmp/gh-pages/target-packages 2>/dev/null || true
+          # Kmods
           KMOD_DIR=$(find openwrt/bin/targets/mediatek/filogic/kmods -maxdepth 1 -mindepth 1 -type d | head -1)
           [ -n "$KMOD_DIR" ] && cp -a "$KMOD_DIR" /tmp/gh-pages/kmods 2>/dev/null || true
+          # Packages feeds
           cp -a openwrt/bin/packages /tmp/gh-pages/packages 2>/dev/null || true
           echo "Files: $(find /tmp/gh-pages -type f | wc -l)"
           cd /tmp/gh-pages
