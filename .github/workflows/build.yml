@@ -21,7 +21,6 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update -y
-          sudo apt full-upgrade -y
           sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison \
             build-essential bzip2 ccache cmake cpio curl device-tree-compiler ecj fakeroot \
             fastjar flex gawk gettext genisoimage gnutls-dev gperf haveged help2man intltool \
@@ -69,6 +68,7 @@ jobs:
           echo "CONFIG_PACKAGE_tc-full=y" >> .config
           echo "CONFIG_PACKAGE_ip-full=y" >> .config
           echo "CONFIG_PACKAGE_kmod-ip6tables=y" >> .config
+          echo "CONFIG_PACKAGE_ip6tables-zz-legacy=y" >> .config
           echo "CONFIG_PACKAGE_miniupnpd-nftables=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-upnp=y" >> .config
           echo "CONFIG_PACKAGE_tcpdump=y" >> .config
@@ -117,12 +117,9 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p /tmp/gh-pages
-          # Packages target (kmods inclus)
           cp -a openwrt/bin/targets/mediatek/filogic/packages /tmp/gh-pages/target-packages 2>/dev/null || true
-          # Kmods
           KMOD_DIR=$(find openwrt/bin/targets/mediatek/filogic/kmods -maxdepth 1 -mindepth 1 -type d | head -1)
           [ -n "$KMOD_DIR" ] && cp -a "$KMOD_DIR" /tmp/gh-pages/kmods 2>/dev/null || true
-          # Packages feeds
           cp -a openwrt/bin/packages /tmp/gh-pages/packages 2>/dev/null || true
           echo "Files: $(find /tmp/gh-pages -type f | wc -l)"
           cd /tmp/gh-pages
