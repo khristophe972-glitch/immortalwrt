@@ -1,0 +1,70 @@
+diff --git a/src/functions.sh b/src/functions.sh
+index a0b3f59..05d0fea 100644
+--- a/src/functions.sh
++++ b/src/functions.sh
+@@ -354,13 +354,35 @@ create_ifb() {
+     local name
+     local args
+     local num_procs
++    local queue_mode
++    local num_queues
+     name=$1
+     args=
+ 
+     num_procs=$(grep -c processor /proc/cpuinfo)
+ 
+     if [ "$USE_MQ" -eq "1" ] && [ "$num_procs" -gt 1 ]; then
+-        args="numtxqueues $num_procs"
++        queue_mode="${IFB_MQ_QUEUES_MODE:-half}"
++
++        case "$queue_mode" in
++            1|single)
++                num_queues=1
++                ;;
++            half|'')
++                num_queues=$(( (num_procs + 1) / 2 ))
++                ;;
++            all|cpu|cores)
++                num_queues=$num_procs
++                ;;
++            *)
++                sqm_warn "Unknown IFB_MQ_QUEUES_MODE '${queue_mode}', falling back to half"
++                num_queues=$(( (num_procs + 1) / 2 ))
++                ;;
++        esac
++
++        [ "$num_queues" -lt 1 ] && num_queues=1
++        [ "$num_queues" -gt "$num_procs" ] && num_queues=$num_procs
++        [ "$num_queues" -gt 1 ] && args="numtxqueues $num_queues"
+     fi
+     $IP link add name $name $args type ifb
+ }
+diff --git a/src/run-openwrt.sh b/src/run-openwrt.sh
+index eafda37..d6dceec 100644
+--- a/src/run-openwrt.sh
++++ b/src/run-openwrt.sh
+@@ -19,7 +19,12 @@ CLEANUP=0
+ if [ "$ACTION" = "cleanup" ]; then
+     CLEANUP=1
+     ACTION=stop
+ fi
++
++ifb_mq_queues_mode_default=$(uci -q get advanced.@defaults[0].cake_ifb_tx_queues_mode 2>/dev/null || true)
++if [ -z "$ifb_mq_queues_mode_default" ]; then
++    ifb_mq_queues_mode_default="half"
++fi
+ 
+ check_state_dir
+ [ -d "${SQM_QDISC_STATE_DIR}" ] || ${SQM_LIB_DIR}/update-available-qdiscs
+@@ -66,7 +70,11 @@ start_sqm_section() {
+     export TARGET=$(config_get "$section" target)
+     export QDISC=$(config_get "$section" qdisc)
+     export SCRIPT=$(config_get "$section" script)
+     export USE_MQ=$(config_get "$section" use_mq)
++    export IFB_MQ_QUEUES_MODE=$(config_get "$section" ifb_mq_queues_mode)
++    if [ -z "$IFB_MQ_QUEUES_MODE" ]; then
++        export IFB_MQ_QUEUES_MODE="$ifb_mq_queues_mode_default"
++    fi
+ 
+     # The UCI names for these two variables are confusing and should have been
+     # changed ages ago. For now, keep the bad UCI names but use meaningful
