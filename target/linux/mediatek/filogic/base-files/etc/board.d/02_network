@@ -25,6 +25,10 @@ mediatek_setup_interfaces()
 	zbtlink,zbt-z8103ax-c)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" eth1
 		;;
+	zbtlink,zbt-z8803be)
+		ucidef_set_interfaces_lan_wan "lan0 lan1 lan2" eth1
+		ucidef_set_interface "wan_sfp" device "eth2" protocol "none"
+		;;
 	acelink,ew-7886cax|\
 	tplink,eap683-lr)
 		ucidef_set_interface_lan "eth0" "dhcp"
@@ -55,10 +59,14 @@ mediatek_setup_interfaces()
 	confiabits,mt7981|\
 	creatlentem,clt-r30b1|\
 	creatlentem,clt-r30b1-112m|\
+	creatlentem,clt-r30b1-ubi|\
 	cudy,wr3000-v1|\
+	globitel,bt-r320|\
+	huasifei,wh3000r-nand|\
 	jcg,q30-pro|\
 	keenetic,kn-3711|\
 	keenetic,kn-3811|\
+	livinet,li320|\
 	livinet,zr-3020|\
 	livinet,zr-3020-ubootmod|\
 	netis,nx32u|\
@@ -118,6 +126,7 @@ mediatek_setup_interfaces()
 	cudy,ap3000wall-v1)
 		ucidef_set_interface_lan "lan1 lan2 lan3 lan4 lan5"
 		;;
+	comfast,cf-xr186|\
 	cudy,ap3000outdoor-v1|\
 	cudy,ap3000-v1|\
 	cudy,re3000-v1|\
@@ -127,6 +136,7 @@ mediatek_setup_interfaces()
 	netgear,eax17|\
 	netgear,wax220|\
 	openfi,6c|\
+	tplink,f65-v1|\
 	ubnt,unifi-6-plus|\
 	wavlink,wl-wn573hx3|\
 	widelantech,wap430x|\
@@ -138,12 +148,16 @@ mediatek_setup_interfaces()
 	edgecore,eap111|\
 	huasifei,wh3000-emmc|\
 	huasifei,wh3000-pro-emmc|\
-	huasifei,wh3000-pro-nand)
+	huasifei,wh3000-pro-nand|\
+	wavlink,wl-wnt100x3|\
+	wavlink,wl-wnt100x3-ubootmod)
 		ucidef_set_interfaces_lan_wan eth0 eth1
 		;;
 	bazis,ax3000wm|\
 	cudy,m3000-v1|\
+	cudy,m3000-v1-ubootmod|\
 	cudy,m3000-v2-yt8821|\
+	cudy,m3000-v2-yt8821-ubootmod|\
 	cudy,tr3000-256mb-v1|\
 	cudy,tr3000-v1|\
 	cudy,tr3000-v1-ubootmod|\
@@ -157,7 +171,8 @@ mediatek_setup_interfaces()
 	openwrt,one)
 		ucidef_set_interfaces_lan_wan eth1 eth0
 		;;
-	dlink,aquila-pro-ai-e30-a1)
+	dlink,aquila-pro-ai-e30-a1|\
+	netis,eap930-v1)
 		ucidef_set_interface_lan "lan"
 		;;
 	dlink,aquila-pro-ai-m30-a1|\
@@ -273,6 +288,11 @@ mediatek_setup_macs()
 		lan_mac=$(macaddr_add "$wan_mac" 1)
 		label_mac=$wan_mac
 		;;
+	jiorouter,ax6000-jidu6101)
+		label_mac=$(mtd_get_mac_ascii u-boot-env mac)
+		wan_mac=$label_mac
+		lan_mac=$(macaddr_add "$label_mac" 1)
+		;;
 	mercusys,mr80x-v3|\
 	mercusys,mr85x)
 		mac_dirty=$(cat "/tmp/tp_data/default-mac" | sed -n 's/^'"MAC"'://p')
@@ -301,7 +321,8 @@ mediatek_setup_macs()
 		wan_mac=$(macaddr_add "$lan_mac" 1)
 		label_mac=$wan_mac
 		;;
-	tplink,eap683-lr)
+	tplink,eap683-lr|\
+	tplink,f65-v1)
 		label_mac=$(get_mac_binary "/tmp/factory/default-mac" 0)
 		lan_mac=$label_mac
 		;;

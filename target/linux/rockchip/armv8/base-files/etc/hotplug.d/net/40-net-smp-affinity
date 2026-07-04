@@ -62,12 +62,14 @@ friendlyarm,nanopc-t6)
 friendlyarm,nanopi-r2c|\
 friendlyarm,nanopi-r2c-plus|\
 friendlyarm,nanopi-r2s|\
+friendlyarm,nanopi-r2s-plus|\
 radxa,rockpi-e|\
 xunlong,orangepi-r1-plus|\
 xunlong,orangepi-r1-plus-lts)
 	set_interface_core 2 "eth0"
 	set_interface_core 4 "eth1" "xhci-hcd:usb[0-9]+"
 	;;
+friendlyarm,nanopi-m5|\
 friendlyarm,nanopi-r4s|\
 friendlyarm,nanopi-r4se|\
 friendlyarm,nanopi-r4s-enterprise|\
