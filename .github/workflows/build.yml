@@ -102,17 +102,7 @@ jobs:
       - name: Build firmware
         run: |
           cd openwrt
-          make -j$(nproc) IGNORE_ERRORS=m || true
-          echo "=== mt76 verbose rebuild ==="
-          make package/kernel/mt76/compile V=s -j1 2>&1 | tee /tmp/mt76-verbose.log || true
-          tail -100 /tmp/mt76-verbose.log
-
-      - name: Upload mt76 debug log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: mt76-debug-log
-          path: /tmp/mt76-verbose.log
+          make -j$(nproc) IGNORE_ERRORS=m
 
       - name: Upload firmware artifact
         if: always()
