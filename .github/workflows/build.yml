@@ -34,9 +34,15 @@ jobs:
 
       - name: Clone sources
         run: |
-          git clone --branch openwrt-6.18 --single-branch https://github.com/khristophe972-glitch/immortalwrt.git openwrt
+          git clone --branch openwrt-6.18 https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/khristophe972-glitch/immortalwrt.git openwrt
           cd openwrt
-          git log --oneline -3
+          git remote add upstream https://github.com/immortalwrt/immortalwrt.git
+          git fetch upstream master
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git merge upstream/master --no-edit
+          git log --oneline -5
+          git push origin openwrt-6.18
 
       - name: Update feeds
         run: |
