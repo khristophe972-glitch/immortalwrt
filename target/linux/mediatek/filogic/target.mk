@@ -5,7 +5,6 @@ CPU_TYPE:=cortex-a53
 DEFAULT_PACKAGES += \
 	fitblk kmod-crypto-hw-safexcel kmod-nf-conntrack-bridge \
 	kmod-nft-bridge kmod-br-netfilter kmod-nft-netdev \
-	kmod-nft-flow-offload \
 	wpad-openssl uboot-envtools
 KERNELNAME:=Image dtbs
 DEFAULT_PROFILE:=openwrt_one
