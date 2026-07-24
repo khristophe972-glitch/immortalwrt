@@ -102,7 +102,7 @@ jobs:
       - name: Build firmware
         run: |
           cd openwrt
-          make -j$(nproc) IGNORE_ERRORS=m
+          make -j$(nproc) V=s IGNORE_ERRORS=m
 
       - name: Upload firmware artifact
         if: always()
