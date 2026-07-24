@@ -34,7 +34,7 @@ jobs:
 
       - name: Clone sources
         run: |
-          git clone --branch openwrt-25.12 --single-branch https://github.com/khristophe972-glitch/immortalwrt.git openwrt
+          git clone --branch openwrt-6.18 --single-branch https://github.com/khristophe972-glitch/immortalwrt.git openwrt
           cd openwrt
           git log --oneline -3
 
