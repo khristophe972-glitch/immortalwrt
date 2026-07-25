@@ -587,7 +587,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 + */
 +static bool bbr_can_use_ecn(const struct sock *sk)
 +{
-+	return (tcp_sk(sk)->ecn_flags & TCP_ECN_OK) &&
++	return tcp_ecn_mode_rfc3168(tcp_sk(sk)) &&
 +	       (tcp_sk(sk)->ecn_flags & TCP_ECN_LOW);
 +}
 +
