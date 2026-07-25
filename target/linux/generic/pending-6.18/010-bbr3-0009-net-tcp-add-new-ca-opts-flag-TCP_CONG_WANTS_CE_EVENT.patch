@@ -23,16 +23,17 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1190,7 +1190,11 @@
- #define TCP_CONG_NON_RESTRICTED		BIT(0)
- /* Requires ECN/ECT set on all packets */
- #define TCP_CONG_NEEDS_ECN		BIT(1)
--#define TCP_CONG_MASK	(TCP_CONG_NON_RESTRICTED | TCP_CONG_NEEDS_ECN)
+@@ -1212,9 +1212,12 @@
+ #define TCP_CONG_ECT_1_NEGOTIATION	BIT(3)
+ /* Cannot fallback to RFC3168 during AccECN negotiation */
+ #define TCP_CONG_NO_FALLBACK_RFC3168	BIT(4)
 +/* Wants notification of CE events (CA_EVENT_ECN_IS_CE, CA_EVENT_ECN_NO_CE). */
-+#define TCP_CONG_WANTS_CE_EVENTS	BIT(2)
-+#define TCP_CONG_MASK	(TCP_CONG_NON_RESTRICTED | \
-+			 TCP_CONG_NEEDS_ECN | \
-+			 TCP_CONG_WANTS_CE_EVENTS)
++#define TCP_CONG_WANTS_CE_EVENTS	BIT(5)
+ #define TCP_CONG_MASK  (TCP_CONG_NON_RESTRICTED | TCP_CONG_NEEDS_ECN | \
+ 			TCP_CONG_NEEDS_ACCECN | TCP_CONG_ECT_1_NEGOTIATION | \
+-			TCP_CONG_NO_FALLBACK_RFC3168)
++			TCP_CONG_NO_FALLBACK_RFC3168 | \
++			TCP_CONG_WANTS_CE_EVENTS)
  
  union tcp_cc_info;
  
