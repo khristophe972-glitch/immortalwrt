@@ -1054,6 +1054,7 @@ define KernelPackage/tcp-bbr
   KCONFIG:=CONFIG_TCP_CONG_BBR
   FILES:=$(LINUX_DIR)/net/ipv4/tcp_bbr.ko
   AUTOLOAD:=$(call AutoProbe,tcp_bbr)
+  PKG_RELEASE:=2
 endef
 
 define KernelPackage/tcp-bbr/description
