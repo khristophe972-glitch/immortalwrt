@@ -1,0 +1,128 @@
+From 537b1b761e1d0036923adba7a80d3655cfff095d Mon Sep 17 00:00:00 2001
+From: David Morley <morleyd@google.com>
+Date: Fri, 21 Jul 2023 09:20:46 +0000
+Subject: [PATCH] ip: introduce the ecn_low per-route feature
+
+Add a new "ecn_low" feature that administrators can add to a
+particular ip route. The ecn_low feature indicates that the given
+destination network is a low-latency ECN environment, meaning both
+that ECN CE marks are applied by the network using a low-latency
+marking threshold and also that TCP endpoints provide precise
+per-data-segment ECN feedback in ACKs (where the ACK ECE flag echoes
+the received CE status of all newly-acknowledged data segments). This
+ecn_low feature indication can be used by congestion control
+algorithms to decide how to interpret ECN signals over the given
+destination network.
+
+Cherry-picked from github.com/google/bbr, branch v3,
+gtests/net/tcp/bbr/nsperf/0002-ip-introduce-the-ecn_low-per-route-feature.patch,
+manually rebased onto iproute2-6.18.0:
+ - rtnetlink.h: upstream 6.18.0 already added RTAX_FEATURE_TCP_USEC_TS
+   (1 << 4) and reformatted the RTAX_FEATURE_* block, so the original
+   hunk context no longer matched. RTAX_FEATURE_ECN_LOW is added as
+   (1 << 5), the same bit value used by our kernel-side
+   010-bbr3-0015-tcp-introduce-per-route-feature-RTAX_FEATURE_ECN_LOW.patch.
+ - ip/iproute.c: upstream refactored the inline feature-parsing code
+   in iproute_modify() into a separate parse_features() helper (added
+   to also support tcp_usec_ts), so the "ecn_low" case is now added
+   inside parse_features() instead of the original inline location.
+---
+ include/uapi/linux/rtnetlink.h |  4 +++-
+ ip/iproute.c                   |  7 ++++++-
+ man/man8/ip-route.8.in         | 15 ++++++++++++---
+ 3 files changed, 21 insertions(+), 5 deletions(-)
+
+--- a/include/uapi/linux/rtnetlink.h
++++ b/include/uapi/linux/rtnetlink.h
+@@ -517,12 +517,14 @@
+ #define RTAX_FEATURE_TIMESTAMP		(1 << 2) /* unused */
+ #define RTAX_FEATURE_ALLFRAG		(1 << 3) /* unused */
+ #define RTAX_FEATURE_TCP_USEC_TS	(1 << 4)
++#define RTAX_FEATURE_ECN_LOW		(1 << 5)
+ 
+ #define RTAX_FEATURE_MASK	(RTAX_FEATURE_ECN |		\
+ 				 RTAX_FEATURE_SACK |		\
+ 				 RTAX_FEATURE_TIMESTAMP |	\
+ 				 RTAX_FEATURE_ALLFRAG |		\
+-				 RTAX_FEATURE_TCP_USEC_TS)
++				 RTAX_FEATURE_TCP_USEC_TS |	\
++				 RTAX_FEATURE_ECN_LOW)
+ 
+ struct rta_session {
+ 	__u8	proto;
+--- a/ip/iproute.c
++++ b/ip/iproute.c
+@@ -97,7 +97,7 @@
+ 		"PREF := [ low | medium | high ]\n"
+ 		"TIME := NUMBER[s|ms]\n"
+ 		"BOOL := [1|0]\n"
+-		"FEATURES := ecn\n"
++		"FEATURES := [ ecn | ecn_low ]\n"
+ 		"ENCAPTYPE := [ mpls | ip | ip6 | seg6 | seg6local | rpl | ioam6 | xfrm ]\n"
+ 		"ENCAPHDR := [ MPLSLABEL | SEG6HDR | SEG6LOCAL | IOAM6HDR | XFRMINFO ]\n"
+ 		"SEG6HDR := [ mode SEGMODE ] segs ADDR1,ADDRi,ADDRn [hmac HMACKEYID] [cleanup]\n"
+@@ -379,6 +379,11 @@
+ 		features &= ~RTAX_FEATURE_TCP_USEC_TS;
+ 	}
+ 
++	if (features & RTAX_FEATURE_ECN_LOW) {
++		print_null(PRINT_ANY, "ecn_low", "ecn_low ", NULL);
++		features &= ~RTAX_FEATURE_ECN_LOW;
++	}
++
+ 	if (features)
+ 		print_0xhex(PRINT_ANY,
+ 			    "features", "%#llx ", of);
+@@ -1143,6 +1148,8 @@
+ 	while (++argv, --argc > 0) {
+ 		if (strcmp(*argv, "ecn") == 0) {
+ 			features |= RTAX_FEATURE_ECN;
++		} else if (strcmp(*argv, "ecn_low") == 0) {
++			features |= RTAX_FEATURE_ECN_LOW;
+ 		} else if (strcmp(*argv, "tcp_usec_ts") == 0) {
+ 			features |= RTAX_FEATURE_TCP_USEC_TS;
+ 		} else {
+--- a/man/man8/ip-route.8.in
++++ b/man/man8/ip-route.8.in
+@@ -186,7 +186,7 @@
+ 
+ .ti -8
+ .IR FEATURES " := [ "
+-.BR ecn " | ]"
++.BR ecn " | " ecn_low " ] "
+ 
+ .ti -8
+ .IR PREF " := [ "
+@@ -566,16 +566,25 @@
+ 
+ .TP
+ .BI features " FEATURES " (Linux 3.18+ only)
+-Enable or disable per-route features. Only available feature at this
+-time is
+-.B ecn
+-to enable explicit congestion notification when initiating connections to the
++Enable or disable per-route features. Available features include:
++
++.BI ecn
++- to enable explicit congestion notification when initiating connections to the
+ given destination network.
+ When responding to a connection request from the given network, ecn will
+ also be used even if the
+ .B net.ipv4.tcp_ecn
+ sysctl is set to 0.
+ 
++.BI ecn_low
++- to indicate that the given destination network is a low-latency ECN
++environment, meaning both that ECN CE marks are applied by the network using a
++low-latency marking threshold and also that TCP endpoints provide precise
++per-data-segment ECN feedback in ACKs (where the ACK ECE flag echoes the
++received CE status of all newly-acknowledged data segments). This ecn_low
++feature indication can be used by congestion control algorithms to decide how
++to interpret ECN signals over the given destination network (Linux 6.7+ only).
++
+ .TP
+ .BI quickack " BOOL " "(Linux 3.11+ only)"
+ Enable or disable quick ack for connections to this destination.
+
+-- 
+2.41.0
