@@ -1719,7 +1719,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 +}
 +
 +/* How should we multiplicatively cut bw or inflight limits based on ECN? */
-+u32 bbr_ecn_cut(struct sock *sk)
++static u32 bbr_ecn_cut(struct sock *sk)
 +{
 +	struct bbr *bbr = inet_csk_ca(sk);
 +
