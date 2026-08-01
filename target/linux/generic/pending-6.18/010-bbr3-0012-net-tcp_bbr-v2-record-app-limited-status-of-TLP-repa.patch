@@ -26,10 +26,10 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 @@ -295,7 +295,8 @@ struct tcp_sock {
  		rate_app_limited:1;  /* rate_{delivered,interval_us} limited? */
  	u8	received_ce_pending:4, /* Not yet transmit cnt of received_ce */
- 		fast_ack_mode:2, /* which fast ack mode ? */
--		unused2:2;
+ 		fast_ack_mode:1, /* which fast ack mode ? */
+-		unused2:3;
 +		tlp_orig_data_app_limited:1, /* app-limited before TLP rtx? */
-+		unused2:1;
++		unused2:2;
  	u8	accecn_minlen:2,/* Minimum length of AccECN option sent */
  		est_ecnfield:2,/* ECN field for AccECN delivered estimates */
  		accecn_opt_demand:2,/* Demand AccECN option for n next ACKs */
