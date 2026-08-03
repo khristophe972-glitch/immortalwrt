@@ -38,6 +38,13 @@ jobs:
           cd openwrt
           git log --oneline -3
 
+      - name: Restore APK signing key
+        if: ${{ secrets.APK_PRIVATE_KEY != '' }}
+        run: |
+          echo "${{ secrets.APK_PRIVATE_KEY }}" | base64 -d > openwrt/private-key.pem
+          echo "${{ secrets.APK_PUBLIC_KEY }}" | base64 -d > openwrt/public-key.pem
+          chmod 600 openwrt/private-key.pem
+
       - name: Update feeds
         run: |
           cd openwrt
