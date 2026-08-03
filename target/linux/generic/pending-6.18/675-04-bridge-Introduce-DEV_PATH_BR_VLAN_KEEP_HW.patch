@@ -27,7 +27,7 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
  include/linux/netdevice.h        |  1 +
  net/bridge/br_device.c           |  1 +
  net/bridge/br_vlan.c             | 18 +++++++++++-------
- net/netfilter/nft_flow_offload.c | 10 ++++++++++
+ net/netfilter/nf_flow_table_path.c | 10 ++++++++++
  4 files changed, 23 insertions(+), 7 deletions(-)
 
 --- a/include/linux/netdevice.h
@@ -77,9 +77,9 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
  	return 0;
  }
  
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -145,6 +145,16 @@ static void nft_dev_path_info(const stru
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -137,6 +137,16 @@ static void nft_dev_path_info(const stru
  			case DEV_PATH_BR_VLAN_UNTAG_HW:
  				info->ingress_vlans |= BIT(info->num_encaps - 1);
  				break;
