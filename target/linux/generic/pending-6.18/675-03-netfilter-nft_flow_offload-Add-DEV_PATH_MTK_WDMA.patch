@@ -23,12 +23,12 @@ Based on commit 1e62f16b35a5 from ericwoud/bpir-nftflow-nf-next-20260512.
 
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 ---
- net/netfilter/nft_flow_offload.c | 5 +++++
+ net/netfilter/nf_flow_table_path.c | 5 +++++
  1 file changed, 5 insertions(+)
 
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -106,6 +106,7 @@ static void nft_dev_path_info(const stru
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -103,6 +103,7 @@ static void nft_dev_path_info(const stru
  		switch (path->type) {
  		case DEV_PATH_ETHERNET:
  		case DEV_PATH_DSA:
@@ -36,7 +36,7 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
  		case DEV_PATH_VLAN:
  		case DEV_PATH_PPPOE:
  			info->indev = path->dev;
-@@ -118,6 +119,10 @@ static void nft_dev_path_info(const stru
+@@ -115,6 +116,10 @@ static void nft_dev_path_info(const stru
  				i = stack->num_paths;
  				break;
  			}
