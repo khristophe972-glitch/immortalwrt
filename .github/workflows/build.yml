@@ -39,11 +39,15 @@ jobs:
           git log --oneline -3
 
       - name: Restore APK signing key
-        if: ${{ secrets.APK_PRIVATE_KEY != '' }}
+        env:
+          APK_PRIVATE_KEY: ${{ secrets.APK_PRIVATE_KEY }}
+          APK_PUBLIC_KEY: ${{ secrets.APK_PUBLIC_KEY }}
         run: |
-          echo "${{ secrets.APK_PRIVATE_KEY }}" | base64 -d > openwrt/private-key.pem
-          echo "${{ secrets.APK_PUBLIC_KEY }}" | base64 -d > openwrt/public-key.pem
-          chmod 600 openwrt/private-key.pem
+          if [ -n "$APK_PRIVATE_KEY" ]; then
+            echo "$APK_PRIVATE_KEY" | base64 -d > openwrt/private-key.pem
+            echo "$APK_PUBLIC_KEY" | base64 -d > openwrt/public-key.pem
+            chmod 600 openwrt/private-key.pem
+          fi
 
       - name: Update feeds
         run: |
