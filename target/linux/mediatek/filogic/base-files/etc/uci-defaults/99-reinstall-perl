@@ -1,0 +1,4 @@
+#!/bin/sh
+# Réinstaller perl et ses modules après sysupgrade
+apk add perl perl-base 2>/dev/null || true
+exit 0
