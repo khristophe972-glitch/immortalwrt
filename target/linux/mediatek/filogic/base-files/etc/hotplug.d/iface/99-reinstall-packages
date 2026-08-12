@@ -1,0 +1,41 @@
+#!/bin/sh
+# Réinstaller les paquets manquants après sysupgrade/flash
+# Déclenché à chaque ifup (réseau up) — hotplug.d/iface
+
+[ "$ACTION" = "ifup" ] || exit 0
+[ -f /tmp/pkg-reinstall-done ] && exit 0
+
+# Réseau réellement joignable ?
+ping -c1 -W3 9.9.9.9 || exit 0
+
+LIST=/etc/persistent-packages.list
+[ -s "$LIST" ] || {
+	logger -t 99-reinstall-packages "liste $LIST absente ou vide, rien à réinstaller"
+	exit 0
+}
+
+n=0
+while read -r pkg; do
+	[ -z "$pkg" ] && continue
+	# Déjà installé ? (base apk = /usr/lib/apk/db/installed, lignes P:)
+	grep -qFx "P:$pkg" /usr/lib/apk/db/installed && continue
+	# apk add avec retry 3x / sleep 10s
+	i=0
+	while [ "$i" -lt 3 ]; do
+		i=$((i+1))
+		if apk add "$pkg"; then
+			logger -t 99-reinstall-packages "installé: $pkg (tentative $i)"
+			n=$((n+1))
+			break
+		fi
+		[ "$i" -lt 3 ] && {
+			logger -t 99-reinstall-packages "échec $pkg (tentative $i/3), nouvel essai dans 10s"
+			sleep 10
+		}
+	done
+	[ "$i" -eq 3 ] && logger -t 99-reinstall-packages "ÉCHEC APRÈS 3 TENTATIVES: $pkg"
+done < "$LIST"
+
+touch /tmp/pkg-reinstall-done
+logger -t 99-reinstall-packages "$n paquets réinstallés"
+exit 0
