@@ -17,8 +17,8 @@ LIST=/etc/persistent-packages.list
 n=0
 while read -r pkg; do
 	[ -z "$pkg" ] && continue
-	# Déjà installé ? (base apk = /usr/lib/apk/db/installed, lignes P:)
-	grep -qFx "P:$pkg" /usr/lib/apk/db/installed && continue
+	# Liste de noms nus (apk info) — déjà installé ?
+	apk info -e "$pkg" >/dev/null 2>&1 && continue
 	# apk add avec retry 3x / sleep 10s
 	i=0
 	while [ "$i" -lt 3 ]; do
