@@ -54,6 +54,14 @@ jobs:
           path: openwrt/dl
           key: dl-${{ runner.os }}-${{ hashFiles('**/Makefile') }}
 
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-${{ runner.os }}-${{ hashFiles('openwrt/toolchain/**/Makefile') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
+
       - name: Restore APK signing key
         env:
           APK_PRIVATE_KEY: ${{ secrets.APK_PRIVATE_KEY }}
@@ -110,6 +118,7 @@ jobs:
           echo "CONFIG_PACKAGE_htop=y" >> .config
           echo "CONFIG_PACKAGE_bash=y" >> .config
           echo "CONFIG_PACKAGE_coreutils-sleep=y" >> .config
+          echo "CONFIG_CCACHE=y" >> .config
           echo "CONFIG_PACKAGE_diffutils=y" >> .config
           echo "CONFIG_PACKAGE_less=y" >> .config
           make defconfig
@@ -127,9 +136,12 @@ jobs:
           make download -j$(nproc)
 
       - name: Build firmware
+        env:
+          CCACHE_MAXSIZE: 4G
         run: |
           cd openwrt
           make -j$(nproc) V=s IGNORE_ERRORS=m
+          ccache -s
 
       - name: Upload firmware artifact
         if: always()
