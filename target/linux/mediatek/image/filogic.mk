@@ -1897,7 +1897,7 @@ define Device/glinet_gl-mt6000
   DEVICE_MODEL := GL-MT6000
   DEVICE_DTS := mt7986a-glinet-gl-mt6000
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := dnsproxy kmod-sched-bpf kmod-usb3 kmod-nft-connlimit kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware \
+  DEVICE_PACKAGES := avahi-dbus-daemon dnsproxy kmod-sched-bpf kmod-usb3 kmod-nft-connlimit kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware \
 	automount f2fsck mkf2fs
   IMAGES += factory.bin
   IMAGE/factory.bin := append-kernel | pad-to 32M | append-rootfs
