@@ -44,7 +44,7 @@ jobs:
           path: |
             openwrt/staging_dir/toolchain-*
             openwrt/build_dir/toolchain-*
-          key: toolchain-${{ runner.os }}-${{ hashFiles('toolchain/**/Makefile') }}
+          key: toolchain-${{ runner.os }}-${{ hashFiles('openwrt/toolchain/**/Makefile') }}
           restore-keys: |
             toolchain-${{ runner.os }}-
 
@@ -57,8 +57,8 @@ jobs:
       - name: Cache ccache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/ccache
-          key: ccache-${{ runner.os }}-${{ hashFiles('openwrt/toolchain/**/Makefile') }}
+          path: openwrt/.ccache
+          key: ccache-${{ runner.os }}-${{ hashFiles('**/Makefile') }}
           restore-keys: |
             ccache-${{ runner.os }}-
 
@@ -91,6 +91,7 @@ jobs:
           echo "CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
           echo "CONFIG_ALL_KMODS=y" >> .config
           echo "CONFIG_ALL_NONSHARED=y" >> .config
+          echo "CONFIG_DEVEL=y" >> .config
           echo "CONFIG_KERNEL_DEBUG_INFO=y" >> .config
           echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> .config
           echo "# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set" >> .config
