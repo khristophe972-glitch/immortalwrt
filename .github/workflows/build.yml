@@ -91,6 +91,9 @@ jobs:
           echo "CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
           echo "CONFIG_ALL_KMODS=y" >> .config
           echo "CONFIG_ALL_NONSHARED=y" >> .config
+          echo "CONFIG_KERNEL_DEBUG_INFO=y" >> .config
+          echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> .config
+          echo "# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set" >> .config
           echo "CONFIG_PACKAGE_kmod-nft-fullcone=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-red=y" >> .config
