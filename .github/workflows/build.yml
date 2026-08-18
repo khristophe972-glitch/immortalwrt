@@ -20,8 +20,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt update -y
-          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison \
+          sudo apt update -y -o Acquire::http::Timeout=30 -o Acquire::Retries=3 -o Acquire::Retry-Delay=5
+          timeout 900 sudo apt install -y -o Acquire::http::Timeout=30 -o Acquire::Retries=3 -o Acquire::Retry-Delay=5 ack antlr3 asciidoc autoconf automake autopoint binutils bison \
             build-essential bzip2 ccache cmake cpio curl device-tree-compiler ecj fakeroot \
             fastjar flex gawk gettext genisoimage gnutls-dev gperf haveged help2man intltool \
             jq lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev \
