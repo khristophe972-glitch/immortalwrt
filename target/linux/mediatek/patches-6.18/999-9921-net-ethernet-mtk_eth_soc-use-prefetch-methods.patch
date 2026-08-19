@@ -1,0 +1,74 @@
+From 3f7c95e8a1b2d4c6f8a0b2d4f6a8c0e2f4a6b8c0d Mon Sep 17 00:00:00 2001
+From: Elad Yifee <eladwf@gmail.com>
+Date: Mon, 29 Jul 2024 18:29:54 +0300
+Subject: [PATCH] net: ethernet: mtk_eth_soc: use prefetch methods
+
+Utilize kernel prefetch methods for faster cache line access.
+This change boosts driver performance,
+allowing the CPU to handle about 5% more packets/sec.
+
+Signed-off-by: Elad Yifee <eladwf@gmail.com>
+Signed-off-by: SmartWRT <smartwrt@localhost>
+---
+Changes in v2:
+	- use net_prefetchw as suggested by Joe Damato
+	- add (NET_SKB_PAD + eth->ip_align) offset to prefetched data
+	- use eth->ip_align instead of NET_IP_ALIGN as it could be 0,
+	depending on the platform
+---
+ drivers/net/ethernet/mediatek/mtk_eth_soc.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+index e68997a29191..2fb861b3c31e 100644
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -2127,6 +2127,7 @@ static u32 mtk_xdp_run(struct mtk_eth *eth, struct mtk_rx_ring *ring,
+ 	if (!prog)
+ 		goto out;
+ 
++	net_prefetchw(xdp->data_hard_start);
+ 	act = bpf_prog_run_xdp(prog, xdp);
+ 	switch (act) {
+ 	case XDP_PASS:
+@@ -2202,6 +2203,7 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+ 
+ 		idx = NEXT_DESP_IDX(ring->calc_idx, ring->dma_size);
+ 		rxd = ring->dma + idx * eth->soc->rx.desc_size;
++		prefetch(rxd);
+ 		data = ring->data[idx];
+ 
+ 		if (!mtk_rx_get_desc(eth, &trxd, rxd))
+@@ -2269,6 +2271,7 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+ 			if (ret != XDP_PASS)
+ 				goto skip_rx;
+ 
++			net_prefetch(xdp.data_meta);
+ 			skb = build_skb(data, PAGE_SIZE);
+ 			if (unlikely(!skb)) {
+ 				page_pool_put_full_page(ring->page_pool,
+@@ -2277,6 +2280,7 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+ 				goto skip_rx;
+ 			}
+ 
++			net_prefetchw(skb->data);
+ 			skb_reserve(skb, xdp.data - xdp.data_hard_start);
+ 			skb_put(skb, xdp.data_end - xdp.data);
+ 			metasize = xdp.data - xdp.data_meta;
+@@ -2310,6 +2314,7 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+ 			dma_unmap_single(eth->dma_dev, ((u64)trxd.rxd1 | addr64),
+ 					 ring->buf_size, DMA_FROM_DEVICE);
+ 
++			net_prefetch(data + NET_SKB_PAD + eth->ip_align);
+ 			skb = build_skb(data, ring->frag_size);
+ 			if (unlikely(!skb)) {
+ 				netdev->stats.rx_dropped++;
+@@ -2317,7 +2322,8 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+ 				goto skip_rx;
+ 			}
+ 
+-			skb_reserve(skb, NET_SKB_PAD + NET_IP_ALIGN);
++			net_prefetchw(skb->data);
++			skb_reserve(skb, NET_SKB_PAD + eth->ip_align);
+ 			skb_put(skb, pktlen);
+ 		}
