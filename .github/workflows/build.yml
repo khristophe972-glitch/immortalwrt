@@ -52,13 +52,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: openwrt/dl
-          key: dl-${{ runner.os }}-${{ hashFiles('**/Makefile') }}
+          key: dl-${{ runner.os }}-${{ hashFiles('openwrt/include/version.mk') }}
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: openwrt/.ccache
-          key: ccache-${{ runner.os }}-${{ hashFiles('**/Makefile') }}
+          key: ccache-${{ runner.os }}-${{ hashFiles('openwrt/include/version.mk') }}
           restore-keys: |
             ccache-${{ runner.os }}-
 
