@@ -36,6 +36,14 @@ while read -r pkg; do
 	[ "$i" -eq 3 ] && logger -t 99-reinstall-packages "ÉCHEC APRÈS 3 TENTATIVES: $pkg"
 done < "$LIST"
 
+# Réactiver les services custom : apk add ne crée PAS les symlinks rc.d
+# (S95/K10) → sans enable, le service ne se lance jamais au boot.
+for svc in hairpin hairpin-route; do
+	[ -x "/etc/init.d/$svc" ] || continue
+	/etc/init.d/$svc enable 2>/dev/null
+	/etc/init.d/$svc start 2>/dev/null
+done
+
 touch /tmp/pkg-reinstall-done
 logger -t 99-reinstall-packages "$n paquets réinstallés"
 exit 0
