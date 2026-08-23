@@ -184,6 +184,7 @@ platform_do_upgrade() {
 	routerich,ax3000-ubootmod|\
 	routerich,be7200|\
 	snr,snr-cpe-ax2|\
+	teralink,tl3020-256mb|\
 	tplink,be450-ubi|\
 	tplink,tl-7dr7230-v1|\
 	tplink,tl-7dr7230-v2|\
@@ -285,7 +286,6 @@ platform_do_upgrade() {
 	kebidumei,ax3000-u22|\
 	totolink,x6000r|\
 	wavlink,wl-wn573hx3|\
-	wavlink,wl-wnt100x3|\
 	widelantech,wap430x|\
 	yuncore,ax835)
 		default_do_upgrade "$1"
@@ -433,6 +433,7 @@ platform_check_image() {
 	qihoo,360t7|\
 	qihoo,360t7-ubi|\
 	routerich,ax3000-ubootmod|\
+	teralink,tl3020-256mb|\
 	tplink,be450-ubi|\
 	tplink,tl-7dr7230-v1|\
 	tplink,tl-7dr7230-v2|\
