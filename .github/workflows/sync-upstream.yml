@@ -1,0 +1,63 @@
+name: Sync with upstream ImmortalWrt
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: openwrt-6.18
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git remote add upstream https://github.com/immortalwrt/immortalwrt.git
+          git fetch upstream master
+
+      - name: Merge upstream into local branch
+        id: merge
+        run: |
+          set -e
+          git merge --no-edit upstream/master || {
+            git merge --abort
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+          echo "conflict=false" >> "$GITHUB_OUTPUT"
+
+      - name: Push if merge succeeded
+        if: steps.merge.outputs.conflict == 'false'
+        run: git push origin openwrt-6.18
+
+      - name: Open issue on conflict
+        if: steps.merge.outputs.conflict == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Sync upstream failed: merge conflict on openwrt-6.18',
+              body: 'Le merge automatique de immortalwrt/master dans openwrt-6.18 a echoue (conflit). Resolution manuelle requise:\n\n```\ngit fetch upstream master\ngit merge upstream/master\n# resoudre les conflits\ngit push origin openwrt-6.18\n```'
+            })
+
+      - name: Trigger build after successful sync
+        if: steps.merge.outputs.conflict == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'build.yml',
+              ref: 'openwrt-6.18'
+            })
