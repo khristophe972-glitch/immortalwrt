@@ -44,6 +44,11 @@ for svc in hairpin hairpin-route; do
 	/etc/init.d/$svc start 2>/dev/null
 done
 
+# Ré-appliquer rc.local maintenant que le réseau est up et les packages
+# réinstallés : au boot certains fixes échouent (hostapd_cli pas encore là,
+# interface pas prête). rc.local est idempotent, un seul re-run suffit.
+sh /etc/rc.local
+
 touch /tmp/pkg-reinstall-done
 logger -t 99-reinstall-packages "$n paquets réinstallés"
 exit 0
