@@ -25,7 +25,8 @@ define Package/firewall4
 	+kmod-nft-core +kmod-nft-fib +kmod-nft-offload \
 	+kmod-nft-nat +kmod-nft-fullcone \
 	+nftables-json \
-	+ucode +ucode-mod-fs +ucode-mod-ubus +ucode-mod-uci
+	+ucode +ucode-mod-fs +ucode-mod-ubus +ucode-mod-uci \
+	+jsonfilter
   EXTRA_DEPENDS:=ucode (>=2022.03.22)
   PROVIDES:=uci-firewall
   DEFAULT_VARIANT:=1
@@ -43,6 +44,15 @@ endef
 
 define Package/firewall4/install
 	$(CP) -a $(PKG_BUILD_DIR)/root/* $(1)/
+	$(INSTALL_DIR) $(1)/etc/init.d $(1)/usr/bin
+	$(INSTALL_BIN) ./files/etc/init.d/qosify-flow-exclude $(1)/etc/init.d/qosify-flow-exclude
+	$(INSTALL_BIN) ./files/usr/bin/qosify-flow-exclude-run $(1)/usr/bin/qosify-flow-exclude-run
+endef
+
+define Package/firewall4/postinst
+#!/bin/sh
+[ -n "$${IPKG_INSTROOT}" ] || /etc/init.d/qosify-flow-exclude enable
+exit 0
 endef
 
 define Build/Compile
