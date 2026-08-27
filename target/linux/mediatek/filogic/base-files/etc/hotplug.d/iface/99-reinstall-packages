@@ -4,6 +4,11 @@
 
 [ "$ACTION" = "ifup" ] || exit 0
 [ -f /tmp/pkg-reinstall-done ] && exit 0
+# Garde anti-concurrence : au boot les ifup lan/wan/wan6 arrivent en rafale.
+# Sans verrou atomique, N instances tournent en parallèle → N `start hairpin`
+# → double-chargement XDP → fuite de liens freplace (investigation 28/08).
+mkdir /tmp/pkg-reinstall-running 2>/dev/null || exit 0
+trap 'rmdir /tmp/pkg-reinstall-running 2>/dev/null' EXIT
 
 # Réseau réellement joignable ?
 ping -c1 -W3 9.9.9.9 || exit 0
