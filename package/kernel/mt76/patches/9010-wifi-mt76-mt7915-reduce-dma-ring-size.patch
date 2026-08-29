@@ -1,0 +1,31 @@
+From: khristophe972-glitch <khristophe972@gmail.com>
+Date: Sat, 29 Aug 2026 16:30:00 +0200
+Subject: [PATCH] mt76: mt7915: reduce tx/rx dma ring size
+
+Reduce the MT7915 TX/RX DMA ring sizes to lower cache pressure and
+latency. Stock is TX 2048 / RX 1536. An aggressive community patch
+(romanovj, banana-pi forum 07/2024) drops to 256/128 for a +20%
+single-stream gain on MT7981, but that risks under-buffering under
+multi-stream burst on MT7986 (no WED, CPU TX path). Use a moderate
+reduction of TX 512 / RX 256 (~2 ms DMA buffering at 1.5 Gbps) as a
+safe middle ground for the GL-MT6000.
+
+Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
+---
+ mt7915/mt7915.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/mt7915/mt7915.h
++++ b/mt7915/mt7915.h
+@@ -19,9 +19,9 @@
+ #define MT7915_WATCHDOG_TIME		(HZ / 10)
+ #define MT7915_RESET_TIMEOUT		(30 * HZ)
+ 
+-#define MT7915_TX_RING_SIZE		2048
++#define MT7915_TX_RING_SIZE		512
+ #define MT7915_TX_MCU_RING_SIZE		256
+ #define MT7915_TX_FWDL_RING_SIZE	128
+ 
+-#define MT7915_RX_RING_SIZE		1536
++#define MT7915_RX_RING_SIZE		256
+ #define MT7915_RX_MCU_RING_SIZE		512
