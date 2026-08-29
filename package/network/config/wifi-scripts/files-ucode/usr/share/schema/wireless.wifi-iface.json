@@ -482,6 +482,11 @@
 			"default": "ap_isolate"
 		},
 
+		"interworking": {
+			"type": "boolean",
+			"default": false
+		},
+
 		"iw_access_network_type": {
 			"type": "alias",
 			"default": "access_network_type"

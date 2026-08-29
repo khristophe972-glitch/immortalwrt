@@ -536,7 +536,7 @@ function iface_hs20(config) {
 }
 
 function iface_interworking(config) {
-	if (!config.iw_enabled)
+	if (!config.iw_enabled && !config.interworking)
 		return;
 
 	config.interworking = true;
