@@ -1,4 +1,4 @@
-name: Build kmod-sched-cake for ImmortalWrt 24.10.5 GL-MT6000
+name: Build ImmortalWrt MT6000
 
 on:
   workflow_dispatch:
