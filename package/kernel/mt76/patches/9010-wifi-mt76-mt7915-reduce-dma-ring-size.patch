@@ -12,12 +12,12 @@ safe middle ground for the GL-MT6000.
 
 Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
 ---
- mt7915/mt7915.h |    4 ++--
+ mt7915/mt7915.h | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 --- a/mt7915/mt7915.h
 +++ b/mt7915/mt7915.h
-@@ -19,9 +19,9 @@
+@@ -19,11 +19,11 @@
  #define MT7915_WATCHDOG_TIME		(HZ / 10)
  #define MT7915_RESET_TIMEOUT		(30 * HZ)
  
@@ -29,3 +29,5 @@ Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
 -#define MT7915_RX_RING_SIZE		1536
 +#define MT7915_RX_RING_SIZE		256
  #define MT7915_RX_MCU_RING_SIZE		512
+ 
+ #define MT7915_FIRMWARE_WA		"mediatek/mt7915_wa.bin"
