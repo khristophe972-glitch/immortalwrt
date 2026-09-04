@@ -1,8 +1,8 @@
 --- a/mt7915/mac.c
 +++ b/mt7915/mac.c
-@@ -102,12 +102,12 @@
+@@ -94,12 +94,12 @@ static void mt7915_mac_sta_poll(struct m
+ 	struct rate_info *rate;
  	LIST_HEAD(sta_poll_list);
- 	int i;
  
 +	rcu_read_lock();
 +
@@ -13,5 +13,5 @@
 -	rcu_read_lock();
 -
  	while (true) {
- 		bool clear = false;
  		u32 addr, val;
+ 		u16 idx;
