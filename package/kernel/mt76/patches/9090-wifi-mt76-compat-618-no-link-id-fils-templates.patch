@@ -1,0 +1,54 @@
+From: khristophe972-glitch <khristophe972@gmail.com>
+Date: Fri, 04 Sep 2026 12:00:00 +0200
+Subject: [PATCH] mt76: compat: drop link_id arg of FILS/probe-resp template getters
+
+Kernel 6.18 still exposes ieee80211_get_fils_discovery_tmpl() and
+ieee80211_get_unsol_bcast_probe_resp_tmpl() with the pre-MLO two-argument
+signature (hw, vif). Upstream mt76 be5ce7910521 (2026-09-01) follows a
+newer mac80211 API that passes an explicit link_id third argument
+(upstream commits 254a3442b3ad / 67c5f7ae2511), which does not compile
+against the 6.18 kernel:
+
+  mt7915/mcu.c: error: too many arguments to function
+  'ieee80211_get_fils_discovery_tmpl'
+
+mt7915 passes link_id 0 (deflink, identical to the 6.18 kernel behaviour)
+and mt7996 passes link_conf->link_id. Dropping the argument restores the
+known-good two-argument calls used before the upstream API change.
+Local kernel-compat patch: revert once the tree kernel has the link_id
+argument (openwrt/openwrt main hit the same breakage on 2026-09-01).
+
+--- a/mt7915/mcu.c
++++ b/mt7915/mcu.c
+@@ -2012,11 +2012,11 @@
+
+ 	if (changed & BSS_CHANGED_FILS_DISCOVERY) {
+ 		interval = vif->bss_conf.fils_discovery.max_interval;
+-		skb = ieee80211_get_fils_discovery_tmpl(hw, vif, 0);
++		skb = ieee80211_get_fils_discovery_tmpl(hw, vif);
+ 	} else if (changed & BSS_CHANGED_UNSOL_BCAST_PROBE_RESP &&
+ 		   vif->bss_conf.unsol_bcast_probe_resp_interval) {
+ 		interval = vif->bss_conf.unsol_bcast_probe_resp_interval;
+-		skb = ieee80211_get_unsol_bcast_probe_resp_tmpl(hw, vif, 0);
++		skb = ieee80211_get_unsol_bcast_probe_resp_tmpl(hw, vif);
+ 	}
+
+ 	if (!skb) {
+--- a/mt7996/mcu.c
++++ b/mt7996/mcu.c
+@@ -3465,13 +3465,11 @@
+ 	if (changed & BSS_CHANGED_FILS_DISCOVERY &&
+ 	    link_conf->fils_discovery.max_interval) {
+ 		interval = link_conf->fils_discovery.max_interval;
+-		skb = ieee80211_get_fils_discovery_tmpl(hw, vif,
+-							link_conf->link_id);
++		skb = ieee80211_get_fils_discovery_tmpl(hw, vif);
+ 	} else if (changed & BSS_CHANGED_UNSOL_BCAST_PROBE_RESP &&
+ 		   link_conf->unsol_bcast_probe_resp_interval) {
+ 		interval = link_conf->unsol_bcast_probe_resp_interval;
+-		skb = ieee80211_get_unsol_bcast_probe_resp_tmpl(hw, vif,
+-								link_conf->link_id);
++		skb = ieee80211_get_unsol_bcast_probe_resp_tmpl(hw, vif);
+ 	}
+
+ 	if (!skb) {
