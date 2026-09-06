@@ -124,6 +124,7 @@ jobs:
           echo "CONFIG_PACKAGE_coreutils-sleep=y" >> .config
           echo "CONFIG_PACKAGE_openssh-sftp-server=y" >> .config
           echo "CONFIG_PACKAGE_coreutils-nohup=y" >> .config
+          echo "CONFIG_PACKAGE_procps-ng=y" >> .config
           echo "CONFIG_PACKAGE_procps-ng-watch=y" >> .config
           echo "CONFIG_CCACHE=y" >> .config
           echo "CONFIG_PACKAGE_diffutils=y" >> .config
