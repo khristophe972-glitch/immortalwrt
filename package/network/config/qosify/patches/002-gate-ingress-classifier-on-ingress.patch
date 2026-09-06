@@ -1,0 +1,21 @@
+diff --git a/interface.c b/interface.c
+index 36dddb5..ec2861d 100644
+--- a/interface.c
++++ b/interface.c
+@@ -310,7 +310,15 @@ cmd_add_ingress(struct qosify_iface *iface, bool eth)
+ 	int prio = QOSIFY_PRIO_BASE;
+ 	int ofs;
+ 
+-	cmd_add_bpf_filter(iface->ifname, prio++, false, eth);
++	/*
++	 * The downlink classifier (pref 272) remarks traffic with the
++	 * mapped DSCP.  Without ingress shaping enabled there is no cake
++	 * consuming it, so only attach it when ingress is on.
++	 */
++	if (iface->config.ingress)
++		cmd_add_bpf_filter(iface->ifname, prio++, false, eth);
++	else
++		prio++;
+ 
+ 	ofs = prepare_filter_cmd(buf, sizeof(buf), iface->ifname, prio++, true, false);
+ 	APPEND(buf, ofs, " protocol ip u32 match ip sport 53 0xffff "
