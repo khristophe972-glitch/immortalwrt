@@ -1,0 +1,53 @@
+From: khristophe972-glitch <khristophe972@gmail.com>
+Subject: [PATCH] net: ethernet: mtk_eth_soc: implement ethtool get/set_channels
+
+ethtool -l / -L on mtk_eth_soc fail with -EOPNOTSUPP because
+mtk_ethtool_ops exposes neither .get_channels nor .set_channels; no
+ethtool userspace version can work around a missing kernel op.
+
+Report ring counts from the netdev queues allocated in mtk_add_mac()
+(alloc_etherdev_mqs with eth->soc->num_tx_queues TX and eth->soc->rss_num
+RX on MTK_RSS SoCs), and allow changing the number of active TX queues at
+runtime via netif_set_real_num_tx_queues(). The TX path already honours
+real_num_tx_queues (mtk_select_queue), and sch_mq-based cake_mq follows it
+through .change_real_num_tx, so narrowing the active TX queues is safe and
+effective. RX ring count is a hardware property (RSS/LRO) and is rejected.
+
+Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
+---
+ drivers/net/ethernet/mediatek/mtk_eth_soc.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -4758,3 +4758,25 @@ static const struct ethtool_ops mtk_ethtool_ops = {
++static void mtk_get_channels(struct net_device *dev,
++			     struct ethtool_channels *channels)
++{
++	channels->max_tx = dev->num_tx_queues;
++	channels->max_rx = dev->num_rx_queues;
++	channels->tx_count = dev->real_num_tx_queues;
++	channels->rx_count = dev->real_num_rx_queues;
++}
++
++static int mtk_set_channels(struct net_device *dev,
++			    struct ethtool_channels *channels)
++{
++	/* RX ring count is a hardware property (RSS/LRO); only TX can change */
++	if (channels->rx_count || channels->combined_count)
++		return -EOPNOTSUPP;
++
++	if (!channels->tx_count || channels->tx_count > dev->num_tx_queues)
++		return -EINVAL;
++
++	return netif_set_real_num_tx_queues(dev, channels->tx_count);
++}
++
+ static const struct ethtool_ops mtk_ethtool_ops = {
+ 	.get_link_ksettings	= mtk_get_link_ksettings,
+ 	.set_link_ksettings	= mtk_set_link_ksettings,
+@@ -4771,2 +4793,4 @@ static const struct ethtool_ops mtk_ethtool_ops = {
+ 	.get_rxnfc		= mtk_get_rxnfc,
+ 	.set_rxnfc		= mtk_set_rxnfc,
++	.get_channels		= mtk_get_channels,
++	.set_channels		= mtk_set_channels,
