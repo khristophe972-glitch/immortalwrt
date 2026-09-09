@@ -1,0 +1,202 @@
+From: khristophe972-glitch <khristophe972@gmail.com>
+Subject: [PATCH] net: ethernet: mtk_eth_soc: add QDMA TX queue rate limit
+ control
+
+The QDMA TX scheduler exposes a per-queue MAX_RATE cap (enable, mantissa
+and exponent fields of each qtx_sch word: rate = MAN * 10^EXP kbps).
+mtk_set_queue_speed() already programs these bits at link-up on
+NETSYSv1/v2.  Expose the same control at runtime so the cap of any
+software TX queue can be set or lifted without renegotiating the link.
+
+Each queue's qtx_sch word also carries MIN_RATE, leaky-bucket and weight
+fields written at TX ring setup, so the value is updated through a
+read-modify-write that only touches the MAX_RATE bits.  A rate of 0
+clears the cap.  NETSYSv3 (MT7988) moved MAX_RATE to a different bit
+layout and is rejected.
+
+Exposed as a write-only qdma_tx_rate debugfs node under each PPE
+directory; write "<queue> <rate_mbps>" (0 lifts the cap).  Offloaded PPE
+flows never traverse the QDMA TX queues on NETSYSv1/v2, so this only
+paces the CPU software path, which is exactly what mtk_set_queue_speed()
+governs.
+
+Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
+---
+ drivers/net/ethernet/mediatek/mtk_eth_soc.c     | 84 +++++++++++++++++++++++++
+ drivers/net/ethernet/mediatek/mtk_eth_soc.h     |  2 +
+ drivers/net/ethernet/mediatek/mtk_ppe_debugfs.c | 43 +++++++++++++
+ 3 files changed, 129 insertions(+)
+
+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -1001,6 +1001,90 @@ static void mtk_set_queue_speed(struct mtk_eth *eth, unsigned int idx,
+ 	mtk_w32(eth, val, soc->reg_map->qdma.qtx_sch + ofs);
+ }
+ 
++/* Convert a rate in Mbps to the QDMA MAX_RATE MAN/EXP pair.  The register
++ * field encodes the rate as MAN * 10^EXP kbps.  Pick the representation with
++ * the smallest absolute error, preferring a smaller mantissa on ties so that
++ * round rates match the encodings used by mtk_set_queue_speed()
++ * (10M = 1/4, 100M = 1/5, 1000M = 1/6, 2500M = 25/5).
++ */
++static int mtk_qdma_rate_encode(unsigned int rate_mbps, u32 *man, u32 *exp)
++{
++	const u64 kbps = (u64)rate_mbps * 1000;
++	u64 best_err = U64_MAX;
++	u32 best_man = 0, best_exp = 0;
++	u64 div = 1;
++	u32 e;
++
++	for (e = 0; e <= 15; e++, div *= 10) {
++		u64 man = (kbps + div / 2) / div;
++		u64 err;
++
++		if (man < 1 || man > FIELD_MAX(MTK_QTX_SCH_MAX_RATE_MAN))
++			continue;
++
++		err = man * div > kbps ? man * div - kbps : kbps - man * div;
++		if (err < best_err || (err == best_err && e > best_exp)) {
++			best_man = man;
++			best_exp = e;
++			best_err = err;
++		}
++		if (!best_err)
++			break;
++	}
++
++	if (!best_man)
++		return -EINVAL;
++
++	*man = best_man;
++	*exp = best_exp;
++
++	return 0;
++}
++
++/* Cap or lift the QDMA TX scheduler MAX_RATE of one TX queue, using the
++ * non-NETSYSv3 register layout (MTK_QTX_SCH_MAX_RATE_EN/MAN/EXP) that
++ * mtk_set_queue_speed() programs.  Each queue's qtx_sch word also carries
++ * MIN_RATE, leaky-bucket and weight fields, so only the MAX_RATE bits are
++ * touched through a read-modify-write, preserving the defaults written at
++ * TX ring setup.  A rate of 0 clears the cap.
++ *
++ * NETSYSv3 (MT7988) puts MAX_RATE on a different bit layout and is rejected;
++ * offloaded PPE flows never traverse the QDMA TX queues on NETSYSv1/v2, so
++ * this only paces the software TX path.
++ */
++int mtk_qdma_set_queue_max_rate(struct mtk_eth *eth, unsigned int idx,
++				unsigned int rate_mbps)
++{
++	const struct mtk_soc_data *soc = eth->soc;
++	u32 ofs, val;
++	u32 man, exp;
++
++	if (!MTK_HAS_CAPS(soc->caps, MTK_QDMA) ||
++	    mtk_is_netsys_v3_or_greater(eth))
++		return -EOPNOTSUPP;
++
++	if (idx >= soc->num_tx_queues)
++		return -EINVAL;
++
++	mtk_w32(eth, idx / MTK_QTX_PER_PAGE, soc->reg_map->qdma.page);
++	ofs = MTK_QTX_OFFSET * (idx % MTK_QTX_PER_PAGE);
++	val = mtk_r32(eth, soc->reg_map->qdma.qtx_sch + ofs);
++	val &= ~(MTK_QTX_SCH_MAX_RATE_EN | MTK_QTX_SCH_MAX_RATE_MAN |
++		 MTK_QTX_SCH_MAX_RATE_EXP);
++
++	if (rate_mbps) {
++		if (mtk_qdma_rate_encode(rate_mbps, &man, &exp))
++			return -EINVAL;
++
++		val |= MTK_QTX_SCH_MAX_RATE_EN |
++		       FIELD_PREP(MTK_QTX_SCH_MAX_RATE_MAN, man) |
++		       FIELD_PREP(MTK_QTX_SCH_MAX_RATE_EXP, exp);
++	}
++	mtk_w32(eth, val, soc->reg_map->qdma.qtx_sch + ofs);
++
++	return 0;
++}
++
+ static void mtk_gdm_mac_link_up(struct mtk_mac *mac,
+ 				struct phy_device *phy,
+ 				unsigned int mode, phy_interface_t interface,
+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.h b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.h
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
+@@ -1703,6 +1703,8 @@ void mtk_stats_update_mac(struct mtk_mac *mac);
+ void mtk_w32(struct mtk_eth *eth, u32 val, unsigned reg);
+ u32 mtk_r32(struct mtk_eth *eth, unsigned reg);
+ u32 mtk_m32(struct mtk_eth *eth, u32 mask, u32 set, unsigned int reg);
++int mtk_qdma_set_queue_max_rate(struct mtk_eth *eth, unsigned int idx,
++				unsigned int rate_mbps);
+ 
+ static inline void mtk_pse_wdma_enable(struct mtk_eth *eth, int id, bool enable)
+ {
+diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_debugfs.c b/drivers/net/ethernet/mediatek/mtk_ppe_debugfs.c
+--- a/drivers/net/ethernet/mediatek/mtk_ppe_debugfs.c
++++ b/drivers/net/ethernet/mediatek/mtk_ppe_debugfs.c
+@@ -3,6 +3,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/debugfs.h>
++#include <linux/uaccess.h>
+ 
+ #include <net/ipv6.h>
+ 
+@@ -181,6 +182,46 @@ mtk_ppe_debugfs_foe_bind_show(struct seq_file *m, void *private)
+ }
+ DEFINE_SHOW_ATTRIBUTE(mtk_ppe_debugfs_foe_bind);
+ 
++static int
++mtk_ppe_debugfs_qdma_tx_rate_open(struct inode *inode, struct file *file)
++{
++	file->private_data = inode->i_private;
++	return 0;
++}
++
++static ssize_t
++mtk_ppe_debugfs_qdma_tx_rate_write(struct file *file,
++				   const char __user *ubuf, size_t size,
++				   loff_t *ppos)
++{
++	struct mtk_ppe *ppe = file->private_data;
++	unsigned int idx, rate_mbps;
++	char buf[32];
++	int err;
++
++	if (size >= sizeof(buf))
++		return -E2BIG;
++
++	if (copy_from_user(buf, ubuf, size))
++		return -EFAULT;
++	buf[size] = '\0';
++
++	if (sscanf(buf, "%u %u", &idx, &rate_mbps) != 2)
++		return -EINVAL;
++
++	err = mtk_qdma_set_queue_max_rate(ppe->eth, idx, rate_mbps);
++	if (err)
++		return err;
++
++	*ppos += size;
++	return size;
++}
++
++static const struct file_operations mtk_ppe_debugfs_qdma_tx_rate_fops = {
++	.open = mtk_ppe_debugfs_qdma_tx_rate_open,
++	.write = mtk_ppe_debugfs_qdma_tx_rate_write,
++};
++
+ int mtk_ppe_debugfs_init(struct mtk_ppe *ppe, int index)
+ {
+ 	struct dentry *root;
+@@ -190,6 +231,8 @@ int mtk_ppe_debugfs_init(struct mtk_ppe *ppe, int index)
+ 	root = debugfs_create_dir(ppe->dirname, NULL);
+ 	debugfs_create_file("entries", S_IRUGO, root, ppe, &mtk_ppe_debugfs_foe_all_fops);
+ 	debugfs_create_file("bind", S_IRUGO, root, ppe, &mtk_ppe_debugfs_foe_bind_fops);
++	debugfs_create_file("qdma_tx_rate", S_IWUSR, root, ppe,
++			    &mtk_ppe_debugfs_qdma_tx_rate_fops);
+ 
+ 	return 0;
+ }
