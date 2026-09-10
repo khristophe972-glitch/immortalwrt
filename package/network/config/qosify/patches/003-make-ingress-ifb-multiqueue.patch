@@ -1,0 +1,51 @@
+From: GL-MT6000 fork <noreply@localhost>
+Subject: [PATCH] interface: make the ingress ifb multiqueue so cake_mq attaches
+
+With the "multiqueue" option enabled qosify emits "root cake_mq" for the
+ingress qdisc too, but that qdisc runs on the ifb created by
+cmd_add_ingress(), which is created with a single tx queue.  cake_mq
+refuses to attach to a single-queue device:
+
+  qosify: Command: tc qdisc add dev 'ifb-eth1' root cake_mq ...
+  qosify: RTNETLINK answers: Not supported
+
+so the ifb silently falls back to the default "fq" root and ingress
+shaping is a no-op.
+
+Create the ifb with one tx queue per online CPU when multiqueue is set,
+so cake_mq can spread flows across queues (see the matching
+ifb_select_queue() helper in the kernel tree).
+
+Signed-off-by: GL-MT6000 fork <noreply@localhost>
+---
+ interface.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/interface.c b/interface.c
+--- a/interface.c
++++ b/interface.c
+@@ -344,7 +344,23 @@
+ 	if (!iface->config.ingress)
+ 		return 0;
+ 
+-	snprintf(buf, sizeof(buf), "ip link add '%s' type ifb", ifbdev);
++	/*
++	 * cake_mq only attaches to multiqueue devices.  The ingress qdisc
++	 * runs on the ifb created here; with a single tx queue cake_mq
++	 * fails with "RTNETLINK answers: Not supported" and the ifb root
++	 * falls back to fq.  Give the ifb one tx queue per CPU so cake_mq
++	 * can spread flows across them.
++	 */
++	if (iface->config.multiqueue) {
++		long nq = sysconf(_SC_NPROCESSORS_ONLN);
++		if (nq < 2)
++			nq = 2;
++		snprintf(buf, sizeof(buf),
++			 "ip link add name '%s' numtxqueues %ld type ifb",
++			 ifbdev, nq);
++	} else {
++		snprintf(buf, sizeof(buf), "ip link add '%s' type ifb", ifbdev);
++	}
+ 	qosify_run_cmd(buf, false);
+ 
+ 	cmd_add_qdisc(iface, ifbdev, false, eth);
