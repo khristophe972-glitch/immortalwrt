@@ -35,3 +35,8 @@ git-src
 .cproject
 .ccache
 .vscode*
+
+# Documentation projet dérivée de CLAUDE.md (untracked, règle 16)
+/.claude/docs/
+/.claude/agents/
+/contexte-projet-desktop.md
