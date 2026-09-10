@@ -1,0 +1,26 @@
+From: Christophe (fork iwrt-2512) <noreply@localhost>
+Date: Wed, 10 Sep 2026 00:00:00 +0200
+Subject: [PATCH] net: ethernet: mtk_ppe: add missing prototype for mtk_ppe_cache_clear()
+
+999-3013 renders mtk_ppe_cache_clear() global but declares no prototype
+in mtk_ppe.h, which triggers -Wmissing-prototypes (enabled by default
+since Linux 6.8 via Makefile.extrawarn).
+
+Keep the symbol global (in case 999-3019 adaptive-PPPQ is ever ported)
+and add the declaration next to the other mtk_ppe_* prototypes.
+
+Signed-off-by: Christophe (fork iwrt-2512)
+---
+ drivers/net/ethernet/mediatek/mtk_ppe.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/net/ethernet/mediatek/mtk_ppe.h
++++ b/drivers/net/ethernet/mediatek/mtk_ppe.h
+@@ -356,6 +356,7 @@
+ 
+ void mtk_ppe_deinit(struct mtk_eth *eth);
+ void mtk_ppe_update_mtu(struct mtk_ppe *ppe, int mtu);
++void mtk_ppe_cache_clear(struct mtk_ppe *ppe);
+ void mtk_ppe_start(struct mtk_ppe *ppe);
+ int mtk_ppe_stop(struct mtk_ppe *ppe);
+ int mtk_ppe_prepare_reset(struct mtk_ppe *ppe);
