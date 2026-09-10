@@ -1,0 +1,171 @@
+From: khristophe972-glitch <khristophe972@gmail.com>
+Subject: [PATCH] net: ethernet: mtk_eth_soc: expose RSS hash type through debugfs
+
+mtk_rss_init() programs the hash type of the MTK RSS engine by setting two
+3-bit fields of PDMA_RSS_GLO_CFG to a hardcoded value (the
+MTK_RSS_IPV4/IPV6_STATIC_HASH defines, both 0x7).  The meaning of that
+value is not documented anywhere in the tree: the only occurrences are the
+two defines in mtk_eth_soc.h and their two uses in mtk_rss_init(), and the
+register-definition patch that added them (add-rss-lro-reg) only provides
+the offset.  ethtool cannot reach the field either: mtk_get/set_rxfh()
+expose the hash key and the indirection table only, and set_rxfh() rejects
+any hash function other than ETH_RSS_HASH_TOP.
+
+Expose the two fields as a read/write debugfs node so that the hardware can
+be probed empirically without rebuilding the kernel for each value.  The
+write path stages the new value and then latches it with the same CFG_REQ
+pulse mtk_rss_init() uses, so the field is committed exactly the way the
+driver commits it at init; RSS_EN and every other bit are preserved by the
+read-modify-write.  The node defaults to the current value and changes
+nothing unless it is written, so it cannot regress a boot.
+
+Read:  cat /sys/kernel/debug/mtk_rss/hash_type
+Write: echo "<ipv4> <ipv6>" > /sys/kernel/debug/mtk_rss/hash_type
+       (both fields 0..7; 7 is the value mtk_rss_init() programs today)
+
+Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
+---
+ drivers/net/ethernet/mediatek/mtk_eth_soc.c | 106 +++++++++++++++++++++
+ drivers/net/ethernet/mediatek/mtk_eth_soc.h |   2 +
+ 2 files changed, 108 insertions(+)
+
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.h
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
+@@ -226,6 +226,8 @@
+ #define MTK_RSS_CFG_REQ			BIT(2)
+ #define MTK_RSS_IPV6_STATIC_HASH	(0x7 << 8)
+ #define MTK_RSS_IPV4_STATIC_HASH	(0x7 << 12)
++#define MTK_RSS_IPV6_HASH_TYPE		GENMASK(10, 8)
++#define MTK_RSS_IPV4_HASH_TYPE		GENMASK(14, 12)
+ #define MTK_RSS_HASH_KEY_DW(x)		(reg_map->pdma.rss_glo_cfg + 0x20 +	\
+ 					 ((x) * 0x4))
+ #define MTK_RSS_INDR_TABLE_DW(x)	(reg_map->pdma.rss_glo_cfg + 0x50 +	\
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -28,6 +28,9 @@
+ #include <linux/phy/phy.h>
+ #include <linux/jhash.h>
+ #include <linux/bitfield.h>
++#include <linux/debugfs.h>
++#include <linux/string.h>
++#include <linux/uaccess.h>
+ #include <linux/ethtool.h>
+ #include <linux/netlink.h>
+ #include <net/dsa.h>
+@@ -3768,6 +3771,107 @@
+ 	mtk_w32(eth, val, reg_map->pdma.rss_glo_cfg);
+ }
+ 
++#ifdef CONFIG_DEBUG_FS
++
++static int mtk_rss_hash_type_show(struct seq_file *m, void *v)
++{
++	struct mtk_eth *eth = m->private;
++	u32 val;
++
++	if (!eth->soc->rss_num)
++		return -EOPNOTSUPP;
++
++	val = mtk_r32(eth, eth->soc->reg_map->pdma.rss_glo_cfg);
++	seq_printf(m, "ipv4=%lu ipv6=%lu\n",
++		   FIELD_GET(MTK_RSS_IPV4_HASH_TYPE, val),
++		   FIELD_GET(MTK_RSS_IPV6_HASH_TYPE, val));
++
++	return 0;
++}
++
++static ssize_t mtk_rss_hash_type_write(struct file *file,
++				       const char __user *ubuf, size_t size,
++				       loff_t *ppos)
++{
++	struct seq_file *m = file->private_data;
++	struct mtk_eth *eth = m->private;
++	unsigned int ipv4, ipv6;
++	char buf[32];
++	u32 val;
++
++	if (!eth->soc->rss_num)
++		return -EOPNOTSUPP;
++
++	if (size >= sizeof(buf))
++		return -E2BIG;
++	if (copy_from_user(buf, ubuf, size))
++		return -EFAULT;
++	buf[size] = '\0';
++
++	if (sscanf(buf, "%u %u", &ipv4, &ipv6) != 2) {
++		/* whitespace-only write (echo from a shell builtin): no-op */
++		if (!*strim(buf))
++			return size;
++		return -EINVAL;
++	}
++	if (ipv4 > 7 || ipv6 > 7)
++		return -EINVAL;
++
++	/* Stage the new hash type, then latch it with the same CFG_REQ
++	 * pulse mtk_rss_init() uses.  RSS_EN and every other bit are
++	 * preserved by the read-modify-write.
++	 */
++	val = mtk_r32(eth, eth->soc->reg_map->pdma.rss_glo_cfg);
++	val &= ~(MTK_RSS_IPV4_HASH_TYPE | MTK_RSS_IPV6_HASH_TYPE);
++	val |= FIELD_PREP(MTK_RSS_IPV4_HASH_TYPE, ipv4) |
++	       FIELD_PREP(MTK_RSS_IPV6_HASH_TYPE, ipv6);
++	mtk_w32(eth, val, eth->soc->reg_map->pdma.rss_glo_cfg);
++
++	val |= MTK_RSS_CFG_REQ;
++	mtk_w32(eth, val, eth->soc->reg_map->pdma.rss_glo_cfg);
++	val &= ~MTK_RSS_CFG_REQ;
++	mtk_w32(eth, val, eth->soc->reg_map->pdma.rss_glo_cfg);
++
++	*ppos += size;
++
++	return size;
++}
++
++static int mtk_rss_hash_type_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, mtk_rss_hash_type_show, inode->i_private);
++}
++
++static const struct file_operations mtk_rss_hash_type_fops = {
++	.owner = THIS_MODULE,
++	.open = mtk_rss_hash_type_open,
++	.read = seq_read,
++	.write = mtk_rss_hash_type_write,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++
++static void mtk_rss_debugfs_init(struct mtk_eth *eth)
++{
++	struct dentry *root;
++
++	if (!eth->soc->rss_num)
++		return;
++
++	root = debugfs_create_dir("mtk_rss", NULL);
++	if (IS_ERR_OR_NULL(root))
++		return;
++
++	debugfs_create_file("hash_type", 0600, root, eth,
++			    &mtk_rss_hash_type_fops);
++}
++
++#else
++
++static inline void mtk_rss_debugfs_init(struct mtk_eth *eth) { }
++
++#endif
++
+ static netdev_features_t mtk_fix_features(struct net_device *dev,
+ 					  netdev_features_t features)
+ {
+@@ -6520,6 +6624,8 @@
+ 		mtk_ppe_internal_debugfs_init(eth);
+ 	}
+ 
++	mtk_rss_debugfs_init(eth);
++
+ 	/* we run 2 devices on the same DMA ring so we need a dummy device
+ 	 * for NAPI to work
+ 	 */
