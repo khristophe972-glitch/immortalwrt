@@ -1,0 +1,73 @@
+--- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
++++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+@@ -9,6 +9,7 @@
+ #include <linux/ipv6.h>
+ #include <net/flow_offload.h>
+ #include <net/pkt_cls.h>
++#include <net/pkt_sched.h>
+ #include <net/dsa.h>
+ #include <linux/dsa/8021q.h>
+ #include "mtk_eth_soc.h"
+@@ -673,6 +674,53 @@
+ 	}
+ }
+
++/*
++ * mqprio hardware offload. The traffic classes are mapped onto the QDMA TX
++ * queues; mtk_tx_hash() then routes each packet to its class queue through
++ * dev->num_tc and skb->priority (set from the DSCP by the qosify classifier).
++ */
++static int mtk_eth_setup_tc_mqprio(struct net_device *dev,
++				   struct tc_mqprio_qopt_offload *mqprio)
++{
++	struct tc_mqprio_qopt *qopt = &mqprio->qopt;
++	u16 num_tc = qopt->num_tc;
++	int i, j;
++
++	/* num_tc == 0 is the teardown path (mqprio_disable_offload). */
++	if (!num_tc) {
++		netdev_reset_tc(dev);
++		return 0;
++	}
++
++	if (num_tc > TC_QOPT_MAX_QUEUE)
++		return -EINVAL;
++
++	/* Per-class rate shaping is not wired to the QDMA rate limiter yet. */
++	if (mqprio->flags & (TC_MQPRIO_F_MIN_RATE | TC_MQPRIO_F_MAX_RATE))
++		return -EOPNOTSUPP;
++
++	for (i = 0; i < num_tc; i++) {
++		u16 offset = qopt->offset[i];
++		u16 count = qopt->count[i];
++
++		if (!count || offset >= dev->real_num_tx_queues ||
++		    offset + count > dev->real_num_tx_queues)
++			return -EINVAL;
++
++		for (j = i + 1; j < num_tc; j++) {
++			if (offset < qopt->offset[j] + qopt->count[j] &&
++			    qopt->offset[j] < offset + count)
++				return -EINVAL;
++		}
++	}
++
++	netdev_set_num_tc(dev, num_tc);
++	for (i = 0; i < num_tc; i++)
++		netdev_set_tc_queue(dev, i, qopt->count[i], qopt->offset[i]);
++
++	return 0;
++}
++
+ int mtk_eth_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 		     void *type_data)
+ {
+@@ -680,6 +728,8 @@
+ 	case TC_SETUP_BLOCK:
+ 	case TC_SETUP_FT:
+ 		return mtk_eth_setup_tc_block(dev, type_data);
++	case TC_SETUP_QDISC_MQPRIO:
++		return mtk_eth_setup_tc_mqprio(dev, type_data);
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
