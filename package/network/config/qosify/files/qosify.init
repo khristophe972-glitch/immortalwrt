@@ -167,6 +167,7 @@ start_service() {
 }
 
 service_running() {
-	ubus -t 10 wait_for qosify
-	[ $? = 0 ] && reload_service
+	# Status query only: bounded timeout (rpcd Startup-page budget), never pushes config.
+	ubus -t 1 wait_for qosify >/dev/null 2>&1
+	[ $? = 0 ]
 }
