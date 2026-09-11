@@ -1,0 +1,37 @@
+From: GL-MT6000 fork <noreply@localhost>
+Subject: [PATCH] classify: feed the DSCP class selector to the egress TX queue selection
+
+mqprio's traffic class map is not built from the DSCP.  The kernel indexes
+dev->prio_tc_map with skb->priority & TC_BITMASK (netdevice.h) and
+mtk_tx_hash() reads that map to choose the TX queues of a traffic class.
+qosify only rewrites the DS field inside the IP header -- cake reads the
+DSCP from the header -- so skb->priority stays 0 on forwarded traffic and
+every packet ends up in the class held by prio_tc_map[0].
+
+Set skb->priority to the DSCP class selector (the three high bits, giving
+CS0..CS7) once the DS field has been written, on the egress path only.  The
+egress filter runs before ndo_select_queue(), so the value is visible to
+mtk_tx_hash() when the upload leaves the WAN port.
+
+Signed-off-by: GL-MT6000 fork <noreply@localhost>
+---
+ qosify-bpf.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/qosify-bpf.c b/qosify-bpf.c
+--- a/qosify-bpf.c
++++ b/qosify-bpf.c
+@@ -549,6 +549,13 @@
+ 	else
+ 		dscp = ipv6_get_dscp(skb, iph_offset);
+
++	/* Feed the DSCP class selector to the egress TX queue selection:
++	 * mqprio's prio_tc_map is indexed by skb->priority & TC_BITMASK and
++	 * mtk_tx_hash() reads it to pick the traffic class queue.
++	 */
++	if (!ingress)
++		skb->priority = dscp >> 3;
++
+ 	account_dscp(dscp, packets, skb->len);
+
+ 	return TC_ACT_UNSPEC;
