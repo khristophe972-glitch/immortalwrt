@@ -132,7 +132,7 @@ add_class() {
 }
 
 
-reload_service() {
+push_config() {
 	json_init
 
 	config_load qosify
@@ -155,6 +155,31 @@ reload_service() {
 	ubus call qosify config "$(json_dump)"
 }
 
+# Le setup d'un device est ASYNCHRONE cote daemon : `ubus call qosify config`
+# rend la main avant que qosify n'ait pose son cake_mq sur eth1 (il fait
+# `tc qdisc del ... root` puis `add cake_mq`). Reposer mqprio trop tot = course
+# perdue (constate 12/09 07:45:13 : mqprio pose, puis ecrase par cake_mq). On
+# attend donc le signal "qosify a pris le root" (borne 15 s), puis on repose
+# mqprio. Idempotent.
+pose_mqprio() {
+	# Rien a faire si mqprio est deja root : un reload a config INCHANGEE ne
+	# refait pas le setup du device (aucun cake_mq a attendre) - evite 15 s de
+	# boucle inutile dans le hook procd.
+	tc qdisc show dev eth1 2>/dev/null | grep -q "^qdisc mqprio 8001:" && return 0
+	i=0
+	while [ "$i" -lt 15 ]; do
+		tc qdisc show dev eth1 2>/dev/null | grep -q "^qdisc cake_mq" && break
+		sleep 1
+		i=$((i+1))
+	done
+	/etc/mqprio-up.sh
+}
+
+reload_service() {
+	push_config
+	pose_mqprio
+}
+
 service_triggers() {
 	procd_add_reload_trigger qosify
 }
@@ -170,4 +195,13 @@ service_running() {
 	# Status query only: bounded timeout (rpcd Startup-page budget), never pushes config.
 	ubus -t 1 wait_for qosify >/dev/null 2>&1
 	[ $? = 0 ]
+}
+
+service_started() {
+	# 1) Push de la config. Depuis 77422b8361 (retire de service_running) plus rien
+	# ne pousse la config au boot : le daemon resterait a config vide (ubus call
+	# qosify status -> devices/interfaces vides), donc AUCUN classifieur pref 272,
+	# aucun ifb, aucun marquage DSCP -> mqprio avec toutes ses classes vides.
+	# procd appelle ce hook a chaque demarrage d'instance (respawn compris).
+	ubus -t 5 wait_for qosify >/dev/null 2>&1 && reload_service
 }
