@@ -192,7 +192,11 @@ start_service() {
 }
 
 service_running() {
-	ubus -t 10 wait_for qosify
+	# Amont 9a79cdc7ee, seule la borne change : `-t 10` depasse le budget de 3 s
+	# de rpcd, donc l'entree qosify disparait de la page Startup LuCI quand le
+	# demon est down. Mesure du 12/09 : 10,041 s a `-t 10` (demon down) vs
+	# 0,261 s (demon up). Le push de config, lui, reste celui de l'amont.
+	ubus -t 2 wait_for qosify
 	[ $? = 0 ] && reload_service
 }
 
