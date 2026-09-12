@@ -67,12 +67,10 @@ define Package/qosify/install
 		./files/qosify-status \
 		$(1)/usr/sbin/
 	$(INSTALL_BIN) ./files/qosify.init $(1)/etc/init.d/qosify
-	$(INSTALL_BIN) ./files/mqprio-up.sh $(1)/etc/mqprio-up.sh
 	$(INSTALL_DATA) ./files/qosify-defaults.conf $(1)/etc/qosify/00-defaults.conf
 	$(INSTALL_DATA) ./files/qosify.conf $(1)/etc/config/qosify
 	$(INSTALL_DATA) ./files/qosify.hotplug $(1)/etc/hotplug.d/net/10-qosify
 	$(INSTALL_DATA) ./files/qosify.hotplug $(1)/etc/hotplug.d/iface/10-qosify
-	$(INSTALL_DATA) ./files/mqprio.hotplug $(1)/etc/hotplug.d/iface/13-mqprio
 endef
 
 $(eval $(call BuildPackage,qosify))

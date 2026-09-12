@@ -1,8 +1,0 @@
-#!/bin/sh
-# Re-affirme mqprio (offload materiel) comme root qdisc d'eth1 apres un wan ifup.
-# Pose le 12/09/2026. Idempotent : /etc/mqprio-up.sh ne fait rien si mqprio est
-# deja en place. Le sleep laisse passer 10-qosify (add_dns_host) et 12-rtt-obs.
-[ "$ACTION" = "ifup" ] || exit 0
-[ "$INTERFACE" = "wan" ] || exit 0
-sleep 2
-/etc/mqprio-up.sh >/dev/null 2>&1 || true
