@@ -192,16 +192,17 @@ start_service() {
 }
 
 service_running() {
-	# Status query only: bounded timeout (rpcd Startup-page budget), never pushes config.
-	ubus -t 1 wait_for qosify >/dev/null 2>&1
-	[ $? = 0 ]
+	ubus -t 10 wait_for qosify
+	[ $? = 0 ] && reload_service
 }
 
 service_started() {
-	# 1) Push de la config. Depuis 77422b8361 (retire de service_running) plus rien
-	# ne pousse la config au boot : le daemon resterait a config vide (ubus call
-	# qosify status -> devices/interfaces vides), donc AUCUN classifieur pref 272,
-	# aucun ifb, aucun marquage DSCP -> mqprio avec toutes ses classes vides.
-	# procd appelle ce hook a chaque demarrage d'instance (respawn compris).
+	# NOTRE ajout : l'amont n'a pas ce hook -- 9a79cdc7ee a renomme
+	# service_started en service_running, or rc.common n'appelle
+	# service_running() que sur la commande `running`, jamais au boot. Sans ce
+	# push le daemon demarre a config vide (ubus call qosify status ->
+	# devices/interfaces vides) : aucun pref 272, aucun marquage DSCP, donc
+	# mqprio avec toutes ses classes vides. procd appelle ce hook a chaque
+	# demarrage d'instance (respawn compris).
 	ubus -t 5 wait_for qosify >/dev/null 2>&1 && reload_service
 }
