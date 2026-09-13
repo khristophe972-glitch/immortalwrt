@@ -1,4 +1,3 @@
-From a73a2105684f3f738a97997ccc8f48637b1acb6b Mon Sep 17 00:00:00 2001
 From: Eric Woudstra <ericwouds@gmail.com>
 Date: Fri, 24 Jan 2025 16:09:03 +0100
 Subject: [PATCH] netfilter: flow: Add bridge_vid member
@@ -9,6 +8,9 @@ used later to identify fdb entries that relate to the tuple.
 The bridge_vid member is added to the structures nft_forward_info,
 nf_flow_route and flow_offload_tuple. It can now be passed from
 net_device_path->bridge.vlan_id to flow_offload_tuple->out.bridge_vid.
+
+Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+Signed-off-by: Qingfang Deng <dqfext@gmail.com>
 ---
  include/net/netfilter/nf_flow_table.h | 2 ++
  net/netfilter/nf_flow_table_core.c    | 1 +
@@ -17,7 +19,7 @@ net_device_path->bridge.vlan_id to flow_offload_tuple->out.bridge_vid.
 
 --- a/include/net/netfilter/nf_flow_table.h
 +++ b/include/net/netfilter/nf_flow_table.h
-@@ -146,6 +146,7 @@
+@@ -146,6 +146,7 @@ struct flow_offload_tuple {
  		struct {
  			u32		ifidx;
  			u32		hw_ifidx;
@@ -25,7 +27,7 @@ net_device_path->bridge.vlan_id to flow_offload_tuple->out.bridge_vid.
  			u8		h_source[ETH_ALEN];
  			u8		h_dest[ETH_ALEN];
  		} out;
-@@ -212,6 +213,7 @@
+@@ -212,6 +213,7 @@ struct nf_flow_route {
  		struct {
  			u32			ifindex;
  			u32			hw_ifindex;
@@ -35,7 +37,7 @@ net_device_path->bridge.vlan_id to flow_offload_tuple->out.bridge_vid.
  		} out;
 --- a/net/netfilter/nf_flow_table_core.c
 +++ b/net/netfilter/nf_flow_table_core.c
-@@ -128,6 +128,7 @@
+@@ -128,6 +128,7 @@ static int flow_offload_fill_route(struc
  		       ETH_ALEN);
  		flow_tuple->out.ifidx = route->tuple[dir].out.ifindex;
  		flow_tuple->out.hw_ifidx = route->tuple[dir].out.hw_ifindex;
@@ -45,7 +47,7 @@ net_device_path->bridge.vlan_id to flow_offload_tuple->out.bridge_vid.
  	case FLOW_OFFLOAD_XMIT_XFRM:
 --- a/net/netfilter/nf_flow_table_path.c
 +++ b/net/netfilter/nf_flow_table_path.c
-@@ -82,6 +82,7 @@
+@@ -82,6 +82,7 @@ struct nft_forward_info {
  		__u16	id;
  		__be16	proto;
  	} encap[NF_FLOW_TABLE_ENCAP_MAX];
@@ -53,7 +55,7 @@ net_device_path->bridge.vlan_id to flow_offload_tuple->out.bridge_vid.
  	u8 num_encaps;
  	u8 ingress_vlans;
  	u8 h_source[ETH_ALEN];
-@@ -155,6 +156,7 @@
+@@ -155,6 +156,7 @@ static void nft_dev_path_info(const stru
  			case DEV_PATH_BR_VLAN_KEEP:
  				break;
  			}
@@ -61,7 +63,7 @@ net_device_path->bridge.vlan_id to flow_offload_tuple->out.bridge_vid.
  			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
  			break;
  		default:
-@@ -219,6 +221,7 @@
+@@ -219,6 +221,7 @@ static void nft_dev_forward_path(struct
  		memcpy(route->tuple[dir].out.h_dest, info.h_dest, ETH_ALEN);
  		route->tuple[dir].out.ifindex = info.outdev->ifindex;
  		route->tuple[dir].out.hw_ifindex = info.hw_outdev->ifindex;
