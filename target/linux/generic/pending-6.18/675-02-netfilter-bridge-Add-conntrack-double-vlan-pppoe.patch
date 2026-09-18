@@ -1,7 +1,7 @@
-From 415431126f5e582243b31b508637fc1c7fb45dca Mon Sep 17 00:00:00 2001
-From: Bohdan Chubuk <chbgdn@gmail.com>
+From 5c1edae57350da1cae8817038051f33aa9f5735e Mon Sep 17 00:00:00 2001
+From: Eric Woudstra <ericwouds@gmail.com>
 Date: Wed, 1 Jul 2026 03:17:30 +0300
-Subject: [PATCH 02/11] netfilter: bridge: Add conntrack double vlan and pppoe
+Subject: [PATCH 02/14] netfilter: bridge: Add conntrack double vlan and pppoe
 
 In a bridge, until now, it is possible to track connections of plain
 ip(v6) and ip(v6) encapsulated in single 802.1q or 802.1ad.
@@ -18,9 +18,10 @@ encapsulations of the tracking capability inside a bridge.
 
 Also handling of de-/re-fragmenting is patched accordingly.
 
-Based on commit 2e7ece387747 from ericwoud/bpir-nftflow-nf-next-20260512.
+Based on commit bf8ce0c0bf10 from ericwoud/bpir-nftflow-nf-next-20260707.
 
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+Signed-off-by: Bohdan Chubuk <chbgdn@gmail.com>
 ---
  include/linux/netfilter_bridge.h           |   6 +
  net/bridge/netfilter/nf_conntrack_bridge.c | 203 ++++++++++++++++++---
@@ -114,7 +115,7 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
  #else
  	return NF_ACCEPT;
  #endif
-@@ -237,58 +253,139 @@ static int nf_ct_br_ipv6_check(const str
+@@ -237,59 +253,140 @@ static int nf_ct_br_ipv6_check(const str
  	return 0;
  }
  
@@ -254,6 +255,7 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 +		ret = nf_ct_br_defrag6(skb, &bridge_state, offset);
  		break;
  	default:
+ 		nf_reset_ct(skb);
  		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
 -		return NF_ACCEPT;
 +		goto do_not_track;
@@ -273,7 +275,7 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
  }
  
  static unsigned int nf_ct_bridge_in(void *priv, struct sk_buff *skb,
-@@ -341,12 +438,22 @@ nf_ct_bridge_refrag(struct sk_buff *skb,
+@@ -342,12 +439,22 @@ nf_ct_bridge_refrag(struct sk_buff *skb,
  				  struct sk_buff *))
  {
  	struct nf_bridge_frag_data data;
@@ -297,7 +299,7 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
  	case htons(ETH_P_IP):
  		nf_br_ip_fragment(state->net, state->sk, skb, &data, output);
  		break;
-@@ -367,11 +474,49 @@ static int nf_ct_bridge_frag_restore(str
+@@ -368,11 +475,49 @@ static int nf_ct_bridge_frag_restore(str
  {
  	int err;
  
@@ -351,7 +353,7 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
  	if (data->vlan_present)
  		__vlan_hwaccel_put_tag(skb, data->vlan_proto, data->vlan_tci);
  	else if (skb_vlan_tag_present(skb))
-@@ -381,6 +526,10 @@ static int nf_ct_bridge_frag_restore(str
+@@ -382,6 +527,10 @@ static int nf_ct_bridge_frag_restore(str
  	skb_reset_mac_header(skb);
  
  	return 0;

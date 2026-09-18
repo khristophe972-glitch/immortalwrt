@@ -1,7 +1,7 @@
-From 9ce33128cbe3f2ecddc90fd2d6eaa6003a7402d9 Mon Sep 17 00:00:00 2001
-From: Bohdan Chubuk <chbgdn@gmail.com>
+From c30deb4a73e1e8a0961e17010aa0d42e9b906adc Mon Sep 17 00:00:00 2001
+From: Eric Woudstra <ericwouds@gmail.com>
 Date: Wed, 1 Jul 2026 03:18:39 +0300
-Subject: [PATCH 05/11] bridge: Add filling forward path from port to port
+Subject: [PATCH 05/14] bridge: Add filling forward path from port to port
 
 If a port is passed as argument instead of the master, then:
 
@@ -11,9 +11,10 @@ forward path.
 At br_vlan_fill_forward_path_pvid(): lookup vlan group from port
 instead.
 
-Based on commit 9034f670c853 from ericwoud/bpir-nftflow-nf-next-20260512.
+Based on commit 640f342b44f0 from ericwoud/bpir-nftflow-nf-next-20260707.
 
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+Signed-off-by: Bohdan Chubuk <chbgdn@gmail.com>
 ---
  net/bridge/br_device.c  | 19 ++++++++++++++-----
  net/bridge/br_private.h |  2 ++
@@ -55,15 +56,15 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
  	if (!f)
 --- a/net/bridge/br_private.h
 +++ b/net/bridge/br_private.h
-@@ -1616,6 +1616,7 @@ bool br_vlan_can_enter_range(const struc
- 			     const struct net_bridge_vlan *range_end);
+@@ -1617,6 +1617,7 @@ bool br_vlan_can_enter_range(const struc
+ 			     u16 pvid);
  
  void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
 +				    struct net_bridge_port *p,
  				    struct net_device_path_ctx *ctx,
  				    struct net_device_path *path);
  int br_vlan_fill_forward_path_mode(struct net_bridge *br,
-@@ -1785,6 +1786,7 @@ static inline int nbp_get_num_vlan_infos
+@@ -1786,6 +1787,7 @@ static inline int nbp_get_num_vlan_infos
  }
  
  static inline void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
