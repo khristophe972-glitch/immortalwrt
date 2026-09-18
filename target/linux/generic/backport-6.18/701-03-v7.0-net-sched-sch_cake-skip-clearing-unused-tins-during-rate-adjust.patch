@@ -61,10 +61,10 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/net/sched/sch_cake.c
 +++ b/net/sched/sch_cake.c
-@@ -2597,9 +2597,11 @@ static void cake_configure_rates(struct Qdisc *sch, u64 rate, bool rate_adjust)
+@@ -2602,9 +2602,11 @@ static void cake_configure_rates(struct
  		break;
  	}
-
+ 
 -	for (c = qd->tin_cnt; c < CAKE_MAX_TINS; c++) {
 -		cake_clear_tin(sch, c);
 -		qd->tins[c].cparams.mtu_time = qd->tins[ft].cparams.mtu_time;
@@ -74,5 +74,5 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 +			qd->tins[c].cparams.mtu_time = qd->tins[ft].cparams.mtu_time;
 +		}
  	}
-
+ 
  	qd->rate_ns   = qd->tins[ft].tin_rate_ns;
