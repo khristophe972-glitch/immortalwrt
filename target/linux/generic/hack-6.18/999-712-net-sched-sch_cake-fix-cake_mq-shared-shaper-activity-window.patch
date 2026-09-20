@@ -1,0 +1,104 @@
+net/sched: sch_cake: make the cake_mq shared-shaper divisor track real concurrency
+
+cake_mq installs one cake instance per TX queue, all sharing a single
+config, so the aggregate rate cap rests entirely on the shared-shaper
+divisor:
+
+	new_rate = cfg->rate_bps / num_active_qs
+
+num_active_qs is recomputed by whichever queue wins the sync tick, and
+counted the queues that either had backlog or had *dequeued* within the
+last tick (WRITE_ONCE(q->last_active, now) lives in cake_dequeue). The
+activity window was therefore the sync tick itself, g_sync_time_ns =
+200us, a value with no relation to the shaper timescale.
+
+Measured on a GL-MT6000 (16 TX queues on the WAN, shared cap 900Mbit).
+During an 802Mbit single-stream upload, with all 16 queues demonstrably
+carrying traffic (per-queue packet deltas over the run ranged from 721
+to 118802), tc showed the 16 children holding *five different* divisors
+at the same instant -- 1, 2, 3, 4, 5 and 6 -- for several seconds, i.e.
+per-child rates from 150Mbit to 900Mbit, summing to about 5.6Gbit
+against a 900Mbit shared cap. Since each child re-reads the shared
+value on every dequeue and reconfigures itself when it differs, a
+spread that persists while every queue is busy means the shared value
+itself is flapping between ticks and each child keeps whichever sample
+it happened to draw.
+
+Decouple the activity window from the tick. Backlog stays the primary
+criterion; the window is only the short tail kept for a queue that has
+just drained, so that a queue momentarily empty between two dequeue
+bursts does not drop out of the count. A queue that has just *received*
+a packet also counts as active, before its first dequeue, so the count
+ramps up with a new flow.
+
+The default window is deliberately short rather than large: on this box
+idle traffic only touches a given queue a few times per second (measured
+at 2-3 of the 16 queues active within any 50ms window at idle), so a 1ms
+window keeps the spurious contribution near zero and a single-stream
+upload reads num_active_qs = 1, i.e. the full 900Mbit. A window of the
+order of 100ms would count that idle chatter and cap a lone flow to
+roughly a third of the line.
+
+The window is exposed through debugfs, like sync_time_ns, so it can be
+retuned without reflashing.
+
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -83,6 +83,17 @@
+ #define CAKE_FLOW_MASK 63
+ #define CAKE_FLOW_NAT_FLAG 64
+ static u64 g_sync_time_ns = 200*NSEC_PER_USEC;
++/* Fenetre d'activite du shaper partage cake_mq. Le backlog
++ * (other_qlen) est le critere principal ; cette fenetre n'est que
++ * la queue gardee pour une file qui vient de se vider, afin qu'une
++ * file momentanement vide entre deux rafales ne sorte pas du
++ * compte. Dimensionnee sur le debit de paquets par file, pas sur la
++ * periode de tick : mesure a vide, la telescript du routeur ne
++ * touche chaque file que quelques fois par seconde, donc 1 ms garde
++ * la contribution parasite quasi nulle, la ou 100 ms compteraient
++ * ce bruit et plafonneraient un flux unique au tiers de la ligne.
++ */
++static u64 g_active_window_ns = 1*NSEC_PER_MSEC;
+ static unsigned int cake_mq_queue_count(const struct net_device *dev)
+ {
+ 	unsigned int ntx = READ_ONCE(dev->real_num_tx_queues);
+@@ -1809,6 +1820,12 @@
+ 		}
+ 	}
+ 
++	/* Une file qui vient de recevoir un paquet est active pour le
++	 * diviseur du shaper partage, avant meme son premier dequeue :
++	 * le compte monte ainsi des l'arrivee d'un nouveau flux.
++	 */
++	WRITE_ONCE(q->last_active, now);
++
+ 	if (unlikely(len > b->max_skblen))
+ 		b->max_skblen = len;
+ 
+@@ -2036,6 +2053,8 @@
+ 	if (cfg->is_shared && q->rate_ns) {
+ 		u64 last_checked = READ_ONCE(cfg->shared_last_checked);
+ 		u32 active_queues = READ_ONCE(cfg->shared_active_queues);
++		u64 now_ns = ktime_to_ns(now);
++		u64 active_since = now_ns - min(now_ns, g_active_window_ns);
+ 
+ 		if (now - last_checked >= g_sync_time_ns &&
+ 		    spin_trylock(&cfg->sync_lock)) {
+@@ -2060,7 +2079,7 @@
+ 					other_qlen = READ_ONCE(other_sch->q.qlen);
+ 					other_last_active = READ_ONCE(other_priv->last_active);
+ 
+-					if (other_qlen || other_last_active > last_checked)
++					if (other_qlen || other_last_active > active_since)
+ 						num_active_qs++;
+ 				}
+ 
+@@ -3404,6 +3423,8 @@
+ 		struct dentry *cake_mq_debugfs = debugfs_create_dir("cake_mq", NULL);
+ 
+ 		debugfs_create_u64("sync_time_ns", 0644, cake_mq_debugfs, &g_sync_time_ns);
++		debugfs_create_u64("active_window_ns", 0644, cake_mq_debugfs,
++				   &g_active_window_ns);
+ 	}
+ 
+ 	return ret;
