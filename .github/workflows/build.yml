@@ -135,12 +135,18 @@ jobs:
           echo "CONFIG_CCACHE=y" >> .config
           echo "CONFIG_PACKAGE_diffutils=y" >> .config
           echo "CONFIG_PACKAGE_less=y" >> .config
+          # IMAGEOPT/VERSIONOPT doivent etre poses, sinon kconfig masque
+          # VERSION_REPO (pose l.93) et l'image repart sur le snapshot amont
+          echo "CONFIG_IMAGEOPT=y" >> .config
+          echo "CONFIG_VERSIONOPT=y" >> .config
           make defconfig
           # Forcer packages après defconfig
           echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
           echo "CONFIG_PACKAGE_kmod-sched-red=y" >> .config
           echo "CONFIG_PACKAGE_kmod-ip6tables=y" >> .config
           make defconfig
+          # Preuve que kconfig n'a pas ecrase VERSION_REPO apres defconfig
+          grep -q '^CONFIG_VERSION_REPO="https://khristophe972-glitch.github.io/immortalwrt"$' .config || { echo "ERREUR: CONFIG_VERSION_REPO ecrase par kconfig"; exit 1; }
           echo "=== Target vérifié ==="
           grep "CONFIG_TARGET.*=y\|DEVICE.*glinet" .config | head -10
 
