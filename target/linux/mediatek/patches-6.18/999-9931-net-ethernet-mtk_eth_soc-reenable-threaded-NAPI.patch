@@ -1,0 +1,38 @@
+Re-enable threaded NAPI on mtk_eth_soc.
+
+pesa1234's RSS rework (999-2711, synced by 2b0188985c "sync MT7986 patches
+from pesa1234 next-r4.9.0.rss.mtk") rewrote the dummy-device NAPI setup and
+dropped the two lines that OpenWrt's generic pending-6.18/702 adds just
+before the netif_napi_add() calls:
+
+    eth->dummy_dev->threaded = 1;
+    strcpy(eth->dummy_dev->name, "mtk_eth");
+
+generic/pending-6.18/ is applied before target patches (include/quilt.mk), so
+the net effect has been threaded NAPI silently disabled on mtk_eth_soc, with
+the dummy netdev left named "dummy%d" -- hence no napi/mtk_eth-* kthreads.
+
+dev->threaded is still a plain u8 in 6.18 (include/linux/netdevice.h) and
+netif_napi_add_weight() still creates the kthread when it is set
+(net/core/dev.c): the 6.18 dev_set_threaded() enum change is not involved
+here, patch 702's direct write remains valid.
+
+Setting the flag before the netif_napi_add_weight() calls covers tx_napi,
+rx_napi[0] and every RSS ring in one go, exactly as 702 intended.
+
+This must remain the last patch touching this block: 999-9910 is, as of now.
+
+---
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -6265,8 +6265,10 @@ static int mtk_probe(struct platform_dev
+ 		err = -ENOMEM;
+ 		dev_err(eth->dev, "failed to allocate dummy device\n");
+ 		goto err_deinit_ppe;
+ 	}
++	eth->dummy_dev->threaded = 1;
++	strcpy(eth->dummy_dev->name, "mtk_eth");
+ 	netif_napi_add_weight(eth->dummy_dev, &eth->tx_napi, mtk_napi_tx,
+ 			      MTK_NAPI_WEIGHT);
+ 	netif_napi_add_weight(eth->dummy_dev, &eth->rx_napi[0].napi, mtk_napi_rx,
+ 			      MTK_NAPI_WEIGHT);
