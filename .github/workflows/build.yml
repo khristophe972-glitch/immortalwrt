@@ -89,6 +89,12 @@ jobs:
           echo "CONFIG_TARGET_mediatek=y" > .config
           echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
           echo "CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
+          # Le distfeeds genere doit pointer le fork, pas l'instantane amont
+          echo "CONFIG_VERSION_REPO=https://khristophe972-glitch.github.io/immortalwrt" >> .config
+          # routing/telephony passent par customfeeds.list ; video est vide en amont
+          echo "CONFIG_FEED_routing=m" >> .config
+          echo "CONFIG_FEED_telephony=m" >> .config
+          echo "CONFIG_FEED_video=m" >> .config
           echo "CONFIG_ALL_KMODS=y" >> .config
           echo "CONFIG_ALL_NONSHARED=y" >> .config
           echo "CONFIG_DEVEL=y" >> .config
@@ -162,7 +168,11 @@ jobs:
       - name: Deploy packages to gh-pages
         run: |
           mkdir -p /tmp/gh-pages
+          # %S = mediatek/filogic : le layout canonique doit exister pour que la
+          # ligne distfeeds generee (%U/targets/%S/packages/packages.adb) resolve
+          mkdir -p /tmp/gh-pages/targets/mediatek/filogic
           cp -a openwrt/bin/targets/mediatek/filogic/packages /tmp/gh-pages/target-packages 2>/dev/null || true
+          cp -a openwrt/bin/targets/mediatek/filogic/packages /tmp/gh-pages/targets/mediatek/filogic/packages 2>/dev/null || true
           KMOD_DIR=$(find openwrt/bin/targets/mediatek/filogic/kmods -maxdepth 1 -mindepth 1 -type d | head -1)
           [ -n "$KMOD_DIR" ] && cp -a "$KMOD_DIR" /tmp/gh-pages/kmods 2>/dev/null || true
           cp -a openwrt/bin/packages /tmp/gh-pages/packages 2>/dev/null || true
