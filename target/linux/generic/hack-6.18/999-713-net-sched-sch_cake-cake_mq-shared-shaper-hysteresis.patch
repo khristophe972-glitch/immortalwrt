@@ -1,0 +1,87 @@
+net/sched: sch_cake: add hysteresis to the cake_mq shared-shaper count
+
+cake_mq divides one shared rate cap among the TX queues that are
+currently active:
+
+	new_rate = cfg->rate_bps / num_active_qs
+
+num_active_qs is recomputed by whichever queue wins the sync tick, by
+sampling every queue's instantaneous backlog (other_qlen) and its last
+activity stamp. That sample is taken every g_sync_time_ns, 200us, and
+the resulting value is published as-is.
+
+Measured on a GL-MT6000 (16 TX queues on the WAN, shared cap 900Mbit),
+with the same bounded single-stream upload run twice two minutes apart,
+on the same image, toggling only the activity window through debugfs:
+
+  window 0    (backlog alone)   the 16 children read 1 to 4 at once
+  window 1ms  (backlog or       the 16 children read 1 to 5, then up to
+               active <1ms)     12 over the tail of the run
+
+The spread persists in both arms, so it is not the window that is
+unstable: it is the sampling. Two consecutive ticks can count very
+different numbers of queues, and each child caches whichever sample it
+drew, so the 16 children apply different divisors at the same instant.
+
+The per-queue packet deltas over the run also show the flow does not
+cover the whole device: five of the sixteen queues carried fewer than
+110 packets while the busiest carried about 168000. Both arms therefore
+under-count the queues that actually compete, and neither is stable.
+
+Stop the count from tracking the sampling noise. It now rises
+immediately -- so it never under-estimates concurrency, which is what
+would let the aggregate exceed the shared cap -- and falls by at most
+g_active_release queues per tick. At the 200us tick a release of 1
+brings a count of 16 back to 1 in about 3ms, well inside the timescale
+of a flow starting or stopping.
+
+The release is exposed through debugfs, like sync_time_ns and
+active_window_ns, so it can be retuned without reflashing. Setting it
+to 0 disables the hysteresis and publishes the instantaneous sample
+again, which gives the control arm of a live A/B.
+
+
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -94,6 +94,13 @@
+  * ce bruit et plafonneraient un flux unique au tiers de la ligne.
+  */
+ static u64 g_active_window_ns = 1*NSEC_PER_MSEC;
++/* Hysteresis du compte partage : nombre de files dont la descente
++ * peut etre absorbee en un tick de synchronisation. Le compte monte
++ * immediatement (il ne sous-estime donc jamais la concurrence, ce qui
++ * tiendrait le cap agrege) et ne redescend que de cette valeur par
++ * tick, au lieu de recopier le bruit d'echantillonnage du backlog.
++ */
++static u32 g_active_release = 1;
+ static unsigned int cake_mq_queue_count(const struct net_device *dev)
+ {
+ 	unsigned int ntx = READ_ONCE(dev->real_num_tx_queues);
+@@ -2083,6 +2090,18 @@
+ 						num_active_qs++;
+ 				}
+ 
++				/* Hysteresis : montee immediate, descente d'au plus
++				 * g_active_release par tick. active_queues porte ici la
++				 * derniere valeur publiee. g_active_release = 0 desactive
++				 * l'hysteresis (valeur instantanee), ce qui donne le bras
++				 * temoin d'un A/B live.
++				 */
++				if (g_active_release && num_active_qs < active_queues) {
++					u32 drop = active_queues - num_active_qs;
++
++					num_active_qs = active_queues - min(drop, g_active_release);
++				}
++
+ 				WRITE_ONCE(cfg->shared_last_checked, now);
+ 				WRITE_ONCE(cfg->shared_active_queues, num_active_qs);
+ 				active_queues = num_active_qs;
+@@ -3425,6 +3444,8 @@
+ 		debugfs_create_u64("sync_time_ns", 0644, cake_mq_debugfs, &g_sync_time_ns);
+ 		debugfs_create_u64("active_window_ns", 0644, cake_mq_debugfs,
+ 				   &g_active_window_ns);
++		debugfs_create_u32("active_release", 0644, cake_mq_debugfs,
++				   &g_active_release);
+ 	}
+ 
+ 	return ret;
