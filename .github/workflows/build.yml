@@ -89,8 +89,10 @@ jobs:
           echo "CONFIG_TARGET_mediatek=y" > .config
           echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
           echo "CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
-          # Le distfeeds genere doit pointer le fork, pas l'instantane amont
-          echo "CONFIG_VERSION_REPO=https://khristophe972-glitch.github.io/immortalwrt" >> .config
+          # Le distfeeds genere doit pointer le fork, pas l'instantane amont.
+          # Guillemets OBLIGATOIRES : conf_set_sym_val (scripts/config/confdata.c)
+          # jette en silence une string non quotee (*p != '"' -> break).
+          echo 'CONFIG_VERSION_REPO="https://khristophe972-glitch.github.io/immortalwrt"' >> .config
           # routing/telephony passent par customfeeds.list ; video est vide en amont
           echo "CONFIG_FEED_routing=m" >> .config
           echo "CONFIG_FEED_telephony=m" >> .config
@@ -135,8 +137,8 @@ jobs:
           echo "CONFIG_CCACHE=y" >> .config
           echo "CONFIG_PACKAGE_diffutils=y" >> .config
           echo "CONFIG_PACKAGE_less=y" >> .config
-          # IMAGEOPT/VERSIONOPT doivent etre poses, sinon kconfig masque
-          # VERSION_REPO (pose l.93) et l'image repart sur le snapshot amont
+          # Sans IMAGEOPT/VERSIONOPT, kconfig masque VERSION_REPO (pose plus haut)
+          # et l'image repart sur le snapshot amont. Les deux moities sont requises.
           echo "CONFIG_IMAGEOPT=y" >> .config
           echo "CONFIG_VERSIONOPT=y" >> .config
           make defconfig
@@ -146,7 +148,7 @@ jobs:
           echo "CONFIG_PACKAGE_kmod-ip6tables=y" >> .config
           make defconfig
           # Preuve que kconfig n'a pas ecrase VERSION_REPO apres defconfig
-          grep -q '^CONFIG_VERSION_REPO="https://khristophe972-glitch.github.io/immortalwrt"$' .config || { echo "ERREUR: CONFIG_VERSION_REPO ecrase par kconfig"; exit 1; }
+          grep -q '^CONFIG_VERSION_REPO="https://khristophe972-glitch.github.io/immortalwrt"$' .config || { echo "ERREUR: CONFIG_VERSION_REPO non pose ; .config porte :"; grep -n "CONFIG_VERSION_REPO\|CONFIG_IMAGEOPT\|CONFIG_VERSIONOPT" .config; exit 1; }
           echo "=== Target vérifié ==="
           grep "CONFIG_TARGET.*=y\|DEVICE.*glinet" .config | head -10
 
