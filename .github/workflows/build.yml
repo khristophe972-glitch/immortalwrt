@@ -111,6 +111,7 @@ jobs:
           echo "CONFIG_PACKAGE_kmod-netem=y" >> .config
           echo "CONFIG_PACKAGE_kmod-veth=y" >> .config
           echo "CONFIG_PACKAGE_sqm-scripts=y" >> .config
+          echo "CONFIG_PACKAGE_luci=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-sqm=y" >> .config
           echo "CONFIG_PACKAGE_tc-full=y" >> .config
           echo "CONFIG_PACKAGE_ip-full=y" >> .config
