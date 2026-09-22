@@ -1,5 +1,7 @@
 # add your custom package feeds here
 #
 # http://www.example.com/path/to/files/packages.adb
+https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/packages/packages.adb
+https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/luci/packages.adb
 https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/routing/packages.adb
 https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/telephony/packages.adb

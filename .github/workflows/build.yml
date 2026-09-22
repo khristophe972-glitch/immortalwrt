@@ -93,7 +93,12 @@ jobs:
           # Guillemets OBLIGATOIRES : conf_set_sym_val (scripts/config/confdata.c)
           # jette en silence une string non quotee (*p != '"' -> break).
           echo 'CONFIG_VERSION_REPO="https://khristophe972-glitch.github.io/immortalwrt"' >> .config
-          # routing/telephony passent par customfeeds.list ; video est vide en amont
+          # Feed dont la ligne distfeeds doit etre commentee (=m) : leur contenu
+          # n'est pas construit dans le fork, il vient de customfeeds.list (amont).
+          # packages/luci : distfeeds pointerait sinon le gh-pages du fork (vide).
+          # routing/telephony : idem. video : inexistant en amont (packages.adb 404).
+          echo "CONFIG_FEED_packages=m" >> .config
+          echo "CONFIG_FEED_luci=m" >> .config
           echo "CONFIG_FEED_routing=m" >> .config
           echo "CONFIG_FEED_telephony=m" >> .config
           echo "CONFIG_FEED_video=m" >> .config
