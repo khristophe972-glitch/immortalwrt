@@ -1,0 +1,58 @@
+#!/bin/sh
+
+# Reload firewall after WiFi interfaces come up so fw4 can discover
+# them and add them to the flowtable for hardware bridge offload via PPE.
+#
+# fw4 auto-discovers bridge member devices for the flowtable, but
+# at boot the firewall starts before hostapd creates WiFi interfaces.
+
+[ "$ACTION" = "add" ] || exit 0
+
+DEV="${DEVICENAME:-$INTERFACE}"
+[ -n "$DEV" ] || exit 0
+
+case "$DEV" in
+	phy*-ap*) ;;
+	*-mld*) ;;	# MLO/MLD bridge port (ap-mld0 etc.) — not named phyN-apM
+	*) exit 0 ;;
+esac
+
+# Bridge offload disabled => fw4 emits no bridge flowtable at all: nothing
+# to add here, and the checks below could never be satisfied.
+. /lib/functions.sh
+bridge_offload_enabled() {
+	local routed bridge
+	config_get_bool routed "$1" flow_offloading 0
+	config_get_bool bridge "$1" bridge_flow_offloading "$routed"
+	[ "$bridge" = 1 ] && bridge_enabled=1
+}
+config_load firewall
+bridge_enabled=0
+config_foreach bridge_offload_enabled defaults
+[ "$bridge_enabled" = 1 ] || exit 0
+
+# Skip if the device is already in the flowtable (fw4 picked it up).
+nft list flowtable bridge fw4 fb 2>/dev/null | grep -qw "\"$DEV\"" && exit 0
+
+# fw4 auto-discovers bridge members on reload. Serialize via flock,
+# WAITING for any in-flight reload rather than skipping: a reload that
+# started before this device existed snapshots the device list without
+# it, so bailing out here leaves the device unoffloaded until the next
+# manual reload (symptom: high CPU on downloads, no new BND entries).
+(
+	mkdir -p /var/lock
+	exec 9>/var/lock/flow-offload-wifi.lock
+	flock 9
+	# Re-check after acquiring: the reload we waited on may have
+	# already picked this device up.
+	nft list flowtable bridge fw4 fb 2>/dev/null | grep -qw "\"$DEV\"" && exit 0
+	sleep 2
+	/etc/init.d/firewall reload >/dev/null 2>&1
+	if nft list flowtable bridge fw4 fb 2>/dev/null | grep -qw "\"$DEV\""; then
+		logger -t flow-offload-wifi "fw4 reloaded, $DEV added to flowtable"
+	else
+		logger -t flow-offload-wifi "WARNING: $DEV still missing from flowtable after fw4 reload"
+	fi
+) &
+
+exit 0
