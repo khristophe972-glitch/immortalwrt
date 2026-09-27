@@ -11,15 +11,16 @@ airtime from the total when calculating AQL limits.
 
 Signed-off-by: David Bauer <mail@david-bauer.net>
 ---
- net/mac80211/ieee80211_i.h |  3 +++
- net/mac80211/main.c        |  2 ++
- net/mac80211/rx.c          |  7 ++++++-
+ net/mac80211/ieee80211_i.h | 3 +++
+ net/mac80211/main.c        | 2 ++
+ net/mac80211/rx.c          | 7 ++++++-
  net/mac80211/sta_info.c    | 31 +++++++++++++++++++++++++++++++
- net/mac80211/sta_info.h    |  1 +
+ net/mac80211/sta_info.h    | 1 +
  5 files changed, 43 insertions(+), 1 deletion(-)
 
 --- a/net/mac80211/ieee80211_i.h
-@@ -1385,6 +1385,9 @@ struct ieee80211_local {
++++ b/net/mac80211/ieee80211_i.h
+@@ -1476,6 +1476,9 @@ struct ieee80211_local {
  
  	const struct ieee80211_ops *ops;
  
@@ -30,7 +31,8 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  	 * private workqueue to mac80211. mac80211 makes this accessible
  	 * via ieee80211_queue_work()
 --- a/net/mac80211/main.c
-@@ -962,11 +962,13 @@ struct ieee80211_hw *ieee80211_alloc_hw_
++++ b/net/mac80211/main.c
+@@ -996,11 +996,13 @@ struct ieee80211_hw *ieee80211_alloc_hw_
  		local->aql_txq_limit_high[i] =
  			IEEE80211_DEFAULT_AQL_TXQ_LIMIT_H;
  		atomic_set(&local->aql_ac_pending_airtime[i], 0);
@@ -45,7 +47,8 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  	spin_lock_init(&local->handle_wake_tx_queue_lock);
  
 --- a/net/mac80211/rx.c
-@@ -1586,6 +1586,8 @@ static void sta_ps_start(struct sta_info
++++ b/net/mac80211/rx.c
+@@ -1701,6 +1701,8 @@ static void sta_ps_start(struct sta_info
  	ps_dbg(sdata, "STA %pM aid %d enters power save mode\n",
  	       sta->sta.addr, sta->sta.aid);
  
@@ -54,7 +57,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  	ieee80211_clear_fast_xmit(sta);
  
  	for (tid = 0; tid < IEEE80211_NUM_TIDS; tid++) {
-@@ -1619,12 +1621,15 @@ static void sta_ps_end(struct sta_info *
+@@ -1736,12 +1738,15 @@ static void sta_ps_end(struct sta_info *
  		clear_sta_flag(sta, WLAN_STA_PS_STA);
  		ps_dbg(sta->sdata, "STA %pM aid %d driver-ps-blocked\n",
  		       sta->sta.addr, sta->sta.aid);
@@ -72,6 +75,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  
  int ieee80211_sta_ps_transition(struct ieee80211_sta *pubsta, bool start)
 --- a/net/mac80211/sta_info.c
++++ b/net/mac80211/sta_info.c
 @@ -153,6 +153,8 @@ static void __cleanup_single_sta(struct
  		clear_sta_flag(sta, WLAN_STA_PS_DELIVER);
  
@@ -81,7 +85,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  	}
  
  	ieee80211_purge_sta_txqs(sta);
-@@ -2358,6 +2360,35 @@ void ieee80211_sta_recalc_aggregates(str
+@@ -2495,6 +2497,35 @@ void ieee80211_sta_recalc_aggregates(str
  }
  EXPORT_SYMBOL(ieee80211_sta_recalc_aggregates);
  
@@ -118,6 +122,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  					  struct sta_info *sta, u8 ac,
  					  u16 tx_airtime, bool tx_completed,
 --- a/net/mac80211/sta_info.h
++++ b/net/mac80211/sta_info.h
 @@ -149,6 +149,7 @@ void ieee80211_sta_update_pending_airtim
  					  struct sta_info *sta, u8 ac,
  					  u16 tx_airtime, bool tx_completed,
