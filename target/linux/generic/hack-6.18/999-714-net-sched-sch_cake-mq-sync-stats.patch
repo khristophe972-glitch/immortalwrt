@@ -1,0 +1,203 @@
+net/sched: sch_cake: instrument the cake_mq shared-shaper sync
+
+cake_mq installs one cake instance per TX queue on a shared config, so
+the aggregate cap rests on the divisor recomputed by whichever queue
+wins the sync tick. Those instances are invisible from userspace: tc
+shows the sixteen children, but not how many of them the divisor
+actually counted, nor whether a child was pinned at its share.
+
+Add an opt-in set of read-only counters, indexed by direction (0 =
+egress, 1 = ingress/IFB), read with:
+
+  cat /sys/kernel/debug/cake_mq/stats
+
+  syncs         ticks won
+  nact          1..8+ active queues seen, as a histogram
+  nact_changes  ticks where the published count changed
+  saturated     ticks where the tick winner hit an overlimit while
+                serving >= 7/8 of its own local rate
+  rate_kbs_sum  sum of the local rates applied, KiB/s, for averaging
+
+This is the measurement half of the experimental series, reduced to
+what these counters need: the served-rate sampling (rb_bytes charged at
+the two cake_advance_shaper sites of cake_dequeue, rb_rate, rb_cap,
+rb_overlimits, rb_saturated) is carried over, but none of the
+demand-aware rate split, and none of the per-tin knobs. The split
+itself is untouched: only atomic64 counters and one sampling block are
+added, and the rate each child applies is still rate_bps /
+num_active_qs.
+
+Two properties are worth stating because they bound what the counters
+can show. The sample is taken once per tick, by the lock winner alone,
+so on the sixteen-queue WAN only one instance is measured per tick and
+saturated reports that one instance, not the device. And nact records
+the count as published after the release hysteresis, not the raw
+per-tick sample, so it measures the divisor in effect rather than the
+sampling noise that motivated the hysteresis.
+
+The sampling interval is anchored on the published tick (shared
+last_checked, re-read under the lock). The older per-instance
+last_checked_active still has no writer since the sync block was
+rewritten, so it reads 0 and is not used.
+
+Not built, not flashed.
+
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -72,6 +72,8 @@
+ #include <net/tcp.h>
+ #include <net/flow_dissector.h>
+ #include <linux/debugfs.h>
++#include <linux/atomic.h>
++#include <linux/seq_file.h>
+ 
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ #include <net/netfilter/nf_conntrack_core.h>
+@@ -101,6 +103,22 @@
+  * tick, au lieu de recopier le bruit d'echantillonnage du backlog.
+  */
+ static u32 g_active_release = 1;
++
++/* Instrumentation cake_mq (999-714) : compteurs de synchro en
++ * lecture seule, indexes par direction (0 = egress, 1 = ingress/IFB).
++ * Lecture : cat /sys/kernel/debug/cake_mq/stats
++ */
++#define CAKE_MQ_NACT_BINS 8
++struct cake_mq_stats {
++	atomic64_t syncs;			/* ticks de synchro gagnes */
++	atomic64_t nact[CAKE_MQ_NACT_BINS];	/* files actives 1..8+ */
++	atomic64_t nact_changes;		/* le compte a change */
++	atomic64_t saturated;			/* instance saturee a ce tick */
++	atomic64_t rate_kbs_sum;		/* somme debit local, KiB/s */
++};
++
++static struct cake_mq_stats g_mq_stats[2];
++
+ static unsigned int cake_mq_queue_count(const struct net_device *dev)
+ {
+ 	unsigned int ntx = READ_ONCE(dev->real_num_tx_queues);
+@@ -295,6 +313,13 @@
+ 	u64		last_checked_active;
+ 	u64		last_active;
+ 	u32		active_queues;
++
++	/* mesure cake_mq (999-714, lecture seule) */
++	u64		rb_bytes;	/* octets charges au shaper depuis le dernier tick */
++	u64		rb_rate;	/* debit servi lisse, octets/s (publie) */
++	u64		rb_cap;		/* debit local applique au dernier tick, octets/s */
++	u32		rb_overlimits;	/* overlimits au dernier tick */
++	u8		rb_saturated;	/* bridage shaper pendant le dernier intervalle */
+ };
+ 
+ enum {
+@@ -2101,6 +2126,55 @@
+ 					num_active_qs = active_queues - min(drop, g_active_release);
+ 				}
+ 
++				/* Mesure servie par cette instance depuis son dernier
++				 * tick gagne, necessaire au compteur saturated.
++				 * dt s'ancre sur l'intervalle de tick publie, relu
++				 * sous le verrou : q->last_checked_active n'a plus
++				 * d'ecrivain depuis 999-711 et vaut toujours 0, on ne
++				 * s'y ancre pas. Mesure faite par le seul gagnant du
++				 * verrou, donc une instance sur 16 par tick.
++				 */
++				{
++					u64 rate = cfg->rate_bps;
++					u64 dt = now_ns - last_checked;
++					u64 cap = q->rb_cap ? q->rb_cap : rate;
++					u32 ol = sch->qstats.overlimits;
++					u64 r = 0;
++					u8 sat;
++
++					if (dt)
++						r = div64_u64(q->rb_bytes * NSEC_PER_SEC, dt);
++					sat = ol != q->rb_overlimits &&
++					      r >= cap - (cap >> 3);
++					q->rb_bytes = 0;
++					q->rb_overlimits = ol;
++					WRITE_ONCE(q->rb_rate, cake_ewma(q->rb_rate, r, 2));
++					WRITE_ONCE(q->rb_saturated, sat);
++				}
++
++				/* Compteurs (lecture seule). nact compte la valeur
++				 * publiee APRES hysteresis, pas le bruit brut.
++				 */
++				{
++					struct cake_mq_stats *st = &g_mq_stats[
++						!!(cfg->rate_flags & CAKE_FLAG_INGRESS)];
++					u64 new_rate;
++
++					atomic64_inc(&st->syncs);
++					atomic64_inc(&st->nact[
++						min_t(u32, num_active_qs, CAKE_MQ_NACT_BINS) - 1]);
++					if (num_active_qs != q->active_queues)
++						atomic64_inc(&st->nact_changes);
++					if (q->rb_saturated)
++						atomic64_inc(&st->saturated);
++
++					new_rate = active_queues > 1 ?
++						div64_u64(cfg->rate_bps, active_queues) :
++						cfg->rate_bps;
++					atomic64_add(new_rate >> 10, &st->rate_kbs_sum);
++					q->rb_cap = new_rate;
++				}
++
+ 				WRITE_ONCE(cfg->shared_last_checked, now);
+ 				WRITE_ONCE(cfg->shared_active_queues, num_active_qs);
+ 				active_queues = num_active_qs;
+@@ -2302,6 +2376,7 @@
+ 		if (q->config->rate_flags & CAKE_FLAG_INGRESS) {
+ 			len = cake_advance_shaper(q, b, skb,
+ 						  now, true);
++			q->rb_bytes += len;
+ 			flow->deficit -= len;
+ 			b->tin_deficit -= len;
+ 		}
+@@ -2329,6 +2404,7 @@
+ 			     delay < b->base_delay ? 2 : 8));
+ 
+ 	len = cake_advance_shaper(q, b, skb, now, false);
++	q->rb_bytes += len;
+ 	flow->deficit -= len;
+ 	b->tin_deficit -= len;
+ 
+@@ -3426,6 +3502,29 @@
+ };
+ MODULE_ALIAS_NET_SCH("cake_mq");
+ 
++static int cake_mq_stats_show(struct seq_file *m, void *v)
++{
++	static const char * const dir[] = { "egress", "ingress" };
++	int d, i;
++
++	for (d = 0; d < 2; d++) {
++		struct cake_mq_stats *st = &g_mq_stats[d];
++
++		seq_printf(m, "%s: syncs %lld nact_changes %lld saturated %lld rate_kbs_sum %lld\n",
++			   dir[d], (s64)atomic64_read(&st->syncs),
++			   (s64)atomic64_read(&st->nact_changes),
++			   (s64)atomic64_read(&st->saturated),
++			   (s64)atomic64_read(&st->rate_kbs_sum));
++		seq_printf(m, "%s: nact", dir[d]);
++		for (i = 0; i < CAKE_MQ_NACT_BINS; i++)
++			seq_printf(m, " %lld", (s64)atomic64_read(&st->nact[i]));
++		seq_puts(m, "\n");
++	}
++
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(cake_mq_stats);
++
+ static int __init cake_module_init(void)
+ {
+ 	int ret;
+@@ -3445,6 +3544,8 @@
+ 				   &g_active_window_ns);
+ 		debugfs_create_u32("active_release", 0644, cake_mq_debugfs,
+ 				   &g_active_release);
++		debugfs_create_file("stats", 0444, cake_mq_debugfs, NULL,
++				    &cake_mq_stats_fops);
+ 	}
+ 
+ 	return ret;
