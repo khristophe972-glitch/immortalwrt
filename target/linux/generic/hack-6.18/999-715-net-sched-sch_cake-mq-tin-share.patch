@@ -1,0 +1,252 @@
+net/sched: sch_cake: share per-tin thresholds across cake_mq instances
+
+cake_mq gives every TX queue its own cake instance over one shared
+config. The shared divisor (rate_bps / num_active_qs, 999-711..713)
+splits the aggregate cap correctly, but the per-tin rate thresholds
+inside each instance are still configured from that instance's local
+rate alone:
+
+	cake_configure_rates(sch, new_rate, true)
+
+so in diffserv8 each instance derives its eight tin thresholds from
+new_rate -- its share -- rather than from the aggregate. A tin served
+by N instances is therefore shaped against N times its fair share of
+the aggregate, and a burst a single instance lets through is only
+bounded by that instance's own share.
+
+Add an opt-in per-tin sharing rule. When tin_share = 1, the instance
+that wins the sync tick counts how many instances have dequeued from
+each tin within tin_hold * sync_time_ns, and publishes that vector on
+the shared config; each instance then configures its tins on the
+aggregate rate with every tin's rate divided by the number of
+instances carrying it, and finally restores its own hard shaper to its
+local share. The aggregate cap is unchanged: the hard shaper of each
+instance still applies rate_bps / num_active_qs, only the tin
+thresholds move.
+
+tin_share defaults to 0: the tins are then configured exactly as
+before, and the only added cost is one branch per dequeue. With the
+knob on, the cost is paid once per instance per tick (a publish
+counter -- shared_last_checked -- doubles as the generation each
+instance has already applied), not once per dequeue.
+
+Two bounds are worth stating. tin_cnt is at most CAKE_MAX_TINS (8) and
+the vector is CAKE_MAX_TINS wide, so the count cannot overflow the
+array. And cake_set_rate with mtu == 0 returns early after writing the
+tin rate fields, which is exactly the load-bearing part here; the
+per-tin division skips a zero rate, which cake_set_rate defines as
+"unlimited", so no tin can be silently unshaped by a division.
+
+Complements 999-714, which counts what this rule would change: nact
+gives the divisor, tin_nact_sum gives the per-tin multiplicity.
+
+Not built, not flashed.
+
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -115,10 +115,22 @@
+ 	atomic64_t nact_changes;		/* le compte a change */
+ 	atomic64_t saturated;			/* instance saturee a ce tick */
+ 	atomic64_t rate_kbs_sum;		/* somme debit local, KiB/s */
++	atomic64_t tin_nact_sum[CAKE_MAX_TINS];	/* instances actives par tin */
+ };
+ 
+ static struct cake_mq_stats g_mq_stats[2];
+ 
++/* Partage des seuils de tin entre instances cake_mq (999-715).
++ * 0 (defaut) = comportement actuel : chaque instance calcule ses seuils
++ * sur sa part locale. 1 = le debit global de chaque tin est divise par le
++ * nombre d'instances qui l'ont porte recemment ; le shaper d'instance
++ * garde sa part locale, donc le cap agrege est inchange.
++ * tin_hold : un tin reste actif sur une instance pendant N *
++ * g_sync_time_ns apres son dernier dequeue.
++ */
++static u32 g_mq_tin_share;
++static u32 g_mq_tin_hold = 8;
++
+ static unsigned int cake_mq_queue_count(const struct net_device *dev)
+ {
+ 	unsigned int ntx = READ_ONCE(dev->real_num_tx_queues);
+@@ -261,6 +273,7 @@
+ 	spinlock_t	sync_lock;
+ 	u64		shared_last_checked;
+ 	u32		shared_active_queues;
++	u32		shared_tin_active[CAKE_MAX_TINS];
+ 	u8		is_shared;
+ };
+ 
+@@ -320,6 +333,10 @@
+ 	u64		rb_cap;		/* debit local applique au dernier tick, octets/s */
+ 	u32		rb_overlimits;	/* overlimits au dernier tick */
+ 	u8		rb_saturated;	/* bridage shaper pendant le dernier intervalle */
++
++	/* partage des tins (999-715) */
++	u64		tin_last_active[CAKE_MAX_TINS];	/* dernier dequeue par tin */
++	u64		last_synced_tick;		/* dernier tick applique */
+ };
+ 
+ enum {
+@@ -1418,6 +1435,26 @@
+ 	return elig_ack;
+ }
+ 
++static void cake_set_rate(struct cake_tin_data *b, u64 rate, u32 mtu,
++			  u64 target_ns, u64 rtt_est_ns);
++
++/* Change uniquement le debit du shaper dur d'instance, sans toucher aux
++ * seuils de tin. Meme conversion que cake_set_rate().
++ */
++static void cake_mq_set_shaper_rate(struct cake_sched_data *q, u64 rate)
++{
++	u64 rate_ns = ((u64)NSEC_PER_SEC) << 34;
++	u16 rate_shft = 34;
++
++	rate_ns = div64_u64(rate_ns, max_t(u64, 64, rate));
++	while (!!(rate_ns >> 34)) {
++		rate_ns >>= 1;
++		rate_shft--;
++	}
++	q->rate_ns = rate_ns;
++	q->rate_shft = rate_shft;
++}
++
+ static u64 cake_ewma(u64 avg, u64 sample, u32 shift)
+ {
+ 	avg -= avg >> shift;
+@@ -2084,6 +2121,7 @@
+ 	if (cfg->is_shared && q->rate_ns) {
+ 		u64 last_checked = READ_ONCE(cfg->shared_last_checked);
+ 		u32 active_queues = READ_ONCE(cfg->shared_active_queues);
++		u32 tin_share = READ_ONCE(g_mq_tin_share);
+ 		u64 now_ns = ktime_to_ns(now);
+ 		u64 active_since = now_ns - min(now_ns, g_active_window_ns);
+ 
+@@ -2095,6 +2133,9 @@
+ 			unsigned int ntx;
+ 			u32 num_active_qs = 1;
+ 			u64 other_qlen, other_last_active;
++			u64 tin_hold = (u64)max_t(u32, READ_ONCE(g_mq_tin_hold), 1) *
++				       g_sync_time_ns;
++			u32 tin_others[CAKE_MAX_TINS] = { 0 };
+ 
+ 			last_checked = cfg->shared_last_checked;
+ 			active_queues = cfg->shared_active_queues;
+@@ -2110,6 +2151,15 @@
+ 					other_qlen = READ_ONCE(other_sch->q.qlen);
+ 					other_last_active = READ_ONCE(other_priv->last_active);
+ 
++					if (tin_share) {
++						u32 i;
++
++						for (i = 0; i < q->tin_cnt; i++)
++							if (READ_ONCE(other_priv->tin_last_active[i]) +
++							    tin_hold >= now)
++								tin_others[i]++;
++					}
++
+ 					if (other_qlen || other_last_active > active_since)
+ 						num_active_qs++;
+ 				}
+@@ -2173,24 +2223,68 @@
+ 						cfg->rate_bps;
+ 					atomic64_add(new_rate >> 10, &st->rate_kbs_sum);
+ 					q->rb_cap = new_rate;
++
++					if (tin_share) {
++						u32 i;
++
++						for (i = 0; i < q->tin_cnt; i++)
++							atomic64_add(tin_others[i] + 1,
++								     &st->tin_nact_sum[i]);
++					}
+ 				}
+ 
+ 				WRITE_ONCE(cfg->shared_last_checked, now);
+ 				WRITE_ONCE(cfg->shared_active_queues, num_active_qs);
++				if (tin_share) {
++					u32 i;
++
++					for (i = 0; i < q->tin_cnt; i++)
++						WRITE_ONCE(cfg->shared_tin_active[i],
++							   tin_others[i] + 1);
++				}
+ 				active_queues = num_active_qs;
+ 			}
+ 
+ 			spin_unlock(&cfg->sync_lock);
+ 		}
+ 
+-		if (q->active_queues != active_queues) {
++		if (tin_share ?
++		    q->last_synced_tick != READ_ONCE(cfg->shared_last_checked) :
++		    q->active_queues != active_queues) {
+ 			u64 new_rate = cfg->rate_bps;
+ 
+ 			if (active_queues > 1)
+ 				new_rate = div64_u64(cfg->rate_bps, active_queues);
+ 
+-			cake_configure_rates(sch, new_rate, true);
++			if (tin_share && new_rate < cfg->rate_bps) {
++				u32 i;
++
++				/* seuils de tin sur le debit global, chacun divise
++				 * par le nombre d'instances qui portent ce tin ; le
++				 * shaper d'instance garde sa part locale, donc le
++				 * cap agrege est inchange.
++				 */
++				cake_configure_rates(sch, cfg->rate_bps, true);
++				for (i = 0; i < q->tin_cnt; i++) {
++					struct cake_tin_data *b = &q->tins[i];
++					u32 n = READ_ONCE(cfg->shared_tin_active[i]);
++					u64 r;
++
++					if (n < 2 || !b->tin_rate_bps)
++						continue;
++					r = div_u64(b->tin_rate_bps, n);
++					/* rate 0 = tin non shappe : ne pas y tomber */
++					if (!r)
++						continue;
++					cake_set_rate(b, r, 0, 0, 0);
++				}
++				cake_mq_set_shaper_rate(q, new_rate);
++			} else {
++				cake_configure_rates(sch, new_rate, true);
++			}
++
+ 			q->active_queues = active_queues;
++			q->last_synced_tick = READ_ONCE(cfg->shared_last_checked);
+ 		}
+ 	}
+ 
+@@ -2403,6 +2497,8 @@
+ 		   cake_ewma(b->base_delay, delay,
+ 			     delay < b->base_delay ? 2 : 8));
+ 
++	if (g_mq_tin_share)
++		WRITE_ONCE(q->tin_last_active[q->cur_tin], now);
+ 	len = cake_advance_shaper(q, b, skb, now, false);
+ 	q->rb_bytes += len;
+ 	flow->deficit -= len;
+@@ -3519,6 +3615,11 @@
+ 		for (i = 0; i < CAKE_MQ_NACT_BINS; i++)
+ 			seq_printf(m, " %lld", (s64)atomic64_read(&st->nact[i]));
+ 		seq_puts(m, "\n");
++		seq_printf(m, "%s: tin_nact_sum", dir[d]);
++		for (i = 0; i < CAKE_MAX_TINS; i++)
++			seq_printf(m, " %lld",
++				   (s64)atomic64_read(&st->tin_nact_sum[i]));
++		seq_puts(m, "\n");
+ 	}
+ 
+ 	return 0;
+@@ -3546,6 +3647,10 @@
+ 				   &g_active_release);
+ 		debugfs_create_file("stats", 0444, cake_mq_debugfs, NULL,
+ 				    &cake_mq_stats_fops);
++		debugfs_create_u32("tin_share", 0644, cake_mq_debugfs,
++				   &g_mq_tin_share);
++		debugfs_create_u32("tin_hold", 0644, cake_mq_debugfs,
++				   &g_mq_tin_hold);
+ 	}
+ 
+ 	return ret;
