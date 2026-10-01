@@ -114,6 +114,10 @@ jobs:
           echo "CONFIG_PACKAGE_kmod-sched-ctinfo=y" >> .config
           # bridger : hors DEFAULT_PACKAGES de filogic, donc jamais construit sans cette ligne
           echo "CONFIG_PACKAGE_bridger=y" >> .config
+          # dnscrypt-proxy2 : résolveur DoH/DNSCrypt (dnsproxy désactivé le 01/10).
+          # net/dnscrypt-proxy2 du feed `packages` ; hors DEFAULT_PACKAGES/DEVICE_PACKAGES de
+          # filogic ⇒ jamais construit sans cette ligne. golang/host est déjà requis par dnsproxy.
+          echo "CONFIG_PACKAGE_dnscrypt-proxy2=y" >> .config
           echo "CONFIG_PACKAGE_kmod-ifb=y" >> .config
           echo "CONFIG_PACKAGE_kmod-netem=y" >> .config
           echo "CONFIG_PACKAGE_kmod-veth=y" >> .config
@@ -160,6 +164,8 @@ jobs:
           grep -q '^CONFIG_VERSION_REPO="https://khristophe972-glitch.github.io/immortalwrt"$' .config || { echo "ERREUR: CONFIG_VERSION_REPO non pose ; .config porte :"; grep -n "CONFIG_VERSION_REPO\|CONFIG_IMAGEOPT\|CONFIG_VERSIONOPT" .config; exit 1; }
           # Preuve que kconfig a garde bridger : sinon l'image partirait sans lui (commit inerte)
           grep -q '^CONFIG_PACKAGE_bridger=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_bridger non pose ; .config porte :"; grep -n "bridger\|BPF_TOOLCHAIN" .config; exit 1; }
+          # Preuve que kconfig a garde dnscrypt-proxy2 : sinon paquet ABSENT de l'image (commit inerte)
+          grep -q '^CONFIG_PACKAGE_dnscrypt-proxy2=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_dnscrypt-proxy2 non pose ; .config porte :"; grep -n "dnscrypt" .config; exit 1; }
           echo "=== Target vérifié ==="
           grep "CONFIG_TARGET.*=y\|DEVICE.*glinet" .config | head -10
 
