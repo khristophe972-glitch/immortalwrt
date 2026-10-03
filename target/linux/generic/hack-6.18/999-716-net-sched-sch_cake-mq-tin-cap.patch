@@ -1,0 +1,175 @@
+net/sched: sch_cake: cake_mq tin_cap on top of per-tin share
+
+With 999-715 (tin_share = 1), a limited tin served by several cake_mq
+instances gets its aggregate threshold divided per instance. A priority
+tin concentrated on one instance can then hold that instance's whole
+share (in diffserv4, Voice = rate/4 equals the instance rate with four
+active instances), so a large priority-marked flow starves the lower
+tins sharing that instance. Segalmen reports this directly: a ping in
+the Video tin sharing the queue of an 800 Mbit/s CS4 flow sees 105-114
+ms max, versus < 4 ms for the same flow left unmarked.
+
+Add a runtime knob, off by default (debugfs cake_mq/tin_cap):
+
+  0     = unchanged (999-715 behaviour)
+  1-100 = with tin_share, the threshold of a limited tin (threshold
+          below the full rate) never exceeds tin_cap % of this
+          instance's rate. The full-rate (best effort) tin is left
+          alone.
+
+The cap is applied after the per-tin division, so it bounds the
+per-instance threshold rather than the aggregate one, and only ever
+lowers it. Out of tin_share, the knob has no effect.
+
+Counters: the cake_mq/stats lines get a "tin_capped" row per direction
+(number of syncs where the cap was applied, per tin); the rows before
+it are unchanged, so existing parsers keep working.
+
+tin_capped is incremented once per sync tick, by the tick winner alone,
+to match Segalmen's counter (his sync body runs once per tick; ours runs
+per instance). The winner is the one instance that took
+cfg->sync_lock and saw a full tick elapse; it is marked by a stack-local
+won_tick flag, so no extra lock is added. capped_mask is identical on
+every instance (same cap, same global thresholds, same published
+tin_active vector), so counting on the winner gives exactly one
+increment per tick and the mask stays exact.
+
+Ports Segalmen's patch 729 (github.com/Segalmen/cake-mq-patches), and
+depends on patch 720 (per-tin active share) via our 999-715, onto our
+shared-shaper series (999-711..715): his tin_others / last_checked
+become our shared_tin_active / shared_last_checked, and the counters
+land in our stats struct.
+
+Source: Segalmen/cake-mq-patches, patches 720 (cake_mq per-tin active
+share) and 729 (tin_cap on top of per-tin share), commit
+977388f114daf427145f4f6845df7b82b1b34fec, GPL-2.0.
+
+Not built, not flashed.
+
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -116,6 +116,7 @@
+ 	atomic64_t saturated;			/* instance saturee a ce tick */
+ 	atomic64_t rate_kbs_sum;		/* somme debit local, KiB/s */
+ 	atomic64_t tin_nact_sum[CAKE_MAX_TINS];	/* instances actives par tin */
++	atomic64_t tin_capped[CAKE_MAX_TINS];	/* syncs ou tin_cap a mordu */
+ };
+ 
+ static struct cake_mq_stats g_mq_stats[2];
+@@ -127,9 +128,15 @@
+  * garde sa part locale, donc le cap agrege est inchange.
+  * tin_hold : un tin reste actif sur une instance pendant N *
+  * g_sync_time_ns apres son dernier dequeue.
++ * tin_cap (999-716) : 0 (defaut) = inactif ; 1..100 = avec tin_share, le
++ * seuil d'un tin limite (seuil sous le debit plein) ne depasse jamais
++ * tin_cap % du debit de son instance, pour qu'un tin prioritaire ne
++ * famine pas les tins plus bas de cette instance.  Le tin plein debit
++ * (best effort) est laisse tel quel.  Hors tin_share, sans effet.
+  */
+ static u32 g_mq_tin_share;
+ static u32 g_mq_tin_hold = 8;
++static u32 g_mq_tin_cap;
+ 
+ static unsigned int cake_mq_queue_count(const struct net_device *dev)
+ {
+@@ -2124,6 +2131,7 @@
+ 		u32 tin_share = READ_ONCE(g_mq_tin_share);
+ 		u64 now_ns = ktime_to_ns(now);
+ 		u64 active_since = now_ns - min(now_ns, g_active_window_ns);
++		bool won_tick = false;
+ 
+ 		if (now - last_checked >= g_sync_time_ns &&
+ 		    spin_trylock(&cfg->sync_lock)) {
+@@ -2141,6 +2149,10 @@
+ 			active_queues = cfg->shared_active_queues;
+ 
+ 			if (now - last_checked >= g_sync_time_ns) {
++				/* Gagnant du tick : seule cette instance incremente
++				 * les compteurs par-tick (dont tin_capped).
++				 */
++				won_tick = true;
+ 				for (ntx = 0; ntx < cake_mq_queue_count(dev); ntx++) {
+ 					other_sch = rcu_dereference(netdev_get_tx_queue(dev, ntx)->qdisc_sleeping);
+ 					other_priv = qdisc_priv(other_sch);
+@@ -2257,7 +2269,9 @@
+ 				new_rate = div64_u64(cfg->rate_bps, active_queues);
+ 
+ 			if (tin_share && new_rate < cfg->rate_bps) {
+-				u32 i;
++				u32 i, tin_cap = min_t(u32, READ_ONCE(g_mq_tin_cap), 100);
++				u64 cap = div64_u64(new_rate * (u64)tin_cap, 100);
++				u32 capped_mask = 0;
+ 
+ 				/* seuils de tin sur le debit global, chacun divise
+ 				 * par le nombre d'instances qui portent ce tin ; le
+@@ -2268,17 +2282,44 @@
+ 				for (i = 0; i < q->tin_cnt; i++) {
+ 					struct cake_tin_data *b = &q->tins[i];
+ 					u32 n = READ_ONCE(cfg->shared_tin_active[i]);
+-					u64 r;
++					u64 thr = b->tin_rate_bps;
+ 
+-					if (n < 2 || !b->tin_rate_bps)
++					if (!thr)
+ 						continue;
+-					r = div_u64(b->tin_rate_bps, n);
++					if (n > 1)
++						thr = div_u64(thr, n);
++					/* tin_cap : un tin limite (seuil sous le
++					 * debit plein) ne depasse jamais tin_cap %
++					 * du debit de l'instance ; le tin plein
++					 * debit (best effort) est laisse tel quel.
++					 */
++					if (tin_cap && b->tin_rate_bps < cfg->rate_bps &&
++					    thr > cap) {
++						thr = cap;
++						capped_mask |= BIT(i);
++					}
+ 					/* rate 0 = tin non shappe : ne pas y tomber */
+-					if (!r)
++					if (!thr)
+ 						continue;
+-					cake_set_rate(b, r, 0, 0, 0);
++					if (thr != b->tin_rate_bps)
++						cake_set_rate(b, thr, 0, 0, 0);
+ 				}
+ 				cake_mq_set_shaper_rate(q, new_rate);
++
++				/* Un seul incremental par tick. capped_mask est
++				 * identique sur toutes les instances (meme cap, memes
++				 * seuils globaux, meme vecteur partage), donc compter
++				 * chez le seul gagnant du tick donne exactement une
++				 * incrementation par sync, sans verrou supplementaire.
++				 */
++				if (won_tick && capped_mask) {
++					struct cake_mq_stats *st = &g_mq_stats[
++						!!(cfg->rate_flags & CAKE_FLAG_INGRESS)];
++
++					for (i = 0; i < q->tin_cnt; i++)
++						if (capped_mask & BIT(i))
++							atomic64_inc(&st->tin_capped[i]);
++				}
+ 			} else {
+ 				cake_configure_rates(sch, new_rate, true);
+ 			}
+@@ -3620,6 +3661,11 @@
+ 			seq_printf(m, " %lld",
+ 				   (s64)atomic64_read(&st->tin_nact_sum[i]));
+ 		seq_puts(m, "\n");
++		seq_printf(m, "%s: tin_capped", dir[d]);
++		for (i = 0; i < CAKE_MAX_TINS; i++)
++			seq_printf(m, " %lld",
++				   (s64)atomic64_read(&st->tin_capped[i]));
++		seq_puts(m, "\n");
+ 	}
+ 
+ 	return 0;
+@@ -3651,6 +3697,8 @@
+ 				   &g_mq_tin_share);
+ 		debugfs_create_u32("tin_hold", 0644, cake_mq_debugfs,
+ 				   &g_mq_tin_hold);
++		debugfs_create_u32("tin_cap", 0644, cake_mq_debugfs,
++				   &g_mq_tin_cap);
+ 	}
+ 
+ 	return ret;
