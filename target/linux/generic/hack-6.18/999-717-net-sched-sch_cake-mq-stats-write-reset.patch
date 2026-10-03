@@ -1,0 +1,95 @@
+net/sched: sch_cake: cake_mq writable stats (reset on write) + per-tin active count
+
+999-714 exposes the cake_mq sync counters as a read-only (0444) debugfs
+file, and 999-715/999-716 append per-tin rows to it. Segalmen's 720 and
+729 make that same stats file writable: any write resets the counters,
+which is how an A/B run is started without a reboot.
+
+Make cake_mq/stats 0644 and turn its show-only fops into a
+show-and-store one (DEFINE_SHOW_STORE_ATTRIBUTE, present in 6.18,
+include/linux/seq_file.h). Writing anything resets every counter of both
+directions (syncs, nact, nact_changes, saturated, rate_kbs_sum,
+tin_nact_sum, tin_capped). No separate knob is added; the file path and
+the read format are unchanged, so existing parsers keep working.
+
+This patch also corrects the per-tin active count introduced by 999-715.
+The winner incremented tin_nact_sum by tin_others + 1 unconditionally,
+i.e. it always counted its own instance even when that instance had not
+carried the tin within tin_hold. Segalmen's 720 counts the instance only
+if its own tin_last_active is recent, so that tin_nact_sum / syncs is the
+average number of instances actually active in the tin. Apply the same
+rule here. 999-715 itself is already in a flashed image and is left
+untouched; the correction lives in this additive patch.
+
+Source: Segalmen/cake-mq-patches, patches 720 (cake_mq per-tin active
+share, whose writable stats this reproduces) and 729 (tin_cap, whose
+counter reset it carries), commit
+977388f114daf427145f4f6845df7b82b1b34fec, GPL-2.0.
+
+Not built, not flashed.
+
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -2239,9 +2239,14 @@
+ 					if (tin_share) {
+ 						u32 i;
+ 
+-						for (i = 0; i < q->tin_cnt; i++)
+-							atomic64_add(tin_others[i] + 1,
+-								     &st->tin_nact_sum[i]);
++						for (i = 0; i < q->tin_cnt; i++) {
++							u32 n = tin_others[i];
++
++							if (READ_ONCE(q->tin_last_active[i]) +
++							    tin_hold >= now)
++								n++;
++							atomic64_add(n, &st->tin_nact_sum[i]);
++						}
+ 					}
+ 				}
+ 
+@@ -3670,7 +3675,34 @@
+ 
+ 	return 0;
+ }
+-DEFINE_SHOW_ATTRIBUTE(cake_mq_stats);
++
++/* Une ecriture sur "stats" remet tous les compteurs a zero (les deux
++ * directions), comme le "stats" de Segalmen 720. Mode 0644 : lecture =
++ * stats, ecriture = reset. Aucun fichier "stats_reset" separe.
++ */
++static ssize_t cake_mq_stats_write(struct file *file, const char __user *buf,
++				   size_t count, loff_t *ppos)
++{
++	int d, i;
++
++	for (d = 0; d < 2; d++) {
++		struct cake_mq_stats *st = &g_mq_stats[d];
++
++		atomic64_set(&st->syncs, 0);
++		for (i = 0; i < CAKE_MQ_NACT_BINS; i++)
++			atomic64_set(&st->nact[i], 0);
++		atomic64_set(&st->nact_changes, 0);
++		atomic64_set(&st->saturated, 0);
++		atomic64_set(&st->rate_kbs_sum, 0);
++		for (i = 0; i < CAKE_MAX_TINS; i++)
++			atomic64_set(&st->tin_nact_sum[i], 0);
++		for (i = 0; i < CAKE_MAX_TINS; i++)
++			atomic64_set(&st->tin_capped[i], 0);
++	}
++
++	return count;
++}
++DEFINE_SHOW_STORE_ATTRIBUTE(cake_mq_stats);
+ 
+ static int __init cake_module_init(void)
+ {
+@@ -3691,7 +3723,7 @@
+ 				   &g_active_window_ns);
+ 		debugfs_create_u32("active_release", 0644, cake_mq_debugfs,
+ 				   &g_active_release);
+-		debugfs_create_file("stats", 0444, cake_mq_debugfs, NULL,
++		debugfs_create_file("stats", 0644, cake_mq_debugfs, NULL,
+ 				    &cake_mq_stats_fops);
+ 		debugfs_create_u32("tin_share", 0644, cake_mq_debugfs,
+ 				   &g_mq_tin_share);
