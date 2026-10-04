@@ -1,0 +1,14 @@
+{
+	"luci-app-qos-mt6000": {
+		"description": "Grant access to the GL-MT6000 QoS configuration",
+		"read": {
+			"uci": [ "qos-mt6000" ],
+			"file": {
+				"/usr/lib/qos-mt6000/qos-mt6000.sh": [ "exec" ]
+			}
+		},
+		"write": {
+			"uci": [ "qos-mt6000" ]
+		}
+	}
+}

@@ -118,6 +118,9 @@ jobs:
           # net/dnscrypt-proxy2 du feed `packages` ; hors DEFAULT_PACKAGES/DEVICE_PACKAGES de
           # filogic ⇒ jamais construit sans cette ligne. golang/host est déjà requis par dnsproxy.
           echo "CONFIG_PACKAGE_dnscrypt-proxy2=y" >> .config
+          # qos-mt6000 + page LuCI : paquets du fork (package/), hors feed
+          echo "CONFIG_PACKAGE_qos-mt6000=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-qos-mt6000=y" >> .config
           echo "CONFIG_PACKAGE_kmod-ifb=y" >> .config
           echo "CONFIG_PACKAGE_kmod-netem=y" >> .config
           echo "CONFIG_PACKAGE_kmod-veth=y" >> .config
@@ -159,6 +162,8 @@ jobs:
           echo "CONFIG_PACKAGE_kmod-sched-red=y" >> .config
           echo "CONFIG_PACKAGE_kmod-ip6tables=y" >> .config
           echo "CONFIG_PACKAGE_bridger=y" >> .config
+          echo "CONFIG_PACKAGE_qos-mt6000=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-qos-mt6000=y" >> .config
           make defconfig
           # Preuve que kconfig n'a pas ecrase VERSION_REPO apres defconfig
           grep -q '^CONFIG_VERSION_REPO="https://khristophe972-glitch.github.io/immortalwrt"$' .config || { echo "ERREUR: CONFIG_VERSION_REPO non pose ; .config porte :"; grep -n "CONFIG_VERSION_REPO\|CONFIG_IMAGEOPT\|CONFIG_VERSIONOPT" .config; exit 1; }
@@ -166,6 +171,9 @@ jobs:
           grep -q '^CONFIG_PACKAGE_bridger=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_bridger non pose ; .config porte :"; grep -n "bridger\|BPF_TOOLCHAIN" .config; exit 1; }
           # Preuve que kconfig a garde dnscrypt-proxy2 : sinon paquet ABSENT de l'image (commit inerte)
           grep -q '^CONFIG_PACKAGE_dnscrypt-proxy2=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_dnscrypt-proxy2 non pose ; .config porte :"; grep -n "dnscrypt" .config; exit 1; }
+          # Preuve que kconfig a garde qos-mt6000 et sa page LuCI (commit inerte)
+          grep -q '^CONFIG_PACKAGE_qos-mt6000=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_qos-mt6000 non pose ; .config porte :"; grep -n "qos-mt6000" .config; exit 1; }
+          grep -q '^CONFIG_PACKAGE_luci-app-qos-mt6000=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_luci-app-qos-mt6000 non pose ; .config porte :"; grep -n "qos-mt6000" .config; exit 1; }
           echo "=== Target vérifié ==="
           grep "CONFIG_TARGET.*=y\|DEVICE.*glinet" .config | head -10
 

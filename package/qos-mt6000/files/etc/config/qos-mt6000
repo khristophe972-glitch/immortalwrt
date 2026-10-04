@@ -1,0 +1,25 @@
+# Qdisc racine du port WAN. Les valeurs par defaut reproduisent la
+# configuration validee du GL-MT6000 (04/10/2026).
+config global 'global'
+	option enabled '1'
+	option device 'eth1'
+	option trigger_iface 'wan'
+	option qdisc 'cake_mq'
+	option bandwidth '850Mbit'
+	option diffserv 'diffserv4'
+	option flow_isolation 'triple-isolate'
+	option nat '1'
+	option wash '1'
+	option ack_filter 'ack-filter'
+	option split_gso '1'
+	option rtt '30ms'
+	option link_type 'noatm'
+	option overhead '38'
+	option mpu '84'
+	# Reglages debugfs de cake_mq (series 999-711 a 717), ecrits apres le qdisc.
+	# Une option absente ou vide n'est pas ecrite.
+	option sync_time_ns '200000'
+	option active_window_ns '250000'
+	option tin_share '0'
+	option tin_hold '8'
+	option tin_cap '0'

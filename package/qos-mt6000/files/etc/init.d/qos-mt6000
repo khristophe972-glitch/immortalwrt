@@ -1,0 +1,39 @@
+#!/bin/sh /etc/rc.common
+# SPDX-License-Identifier: GPL-2.0-only
+
+START=26
+USE_PROCD=1
+EXTRA_COMMANDS="check"
+EXTRA_HELP="	check	Valide la configuration et affiche les commandes, sans rien appliquer
+	status	Affiche la configuration, le qdisc reel et les reglages debugfs"
+
+SCRIPT=/usr/lib/qos-mt6000/qos-mt6000.sh
+
+start_service() {
+	"$SCRIPT" start
+}
+
+reload_service() {
+	"$SCRIPT" start
+}
+
+stop_service() {
+	"$SCRIPT" stop
+}
+
+check() {
+	"$SCRIPT" check
+}
+
+status_service() {
+	"$SCRIPT" status
+}
+
+service_triggers() {
+	local iface
+
+	procd_add_reload_trigger qos-mt6000
+	config_load qos-mt6000
+	config_get iface global trigger_iface wan
+	[ -z "$iface" ] || procd_add_interface_trigger "interface.*" "$iface" /etc/init.d/qos-mt6000 reload
+}
