@@ -1,0 +1,118 @@
+#!/bin/sh
+# foedecode — décode le champ ib2 des entrées FoE du PPE MediaTek.
+# LECTURE SEULE. Dépendances : busybox ash + sed + awk (awk est utilisé pour
+# extraire l'état et le type, dont certains types contiennent une espace).
+#
+# Usage : foedecode [-v 1|2] [-f FICHIER]
+#   -v 1|2    version NETSYS du PPE (défaut 2 = MT7986 ; 1 = MT7622/MT7629)
+#   -f FILE   source (défaut /sys/kernel/debug/mtk_ppe/bind, sinon ppe0/bind)
+#             FILE=-  lit l'entrée standard.
+#
+# ---------------------------------------------------------------------------
+# Format d'une ligne, RECONSTRUIT depuis mtk_ppe_debugfs.c (noyau 6.18.52) :
+#   - index/état/type : seq_printf(m, "%05x %s %7s", i, state, type)  (l.103)
+#       état ∈ INV|UNB|BND|FIN   (state_str, l.20-25)
+#       type ∈ "IPv4 5T"|"IPv4 3T"|"DS-LITE"|"IPv6 3T"|"IPv6 5T"|"6RD"
+#              (type_str, l.35-42 ; certains types contiennent une espace)
+#   - orig / new : mtk_print_addr_info() → "<src>:<sport>-><dst>:<dport>" (l.65-74),
+#       préfixés " orig=" puis " new=" (l.129-143 ; " new=" seulement HNAPT/DSLITE)
+#   - queue     : seq_printf(m, " eth=%pM->%pM etype=%04x vlan=%d,%d"
+#                              " ib1=%08x ib2=%08x packets=%llu bytes=%llu\n") (l.159-165)
+#   - avec notre 999-3001 : un champ " ppe=%d" est inséré juste après le type
+#       (seq_printf(m, " ppe=%d", ppe->index), 999-3001 ; buffer agrégé).
+# Exemple (les valeurs ib2 sont SYNTHÉTIQUES — le reste suit le format réel) :
+#   sans 999-3001 (ppe0/entries) :
+#     0000a BND IPv4 5T orig=192.168.9.50:51000->82.65.1.2:80 new=0.0.0.0:0 eth=aa:bb:cc:00:11:22->11:22:33:44:55:66 etype=0800 vlan=0,0 ib1=25000000 ib2=00000304 packets=120 bytes=90000
+#   avec 999-3001 (mtk_ppe/entries) :
+#     0000b BND IPv4 5T ppe=1 orig=192.168.9.51:51001->82.65.1.2:443 new=0.0.0.0:0 eth=aa:bb:cc:00:11:23->11:22:33:44:55:66 etype=0800 vlan=0,0 ib1=25000000 ib2=b8000304 packets=77 bytes=12000
+#
+# ---------------------------------------------------------------------------
+# Déchiffrement de ib2 — UNIQUEMENT pour l'état BND :
+#   ib2 (QID / PSE_QOS / DEST_PORT) est écrit par le chemin d'offload logiciel,
+#   au commit de l'entrée (mtk_foe_entry_prepare → mtk_foe_entry_commit,
+#   mtk_ppe.c). Pour une entrée INV / UNB / FIN, ib2 n'a AUCUN sens : le PPE
+#   (matériel) pré-lie les flux sur « search miss » en état UNB sans remplir
+#   ib2. ⇒ l'outil n'affiche QID/DSCP/ECN/PSE/DST que pour BND, « - » sinon.
+#   (Mécanisme UNB : MTK_PPE_TB_CFG_AGE_UNBIND + SEARCH_MISS_ACTION_FORWARD_BUILD,
+#    mtk_ppe.c:1017/1021-1022 ; état lu mtk_ppe_debugfs.c:93-98.)
+#
+# Sémantique de ib2[31:24] (champ MTK_FOE_IB2_DSCP, GENMASK(31,24) = 8 bits) :
+#   le matériel y attend l'OCTET TOS ENTIER (DSCP 6 bits hauts + ECN 2 bits
+#   bas), PAS le DSCP sur 6 bits. Preuve source :
+#     - SDK mediatek/mtk-openwrt-feeds, 999-ppe-05 : lit match.key->tos (mask 0xff)
+#       et le passe tel quel à mtk_foe_entry_set_dscp() ;
+#     - BSP BPI-R4 mtk_ppe.c:476-481 : *ib2 |= FIELD_PREP(MTK_FOE_IB2_DSCP, dscp),
+#       puis dérive un TID par (dscp >> 5) & 0xf (v3).
+#   ⚠️ Notre 999-dscp-01 stocke au contraire tuple->dscp = FIELD_GET(INET_DSCP_MASK,…)
+#   = DSCP sur 6 BITS. Un consommateur doit donc re-décaler (<<2) pour remplir
+#   l'octet TOS, sinon la valeur atterrit dans les 6 bits bas (position fausse).
+# ---------------------------------------------------------------------------
+set -u
+VERSION=2
+FILE=
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		-v) VERSION=$2; shift 2 ;;
+		-f) FILE=$2; shift 2 ;;
+		-h|--help) sed -n '/^# Usage/,/^#/p' "$0"; exit 0 ;;
+		*) echo "usage: $0 [-v 1|2] [-f FILE]" >&2; exit 2 ;;
+	esac
+done
+
+# Masques/géométrie ib2 (mtk_ppe.h:54-79) :
+#   v1 : QID[3:0] PSE_QOS[4] DEST_PORT[7:5] MULTICAST[8]
+#   v2 : QID[6:0] PORT_MG[7]  PSE_QOS[8] DEST_PORT[12:9] MULTICAST[13]
+#   commun : DSCP[31:24]  (octet TOS entier)
+if [ "$VERSION" = 1 ]; then
+	QID_SH=0; QID_W=4; PSQ_SH=4; PSQ_W=1; DPT_SH=5; DPT_W=3
+else
+	QID_SH=0; QID_W=7; PSQ_SH=8; PSQ_W=1; DPT_SH=9; DPT_W=4
+fi
+DSCP_SH=24; DSCP_W=8
+
+extract() { printf '%d' $(( ($1 >> $2) & ((1 << $3) - 1) )) ; }
+
+if   [ -n "$FILE" ];                        then src=$FILE
+elif [ -r /sys/kernel/debug/mtk_ppe/bind ]; then src=/sys/kernel/debug/mtk_ppe/bind
+elif [ -r /sys/kernel/debug/ppe0/bind ];    then src=/sys/kernel/debug/ppe0/bind
+else
+	echo "foedecode: aucune source debugfs PPE lisible (debugfs monté ?)" >&2
+	exit 1
+fi
+
+printf '%-4s %-4s %-9s %4s %-8s %4s %4s %4s %s\n' \
+	PPE STATE TYPE QID 'DSCP6b' ECN PSE DST FLOW
+
+grep 'ib2=' "$src" 2>/dev/null | while IFS= read -r line; do
+	ib2h=$(printf '%s' "$line" | sed -n 's/.*ib2=\([0-9a-fA-F]\{1,8\}\).*/\1/p')
+	[ -n "$ib2h" ] || continue
+
+	# état ($2), type (de $3 jusqu'au token "orig=" ou "ppe=" — car le type
+	# peut contenir une espace, ex. "IPv4 5T"), ppe, et tuples orig / new.
+	state=$(printf '%s' "$line" | awk '{print $2}')
+	type=$( printf '%s' "$line" | awk '{for(i=3;i<=NF;i++){if($i ~ /^(orig=|ppe=)/)break; t=(t?t" ":"")$i} print t}')
+	ppe=$(  printf '%s' "$line" | sed -n 's/.*ppe=\([0-9]\{1,\}\).*/\1/p'); [ -n "$ppe" ] || ppe=0
+	orig=$( printf '%s' "$line" | sed -n 's/.*orig=\([^ ]*\).*/\1/p')
+	new=$(  printf '%s' "$line" | sed -n 's/.*new=\([^ ]*\).*/\1/p')
+	if   [ -n "$new" ];  then flow="orig=$orig new=$new"
+	elif [ -n "$orig" ]; then flow="orig=$orig"
+	else                      flow="-"
+	fi
+
+	# Décodage réservé à l'état BND (voir en-tête).
+	if [ "$state" = BND ]; then
+		v=$(( 0x$ib2h ))
+		qid_s=$(extract "$v" "$QID_SH"  "$QID_W")
+		psq_s=$(extract "$v" "$PSQ_SH"  "$PSQ_W")
+		dpt_s=$(extract "$v" "$DPT_SH"  "$DPT_W")
+		tc=$( extract "$v" "$DSCP_SH" "$DSCP_W")   # octet TOS entier
+		dscp_s=$(printf '0x%02x(%2d)' "$tc" "$(( tc >> 2 ))")
+		ecn_s=$(printf '%d' "$(( tc & 3 ))")
+	else
+		qid_s=-; dscp_s=-; ecn_s=-; psq_s=-; dpt_s=-
+	fi
+
+	printf '%-4s %-4s %-9s %4s %-8s %4s %4s %4s %s\n' \
+		"$ppe" "$state" "$type" "$qid_s" "$dscp_s" "$ecn_s" "$psq_s" "$dpt_s" "$flow"
+done
