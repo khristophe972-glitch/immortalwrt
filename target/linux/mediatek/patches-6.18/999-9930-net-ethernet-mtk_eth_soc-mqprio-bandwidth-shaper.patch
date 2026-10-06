@@ -1,0 +1,418 @@
+From: khristophe972-glitch <khristophe972@gmail.com>
+Subject: [PATCH] net: ethernet: mtk_eth_soc: mqprio bandwidth shaper offload
+
+mqprio can carry a per-class bandwidth shaper (TC_MQPRIO_F_MAX_RATE,
+shaper TC_MQPRIO_SHAPER_BW_RATE).  The offload path accepted the traffic
+class map but refused the shaper, so a shaped mqprio could not be
+attached to the MT7986 ports.
+
+This only covers the non-DSA conduits (eth0, eth1).  A mqprio attached to a
+LAN port never reaches this driver: dsa_user_setup_tc() refuses it and hands
+it to mt753x_setup_tc() (-EOPNOTSUPP, net/dsa/user.c:1733-1752 and
+mt7530.c:3213-3222).  The QDMA queues of those DSA ports can only be capped
+by hand, through the write-only qdma_tx_rate debugfs node added by 999-9926,
+one queue at a time.
+
+Wire the per-class rate to the QDMA TX scheduler MAX_RATE cap that
+mtk_set_queue_speed() already programs at link-up on NETSYSv1/v2
+(rate = MAN * 10^EXP kbps).  The cap is per queue while mqprio expresses
+a rate per class, so a class is held to its rate by giving each of its
+queues an equal share of it.  The aggregate only reaches the configured
+rate when the hash spreads the class over its queues evenly; a class
+that owns a single queue is the exact case.
+
+The MAX_RATE field shares its qtx_sch word with MIN_RATE, the leaky
+bucket and the WRR weight, so it is updated through a read-modify-write
+that only touches the MAX_RATE bits.  A guaranteed minimum rate is not
+wired: a minimum is carried by the weight rather than by the rate field,
+so TC_MQPRIO_F_MIN_RATE is still refused.
+
+mqprio_disable_offload() tears the qdisc down with an all-zero
+tc_mqprio_qopt_offload, which carries no queue information, so the
+driver cannot know which queues it capped: the queues it took over are
+therefore remembered, with the field value that was in the register, and
+restored when the qdisc is destroyed or reconfigured.  The register is
+persistent, so a cap left behind would outlive the qdisc and throttle
+the queue until the next link event.
+
+The MAX_RATE field is also rewritten by mtk_set_queue_speed(), which does a
+full write of the qtx_sch word when a DSA user-port link comes up, clearing
+the cap mqprio had programmed while the shaper still owns the queue.  The
+applied rate is therefore remembered per queue and re-imposed right after
+the link-speed write, so a cap no longer silently disappears on the next
+link event, and mtk_mqprio_shaper_release() still restores the value that
+was in the register before the qdisc took over.
+
+The re-imposition is not atomic with the link-speed write: the two register
+updates are separate locked sections, so between mtk_set_queue_speed() and
+mtk_mqprio_shaper_reapply() the queue is briefly un-capped.  The window is
+a few instructions wide and closes before the notifier returns.
+
+Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
+---
+ drivers/net/ethernet/mediatek/mtk_eth_soc.c     | 158 +++++++++++++++++++++---
+ drivers/net/ethernet/mediatek/mtk_eth_soc.h     |   3 +
+ drivers/net/ethernet/mediatek/mtk_ppe_offload.c |  72 ++++++++++-
+ 3 files changed, 212 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -894,10 +894,21 @@
+ 		eth->netdev[mac->id]->max_mtu = MTK_MAX_RX_LENGTH - MTK_RX_ETH_HLEN;
+ }
+ 
++/* Serializes the read-modify-write of a qtx_sch word.  The MAX_RATE field is
++ * touched from the mqprio offload, the link-speed notifier and the qdma_tx_rate
++ * debugfs, while mtk_set_queue_speed() rewrites the whole word, so the accesses
++ * must not interleave.  Every caller runs in process context -- the tc and
++ * notifier paths under rtnl, the debugfs on its own -- and the register
++ * accesses do not sleep, so a spinlock is enough; the irqsave variant is kept
++ * as a conservative default.
++ */
++static DEFINE_SPINLOCK(mtk_qtx_sch_lock);
++
+ static void mtk_set_queue_speed(struct mtk_eth *eth, unsigned int idx,
+ 				int speed)
+ {
+ 	const struct mtk_soc_data *soc = eth->soc;
++	unsigned long flags;
+ 	u32 ofs, val;
+ 
+ 	if (!MTK_HAS_CAPS(soc->caps, MTK_QDMA))
+@@ -997,22 +1008,23 @@
+ 		}
+ 	}
+ 
++	spin_lock_irqsave(&mtk_qtx_sch_lock, flags);
+ 	mtk_w32(eth, idx / MTK_QTX_PER_PAGE, soc->reg_map->qdma.page);
+ 	ofs = MTK_QTX_OFFSET * (idx % MTK_QTX_PER_PAGE);
+ 	pr_info("mtk_eth: queue %u speed=%d Mbps -> val=0x%08x\n",
+ 		idx, speed, val);
+ 	mtk_w32(eth, val, soc->reg_map->qdma.qtx_sch + ofs);
++	spin_unlock_irqrestore(&mtk_qtx_sch_lock, flags);
+ }
+ 
+-/* Convert a rate in Mbps to the QDMA MAX_RATE MAN/EXP pair.  The register
++/* Convert a rate in kbps to the QDMA MAX_RATE MAN/EXP pair.  The register
+  * field encodes the rate as MAN * 10^EXP kbps.  Pick the representation with
+  * the smallest absolute error, preferring a smaller mantissa on ties so that
+  * round rates match the encodings used by mtk_set_queue_speed()
+  * (10M = 1/4, 100M = 1/5, 1000M = 1/6, 2500M = 25/5).
+  */
+-static int mtk_qdma_rate_encode(unsigned int rate_mbps, u32 *man, u32 *exp)
++static int mtk_qdma_rate_encode(u64 kbps, u32 *man, u32 *exp)
+ {
+-	const u64 kbps = (u64)rate_mbps * 1000;
+ 	u64 best_err = U64_MAX;
+ 	u32 best_man = 0, best_exp = 0;
+ 	u64 div = 1;
+@@ -1044,23 +1056,49 @@
+ 	return 0;
+ }
+ 
+-/* Cap or lift the QDMA TX scheduler MAX_RATE of one TX queue, using the
+- * non-NETSYSv3 register layout (MTK_QTX_SCH_MAX_RATE_EN/MAN/EXP) that
+- * mtk_set_queue_speed() programs.  Each queue's qtx_sch word also carries
+- * MIN_RATE, leaky-bucket and weight fields, so only the MAX_RATE bits are
+- * touched through a read-modify-write, preserving the defaults written at
+- * TX ring setup.  A rate of 0 clears the cap.
++/*
++ * MAX_RATE field of a qtx_sch word: the enable flag plus the MAN * 10^EXP
++ * rate.  MIN_RATE, the leaky bucket and the WRR weight share the same word
++ * and are left alone.
++ */
++#define MTK_QTX_SCH_MAX_RATE_MASK	(MTK_QTX_SCH_MAX_RATE_EN |	\
++					 MTK_QTX_SCH_MAX_RATE_MAN |	\
++					 MTK_QTX_SCH_MAX_RATE_EXP)
++
++/*
++ * The QDMA TX scheduler is one global block shared by every MAC and a queue
++ * index is unique inside it, so a single set of records is enough to remember
++ * which queues mqprio has taken the MAX_RATE of, and what was there before.
++ * mqprio is attached to a single netdev, so this does not need to be
++ * per-device.
++ */
++#define MTK_MQPRIO_MAX_QUEUES	32
++
++static u32 mtk_mqprio_saved_rate[MTK_MQPRIO_MAX_QUEUES];
++static u64 mtk_mqprio_rate[MTK_MQPRIO_MAX_QUEUES];
++static u32 mtk_mqprio_owned;
++
++/* Write the MAX_RATE field of one TX queue, using the non-NETSYSv3 register
++ * layout (MTK_QTX_SCH_MAX_RATE_EN/MAN/EXP) that mtk_set_queue_speed()
++ * programs.  Each queue's qtx_sch word also carries MIN_RATE, leaky-bucket
++ * and weight fields, so only the MAX_RATE bits are touched through a
++ * read-modify-write, preserving the defaults written at TX ring setup.
++ * kbps == 0 clears the cap; when saved is not NULL it receives the field
++ * value that was found in the register.
+  *
+  * NETSYSv3 (MT7988) puts MAX_RATE on a different bit layout and is rejected;
+  * offloaded PPE flows never traverse the QDMA TX queues on NETSYSv1/v2, so
+  * this only paces the software TX path.
+  */
+-int mtk_qdma_set_queue_max_rate(struct mtk_eth *eth, unsigned int idx,
+-				unsigned int rate_mbps)
++static int mtk_qdma_set_queue_max_rate_field(struct mtk_eth *eth,
++					     unsigned int idx, u64 kbps,
++					     u32 *saved)
+ {
+ 	const struct mtk_soc_data *soc = eth->soc;
++	unsigned long flags;
+ 	u32 ofs, val;
+ 	u32 man, exp;
++	int err = 0;
+ 
+ 	if (!MTK_HAS_CAPS(soc->caps, MTK_QDMA) ||
+ 	    mtk_is_netsys_v3_or_greater(eth))
+@@ -1069,15 +1107,20 @@
+ 	if (idx >= soc->num_tx_queues)
+ 		return -EINVAL;
+ 
++	spin_lock_irqsave(&mtk_qtx_sch_lock, flags);
+ 	mtk_w32(eth, idx / MTK_QTX_PER_PAGE, soc->reg_map->qdma.page);
+ 	ofs = MTK_QTX_OFFSET * (idx % MTK_QTX_PER_PAGE);
+ 	val = mtk_r32(eth, soc->reg_map->qdma.qtx_sch + ofs);
+-	val &= ~(MTK_QTX_SCH_MAX_RATE_EN | MTK_QTX_SCH_MAX_RATE_MAN |
+-		 MTK_QTX_SCH_MAX_RATE_EXP);
+ 
+-	if (rate_mbps) {
+-		if (mtk_qdma_rate_encode(rate_mbps, &man, &exp))
+-			return -EINVAL;
++	if (saved)
++		*saved = val & MTK_QTX_SCH_MAX_RATE_MASK;
++
++	val &= ~MTK_QTX_SCH_MAX_RATE_MASK;
++	if (kbps) {
++		if (mtk_qdma_rate_encode(kbps, &man, &exp)) {
++			err = -EINVAL;
++			goto out;
++		}
+ 
+ 		val |= MTK_QTX_SCH_MAX_RATE_EN |
+ 		       FIELD_PREP(MTK_QTX_SCH_MAX_RATE_MAN, man) |
+@@ -1085,9 +1128,91 @@
+ 	}
+ 	mtk_w32(eth, val, soc->reg_map->qdma.qtx_sch + ofs);
+ 
++out:
++	spin_unlock_irqrestore(&mtk_qtx_sch_lock, flags);
++
++	return err;
++}
++
++/* Cap or lift the MAX_RATE of one TX queue.  A rate of 0 lifts the cap. */
++int mtk_qdma_set_queue_max_rate(struct mtk_eth *eth, unsigned int idx,
++				unsigned int rate_mbps)
++{
++	return mtk_qdma_set_queue_max_rate_field(eth, idx,
++						 (u64)rate_mbps * 1000, NULL);
++}
++
++/* Take the MAX_RATE of one TX queue over for mqprio: remember what was in the
++ * register so it can be put back, then program kbps (0 leaves the queue
++ * uncapped).  Only the first takeover records, so reconfiguring mqprio does
++ * not save its own value as the reference.
++ */
++int mtk_mqprio_shaper_set_queue(struct mtk_eth *eth, unsigned int idx, u64 kbps)
++{
++	u32 saved = 0;
++	bool owned = !!(mtk_mqprio_owned & BIT(idx));
++	int err;
++
++	if (idx >= MTK_MQPRIO_MAX_QUEUES)
++		return -EINVAL;
++
++	err = mtk_qdma_set_queue_max_rate_field(eth, idx, kbps,
++						owned ? NULL : &saved);
++	if (err)
++		return err;
++
++	if (!owned) {
++		mtk_mqprio_saved_rate[idx] = saved;
++		mtk_mqprio_owned |= BIT(idx);
++	}
++	mtk_mqprio_rate[idx] = kbps;
++
+ 	return 0;
+ }
+ 
++/* Re-impose the mqprio cap of one queue.  mtk_set_queue_speed() rewrites the
++ * whole qtx_sch word at link-up, which clears MAX_RATE, so the cap has to be
++ * reprogrammed on top of it.  Only queues mqprio owns are touched.
++ */
++void mtk_mqprio_shaper_reapply(struct mtk_eth *eth, unsigned int idx)
++{
++	if (idx >= MTK_MQPRIO_MAX_QUEUES || !(mtk_mqprio_owned & BIT(idx)))
++		return;
++
++	mtk_qdma_set_queue_max_rate_field(eth, idx, mtk_mqprio_rate[idx], NULL);
++}
++
++/* Put the MAX_RATE of every queue mqprio took over back the way it was.
++ * Called before a new configuration is applied -- which may cover a different
++ * set of queues -- and when the qdisc is destroyed, so that a cap never
++ * outlives the qdisc that asked for it.  The register is persistent, so a cap
++ * left behind would throttle the queue until the next link event.
++ */
++void mtk_mqprio_shaper_release(struct mtk_eth *eth)
++{
++	unsigned int idx;
++
++	for (idx = 0; idx < MTK_MQPRIO_MAX_QUEUES; idx++) {
++		const struct mtk_soc_data *soc = eth->soc;
++		unsigned long flags;
++		u32 ofs, val;
++
++		if (!(mtk_mqprio_owned & BIT(idx)))
++			continue;
++
++		spin_lock_irqsave(&mtk_qtx_sch_lock, flags);
++		mtk_w32(eth, idx / MTK_QTX_PER_PAGE, soc->reg_map->qdma.page);
++		ofs = MTK_QTX_OFFSET * (idx % MTK_QTX_PER_PAGE);
++		val = mtk_r32(eth, soc->reg_map->qdma.qtx_sch + ofs);
++		val &= ~MTK_QTX_SCH_MAX_RATE_MASK;
++		val |= mtk_mqprio_saved_rate[idx];
++		mtk_w32(eth, val, soc->reg_map->qdma.qtx_sch + ofs);
++		spin_unlock_irqrestore(&mtk_qtx_sch_lock, flags);
++	}
++
++	mtk_mqprio_owned = 0;
++}
++
+ static void mtk_gdm_mac_link_up(struct mtk_mac *mac,
+ 				struct phy_device *phy,
+ 				unsigned int mode, phy_interface_t interface,
+@@ -4355,6 +4480,7 @@
+ 		s.base.speed = 0;
+ 
+ 	mtk_set_queue_speed(eth, queue, s.base.speed);
++	mtk_mqprio_shaper_reapply(eth, queue);
+ 
+ 	return NOTIFY_DONE;
+ }
+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.h b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.h
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
+@@ -1715,6 +1715,9 @@
+ u32 mtk_m32(struct mtk_eth *eth, u32 mask, u32 set, unsigned int reg);
+ int mtk_qdma_set_queue_max_rate(struct mtk_eth *eth, unsigned int idx,
+ 				unsigned int rate_mbps);
++int mtk_mqprio_shaper_set_queue(struct mtk_eth *eth, unsigned int idx, u64 kbps);
++void mtk_mqprio_shaper_reapply(struct mtk_eth *eth, unsigned int idx);
++void mtk_mqprio_shaper_release(struct mtk_eth *eth);
+ 
+ static inline void mtk_pse_wdma_enable(struct mtk_eth *eth, int id, bool enable)
+ {
+diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+--- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
++++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+@@ -705,19 +705,28 @@
+ }
+ 
+ /*
+- * mqprio hardware offload. The traffic classes are mapped onto the QDMA TX
++ * mqprio hardware offload.  The traffic classes are mapped onto the QDMA TX
+  * queues; mtk_tx_hash() then routes each packet to its class queue through
+  * dev->num_tc and skb->priority (set from the DSCP by the qosify classifier).
++ * When the qdisc carries a bandwidth shaper, the rate of a class is programmed
++ * onto the QDMA MAX_RATE of every queue that class owns.
+  */
+ static int mtk_eth_setup_tc_mqprio(struct net_device *dev,
+ 				   struct tc_mqprio_qopt_offload *mqprio)
+ {
++	struct mtk_mac *mac = netdev_priv(dev);
++	struct mtk_eth *eth = mac->hw;
+ 	struct tc_mqprio_qopt *qopt = &mqprio->qopt;
+ 	u16 num_tc = qopt->num_tc;
+-	int i, j;
++	bool shaper = mqprio->flags & TC_MQPRIO_F_MAX_RATE;
++	int i, j, err;
+ 
+-	/* num_tc == 0 is the teardown path (mqprio_disable_offload). */
++	/* num_tc == 0 is the teardown path (mqprio_disable_offload).  It carries
++	 * no queue information at all, so the queues mqprio capped have to be
++	 * released from the record the shaper keeps.
++	 */
+ 	if (!num_tc) {
++		mtk_mqprio_shaper_release(eth);
+ 		netdev_reset_tc(dev);
+ 		return 0;
+ 	}
+@@ -725,10 +734,17 @@
+ 	if (num_tc > TC_QOPT_MAX_QUEUE)
+ 		return -EINVAL;
+ 
+-	/* Per-class rate shaping is not wired to the QDMA rate limiter yet. */
+-	if (mqprio->flags & (TC_MQPRIO_F_MIN_RATE | TC_MQPRIO_F_MAX_RATE))
++	/* A guaranteed minimum rate is not wired: MIN_RATE shares the qtx_sch
++	 * word with the leaky bucket and the WRR weight that mtk_set_queue_speed()
++	 * programs at link-up, and a minimum is carried by the weight rather
++	 * than by the rate field.
++	 */
++	if (mqprio->flags & TC_MQPRIO_F_MIN_RATE)
+ 		return -EOPNOTSUPP;
+ 
++	if (shaper && mqprio->shaper != TC_MQPRIO_SHAPER_BW_RATE)
++		return -EINVAL;
++
+ 	for (i = 0; i < num_tc; i++) {
+ 		u16 offset = qopt->offset[i];
+ 		u16 count = qopt->count[i];
+@@ -744,10 +760,56 @@
+ 		}
+ 	}
+ 
++	/* The QDMA caps a queue, not a class: a class is held to its rate by
++	 * giving each of its queues an equal share of it.  The aggregate only
++	 * reaches the configured rate when the hash spreads the class over its
++	 * queues evenly, so a class that owns a single queue is the exact case.
++	 * Bytes/s are converted to kbit/s and divided down, so the cap is never
++	 * loosened; a class whose share does not fit the field is refused rather
++	 * than capped to nothing.
++	 */
++	if (shaper) {
++		for (i = 0; i < num_tc; i++) {
++			if (!mqprio->max_rate[i])
++				continue;
++			if (!(mqprio->max_rate[i] / 125 / qopt->count[i]))
++				return -EINVAL;
++		}
++	}
++
++	/* A new configuration may cover a different set of queues than the one
++	 * it replaces, so the previous set is released before the new one is
++	 * applied: a queue left capped would throttle silently.
++	 */
++	mtk_mqprio_shaper_release(eth);
++
+ 	netdev_set_num_tc(dev, num_tc);
+ 	for (i = 0; i < num_tc; i++)
+ 		netdev_set_tc_queue(dev, i, qopt->count[i], qopt->offset[i]);
+ 
++	if (!shaper)
++		return 0;
++
++	for (i = 0; i < num_tc; i++) {
++		u64 kbps = mqprio->max_rate[i] / 125;
++		u16 offset, count, q;
++
++		if (!kbps)
++			continue;
++
++		offset = qopt->offset[i];
++		count = qopt->count[i];
++		for (q = 0; q < count; q++) {
++			err = mtk_mqprio_shaper_set_queue(eth, offset + q,
++							  kbps / count);
++			if (err) {
++				mtk_mqprio_shaper_release(eth);
++				netdev_reset_tc(dev);
++				return err;
++			}
++		}
++	}
++
+ 	return 0;
+ }
+ 
