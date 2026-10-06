@@ -2,21 +2,26 @@ From: khristophe972 <khristophe972@gmail.com>
 Date: Thu, 23 Jul 2026 15:40:00 +0200
 Subject: [PATCH] netfilter: nft_flow_offload: preserve DSCP through hardware offload
 
-Store the original DSCP value in the flow_offload_tuple when a flow
-is offloaded, so hardware/PPE offload paths can honor the original
-DSCP marking instead of losing/overwriting it.
+Store the DSCP of the packet that creates an offloaded flow in the
+flow_offload_tuple, so a hardware/PPE offload path can program it on the
+entry it derives from that flow instead of emitting TOS 0.
+
+Only the direction observed when the entry is created is stored
+(nft_flow_set_dscp(pkt, flow, dir)); the opposite tuple is left at 0, so a
+reply marked by its peer is not rewritten with the request's DSCP.  The
+stored value is the 6-bit DSCP (INET_DSCP_MASK): the ECN bits are not
+carried.
 
 Based on work by Airoha (915-01 patch series).
 
 ---
  include/net/netfilter/nf_flow_table.h | 1 +
- net/netfilter/nft_flow_offload.c      | 24 ++++++++++++++++++++++++
- 2 files changed, 25 insertions(+)
+ net/netfilter/nft_flow_offload.c      | 25 +++++++++++++++++++++++++
+ 2 files changed, 26 insertions(+)
 
 --- a/include/net/netfilter/nf_flow_table.h
 +++ b/include/net/netfilter/nf_flow_table.h
-@@ -138,6 +138,7 @@
- 	u8				dir:2,
+@@ -139,6 +139,7 @@
  					xmit_type:3,
  					encap_num:2,
  					in_vlan_ingress:2;
@@ -26,19 +31,17 @@ Based on work by Airoha (915-01 patch series).
  		struct {
 --- a/net/netfilter/nft_flow_offload.c
 +++ b/net/netfilter/nft_flow_offload.c
-@@ -16,6 +16,8 @@
+@@ -16,11 +16,34 @@
  #include <net/netfilter/nf_conntrack_core.h>
  #include <net/netfilter/nf_conntrack_extend.h>
  #include <net/netfilter/nf_flow_table.h>
 +#include <net/dsfield.h>
 +#include <net/inet_dscp.h>
- 
+
  struct nft_flow_offload {
  	struct nft_flowtable	*flowtable;
-@@ -401,6 +403,27 @@
- }
- EXPORT_SYMBOL_GPL(flow_offload_bridge_init);
- 
+ };
+
 +static void nft_flow_set_dscp(const struct nft_pktinfo *pkt,
 +			      struct flow_offload *flow,
 +			      enum ip_conntrack_dir dir)
@@ -63,12 +66,11 @@ Based on work by Airoha (915-01 patch series).
  static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
  {
  	if (skb_sec_path(skb))
-@@ -496,6 +519,9 @@
+@@ -119,6 +142,8 @@
  	if (!flow)
  		goto err_flow_alloc;
- 
+
 +	nft_flow_set_dscp(pkt, flow, dir);
-+	nft_flow_set_dscp(pkt, flow, !dir);
 +
  	if (routing)
  		flow_offload_route_init(flow, &route);
