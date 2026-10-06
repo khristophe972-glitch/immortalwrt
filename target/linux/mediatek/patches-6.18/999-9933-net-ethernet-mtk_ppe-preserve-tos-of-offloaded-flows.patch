@@ -14,9 +14,24 @@ and program it into the ib2 DSCP field so the hardware offload path keeps
 the marking instead of zeroing it.  The Airoha driver does the same with
 AIROHA_FOE_IB2_DSCP (915-02).
 
-The trigger DSCP is the one 999-dscp-01 copies to both tuple directions,
-and the ECN bits are forced to 0.  Bridge flows are left alone, as the
-software bridge path already carries the marking.
+This is a static per-entry TOS, with three limits:
+
+ a) The ECN bits of an offloaded flow are not preserved: the emitted TOS
+    is the 6-bit DSCP with ECN 0.  This was already the case before this
+    patch (ib2[31:24] was simply left at 0), and a CE mark set along the
+    path is overwritten.  The SDK's KEEP_DSCP / KEEP_ECN bits, which would
+    keep the per-packet TOS, are reserved for NETsys v3 (MT7988).
+
+ b) Only the direction that triggered the entry carries a TOS.  The
+    opposite direction's entry stays at 0, so a reply marked by its server
+    is written back to 0 by the PPE, as before.
+
+ c) The TOS is that of the packet that created the entry: a flow whose
+    first packet is unmarked and that is marked later keeps 0 for the
+    entry's lifetime.
+
+Bridge flows are left alone, as the software bridge path already carries
+the marking.
 
 Signed-off-by: khristophe972 <khristophe972@gmail.com>
 Source: inspired by Airoha 915-02 (Lorenzo Bianconi, net-next)
