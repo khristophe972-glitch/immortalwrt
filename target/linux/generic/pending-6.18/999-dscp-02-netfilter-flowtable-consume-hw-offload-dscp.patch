@@ -1,12 +1,20 @@
 From: khristophe972 <khristophe972@gmail.com>
 Date: Tue, 06 Oct 2026 00:00:00 +0200
-Subject: [PATCH] netfilter: flowtable: consume the DSCP preserved by nft_flow_offload
+Subject: [PATCH] netfilter: flowtable: expose the preserved DSCP to the hardware offload path
 
-999-dscp-01 stores the original DSCP of an offloaded flow in
-flow_offload_tuple.dscp, but nothing reads it back, so on the mediatek
-PPE path the store is inert.  Expose the stored value to the hardware
-offload path via the flow dissector (FLOW_DISSECTOR_KEY_IP) and apply it
-on the software fast path, mirroring the Airoha 915-01 series.
+999-dscp-01 stores the DSCP of the packet that created an offloaded flow
+in flow_offload_tuple.dscp, but nothing reads it back, so on the mediatek
+PPE path the store is inert.  Expose it to the hardware offload path via
+the flow dissector: when the tuple carries a non-zero DSCP (the direction
+observed at creation), fill FLOW_DISSECTOR_KEY_IP so the resulting flow
+rule hands the value to the driver.
+
+The fill is conditional: a tuple left at 0 (the opposite direction, per
+999-dscp-01) does not add the IP key, so no TOS is programmed for it and
+the PPE keeps emitting TOS 0 there, as before.
+
+The software fast path is deliberately left untouched: each packet keeps
+its own TOS.
 
 The stored value is 6 bits (INET_DSCP_MASK), so the TOS octet handed to
 the hardware is rebuilt as DSCP << 2 with ECN 0, exactly like the Airoha
@@ -16,10 +24,9 @@ Signed-off-by: khristophe972 <khristophe972@gmail.com>
 Source: adapted from Airoha 915-01 (Lorenzo Bianconi, net-next)
 License: GPL-2.0-only
 ---
- include/net/netfilter/nf_flow_table.h |  1 +
- net/netfilter/nf_flow_table_ip.c      | 22 ++++++++++++++++++++++
- net/netfilter/nf_flow_table_offload.c | 11 +++++++++++
- 3 files changed, 34 insertions(+)
+ include/net/netfilter/nf_flow_table.h | 1 +
+ net/netfilter/nf_flow_table_offload.c | 9 +++++++++
+ 2 files changed, 10 insertions(+)
 
 --- a/include/net/netfilter/nf_flow_table.h
 +++ b/include/net/netfilter/nf_flow_table.h
@@ -55,75 +62,16 @@ License: GPL-2.0-only
  	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
  	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
 
-@@ -168,6 +171,10 @@
+@@ -168,6 +171,12 @@
  	match->dissector.used_keys |= BIT_ULL(key->control.addr_type);
  	mask->basic.n_proto = 0xffff;
 
-+	key->ip.tos = FIELD_PREP(INET_DSCP_MASK, tuple->dscp);
-+	mask->ip.tos = 0xff;
-+	match->dissector.used_keys |= BIT_ULL(FLOW_DISSECTOR_KEY_IP);
++	if (tuple->dscp) {
++		key->ip.tos = FIELD_PREP(INET_DSCP_MASK, tuple->dscp);
++		mask->ip.tos = 0xff;
++		match->dissector.used_keys |= BIT_ULL(FLOW_DISSECTOR_KEY_IP);
++	}
 +
  	switch (tuple->l4proto) {
  	case IPPROTO_TCP:
  		key->tcp.flags = 0;
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -6,6 +6,7 @@
- #include <linux/rhashtable.h>
- #include <linux/ip.h>
- #include <linux/ipv6.h>
-+#include <linux/bitfield.h>
- #include <linux/netdevice.h>
- #include <linux/if_ether.h>
- #include <linux/etherdevice.h>
-@@ -13,6 +14,8 @@
- #include <net/ip.h>
- #include <net/ipv6.h>
- #include <net/ip6_route.h>
-+#include <net/dsfield.h>
-+#include <net/inet_ecn.h>
- #include <net/neighbour.h>
- #include <net/netfilter/nf_flow_table.h>
- #include <net/netfilter/nf_conntrack_acct.h>
-@@ -378,6 +381,7 @@
- 	struct flow_offload *flow;
- 	unsigned int thoff, mtu;
- 	struct iphdr *iph;
-+	u8 dscp;
-
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
-@@ -420,6 +424,12 @@
- 	iph = ip_hdr(skb);
- 	nf_flow_nat_ip(flow, skb, thoff, dir, iph);
-
-+	dscp = FIELD_GET(INET_DSCP_MASK, ipv4_get_dsfield(iph));
-+	if (tuplehash->tuple.dscp != dscp)
-+		ipv4_change_dsfield(iph, INET_ECN_MASK,
-+				    FIELD_PREP(INET_DSCP_MASK,
-+					       tuplehash->tuple.dscp));
-+
- 	ip_decrease_ttl(iph);
- clear_tstamp:
- 	skb_clear_tstamp(skb);
-@@ -672,6 +682,7 @@
- 	struct flow_offload *flow;
- 	unsigned int thoff, mtu;
- 	struct ipv6hdr *ip6h;
-+	u8 dscp;
-
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
-@@ -713,6 +724,12 @@
- 	ip6h = ipv6_hdr(skb);
- 	nf_flow_nat_ipv6(flow, skb, dir, ip6h);
-
-+	dscp = FIELD_GET(INET_DSCP_MASK, ipv6_get_dsfield(ip6h));
-+	if (tuplehash->tuple.dscp != dscp)
-+		ipv6_change_dsfield(ip6h, INET_ECN_MASK,
-+				    FIELD_PREP(INET_DSCP_MASK,
-+					       tuplehash->tuple.dscp));
-+
- 	ip6h->hop_limit--;
- clear_tstamp:
- 	skb_clear_tstamp(skb);
