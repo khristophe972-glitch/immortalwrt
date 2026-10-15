@@ -1,0 +1,91 @@
+net/sched: sch_cake: cake_mq application block: instance rate, re-applied per tick
+
+999-718 moved the instance rate into the sync block, next to the
+water-filling, and removed the declaration the application block below
+used to carry for itself. That block runs outside the spin_trylock
+scope, so the name no longer reaches it:
+
+  net/sched/sch_cake.c:2401:42: error: 'new_rate' undeclared
+    (first use in this function)
+
+Two repairs to that block.
+
+1. The rate. Recomputing it from active_queues would discard the
+   water-filled value and make 999-718 inert, so the block reads
+   q->rb_cap. rb_cap is a per-instance field and only its owner ever
+   writes it -- at the single computation site 999-718 hoisted the rate
+   to, written with WRITE_ONCE by 999-719 -- so there is no winner-to-peer
+   channel through it. The one read of a peer's rb_cap, also from 999-719,
+   sums the caps for the overcommit statistic and redistributes nothing.
+   For the tick winner the read is fresh, since it wrote that value a few
+   lines earlier in the same pass. For an
+   instance that did not win the tick it is the rate computed at its own
+   last win, so under the rebalance a share only refreshes on that
+   instance's own wins and the aggregate can drift until the next one.
+   That is a limit of modes 1 and 2, and it is the reason the toggle
+   matters below.
+
+   Mode 0 has to stay bit-identical to the previous series, so the
+   fallback reproduces the pre-999-718 computation whenever the toggle is
+   off, or whenever rb_cap is still zero -- an instance that has never won
+   a tick keeps the zero of qdisc_alloc's kzalloc, the same assumption
+   999-714 already relies on for rb_bytes and rb_overlimits.
+
+     if (!READ_ONCE(g_mq_rebalance) || !new_rate)
+         new_rate = active_queues > 1 ?
+             div64_u64(cfg->rate_bps, active_queues) : cfg->rate_bps;
+
+2. The guard. The block used to re-apply only when the active count
+   changed. That is correct while every instance's share is
+   rate_bps / num_active_qs, because the share cannot change without the
+   count. Under the rebalance it can: the share follows each instance's
+   smoothed served rate and moves every tick. Applying it only at count
+   transitions would leave the water-filling inert in between, so with
+   the toggle on the block now runs once per tick, the cadence the
+   tin_share mode already uses.
+
+   The toggle is therefore read twice, once for the guard and once for the
+   fallback, both from the same debugfs variable.
+
+Requires 999-718, 999-719 and 999-721. Not built, not flashed. Local port only.
+
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -2395,9 +2395,36 @@
+ 			spin_unlock(&cfg->sync_lock);
+ 		}
+
+-		if (tin_share ?
++		/* Rebalance : la part par instance change a chaque tick, meme a
++		 * compte d'instances constant, alors que la garde "le compte a
++		 * change" (999-714) ne republierait le debit qu'aux transitions
++		 * du compte -- le water-filling resterait alors inerte entre
++		 * deux transitions. En mode rebalance on repasse donc une fois
++		 * par tick, comme le mode tin_share le fait deja.
++		 */
++		if ((tin_share || READ_ONCE(g_mq_rebalance)) ?
+ 		    q->last_synced_tick != READ_ONCE(cfg->shared_last_checked) :
+ 		    q->active_queues != active_queues) {
++			/* Part de CETTE instance. rb_cap est un champ par
++			 * instance : le gagnant du tick vient d'y ecrire sa part
++			 * fraiche, donc pour lui la lecture est a jour ; une
++			 * instance qui n'a pas gagne le tick y relit le taux
++			 * calcule lors de SON dernier gain, et l'agregat peut
++			 * deriver jusqu'a son prochain gain -- limite connue des
++			 * modes 1 et 2. En mode 0, rb_cap n'est que le partage
++			 * egal, et le bloc ne se declenche qu'au changement du
++			 * compte : la valeur peut dater d'un tick anterieur, donc
++			 * on la recalcule frais, comme avant 999-718, pour rester
++			 * identique a la serie precedente. rb_cap = 0 (instance
++			 * qui n'a jamais gagne un tick) tombe dans le meme cas.
++			 */
++			u64 new_rate = READ_ONCE(q->rb_cap);
++
++			if (!READ_ONCE(g_mq_rebalance) || !new_rate)
++				new_rate = active_queues > 1 ?
++					div64_u64(cfg->rate_bps, active_queues) :
++					cfg->rate_bps;
++
+ 			if (tin_share && new_rate < cfg->rate_bps) {
+ 				u32 i, tin_cap = min_t(u32, READ_ONCE(g_mq_tin_cap), 100);
+ 				u64 cap = div64_u64(new_rate * (u64)tin_cap, 100);
