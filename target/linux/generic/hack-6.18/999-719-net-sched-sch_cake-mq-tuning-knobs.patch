@@ -1,0 +1,303 @@
+net/sched: sch_cake: cake_mq tuning knobs + v2 split
+
+Follow-on to 999-718. Turns the fixed constants of the v1 split into
+runtime knobs and adds the v2 split, so a setting can be explored
+without a rebuild. Everything defaults to the behaviour of 999-718 (and,
+for rebalance = 0, to the behaviour of the series before it).
+
+Runtime knobs under /sys/kernel/debug/cake_mq/ :
+
+  rebalance          0 = partage egal (defaut)
+                     1 = v1 : cap d'une non saturee = servi + marge,
+                         les saturees se partagent le reste
+                     2 = v2 : jamais sous la part egale ; les saturees
+                         recoivent en plus la part egale que les non
+                         saturees n'utilisent pas
+  active_hold        0 = test d'activite amont (defaut)
+                     N = une instance reste active si elle a emis depuis
+                         N * sync_time (lisse le compte)
+  ewma_shift         lissage du debit servi, 1..8 (defaut 2)
+  v1_headroom_shift  v1 : marge = servi >> shift (defaut 2, soit 25 %)
+  v1_sat_shift       v1 : sature si servi >= cap - cap >> shift
+                     (defaut 3, soit 7/8)
+  v2_spare_pct       v2 : % de la part egale inutilisee redistribuee,
+                     0..100 (defaut 100)
+
+cake_mq/stats gains an overcommit counter: the syncs where the sum of
+the local caps of the active instances exceeds the global rate, and the
+excess in KiB/s. In v1 and v2 the sum need not equal the global rate at
+every tick, so without this the rate conformance of a setting is not
+visible; this is the counter that makes the cost of each setting
+measurable rather than argued.
+
+Ported from Segalmen's 714
+(instrumentation/714-net-sched-sch_cake-mq-tuning-knobs.patch,
+Segalmen/cake-mq-patches), which he stacks on his 712 and 713. Ours sits
+on 999-718, the port of his 712, and inherits its three adaptations.
+
+Two things this port changes on our tree that his patch does not, both
+consequences of running on our series rather than on his:
+
+ - The saturation criterion of our 999-714 is replaced. His 714 makes
+   saturation mean "throttled with a backlog", except in v1 mode where
+   the v1 criterion (throttled while serving >= 7/8 of the cap) is kept.
+   With rebalance = 0 on our tree that branch is the new default, so the
+   meaning of the existing "saturated" counter changes even though no
+   knob is turned. The counter is not comparable across this patch.
+
+ - In his patch that first branch cannot do what it says here. The
+   measurement runs at the head of cake_dequeue, and cake_dequeue returns
+   early when the instance's queue is empty ("if (!sch->q.qlen) return
+   NULL;"), so sch->q.qlen is >= 1 for the whole body: "throttled with a
+   backlog" is exactly "throttled". The qlen term is carried over
+   verbatim rather than corrected, so that this port says what his patch
+   says; the reader should treat mode 0 and mode 2 as testing overlimit
+   alone. Whether to correct it belongs to Christophe, not to this port.
+
+ - His stats block declares its struct cake_mq_stats where our 999-714
+   already has one; the increments are placed in ours, at the two lines
+   they follow (rate_kbs_sum, then the caps_sum overcommit test). Our
+   seq_printf is extended in place rather than rewritten, so the rows our
+   parsers already read keep their format.
+
+Consequence of v2 worth stating before enabling: v2 can allocate more
+than the equal share, so the sum of the local caps can exceed the global
+rate, which is what the overcommit counter reports. v1 leaves the sum at
+or below the global rate by construction.
+
+Observable fact, verifiable without a rebuild: /sys/kernel/debug/cake_mq
+gains active_hold, ewma_shift, v1_headroom_shift, v1_sat_shift and
+v2_spare_pct (0644, defaults 0, 2, 2, 3, 100), and cake_mq/stats gains
+one "overcommit ... overcommit_kbs_sum ..." row per direction. Every
+knob at its default and rebalance = 0 reproduces 999-718.
+
+Requires 999-718. Not built, not flashed. Local port only.
+
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -104,14 +104,24 @@
+  */
+ static u32 g_active_release = 1;
+ 
+-/* Rebalance a la demande entre instances cake_mq (portage du 712 de
+- * Segalmen). 0 (defaut) = partage egal amont ; 1 = v1 : une instance
+- * non saturee reserve son debit servi + 25 %, les saturees se partagent
+- * ce qui reste du debit global. La somme des debits locaux reste le
+- * debit global. Bascule live, sans rebuild :
++/* Rebalance a la demande entre instances cake_mq (portage des 712 et
++ * 714 de Segalmen) :
++ *   0 (defaut) = partage egal amont ;
++ *   1 = v1 : une instance non saturee reserve son debit servi + une
++ *       marge de 1/2^v1_headroom_shift, les saturees se partagent ce
++ *       qui reste du debit global ;
++ *   2 = v2 : jamais sous la part egale, les saturees recoivent en plus
++ *       la partie de la part egale que les non saturees n'utilisent
++ *       pas (v2_spare_pct %).
++ * Bascule live, sans rebuild :
+  *   echo 1 > /sys/kernel/debug/cake_mq/rebalance
+  */
+-static u32 g_mq_rebalance;
++static u32 g_mq_rebalance;		/* 0 = amont, 1 = v1, 2 = v2 */
++static u32 g_mq_active_hold;		/* 0 = amont, N = actif si vu depuis N * sync_time */
++static u32 g_mq_ewma_shift = 2;		/* lissage du debit servi, 1..8 */
++static u32 g_mq_v1_headroom_shift = 2;	/* v1 : cap d'une non saturee = servi + servi >> shift */
++static u32 g_mq_v1_sat_shift = 3;	/* v1 : sature si servi >= cap - cap >> shift */
++static u32 g_mq_v2_spare_pct = 100;	/* v2 : % de la part egale inutilisee, 0..100 */
+ 
+ /* Instrumentation cake_mq (999-714) : compteurs de synchro en
+  * lecture seule, indexes par direction (0 = egress, 1 = ingress/IFB).
+@@ -124,6 +134,8 @@
+ 	atomic64_t nact_changes;		/* le compte a change */
+ 	atomic64_t saturated;			/* instance saturee a ce tick */
+ 	atomic64_t rate_kbs_sum;		/* somme debit local, KiB/s */
++	atomic64_t overcommit;			/* syncs ou la somme des caps > debit global */
++	atomic64_t overcommit_kbs_sum;		/* exces sur le debit global, KiB/s */
+ 	atomic64_t tin_nact_sum[CAKE_MAX_TINS];	/* instances actives par tin */
+ 	atomic64_t tin_capped[CAKE_MAX_TINS];	/* syncs ou tin_cap a mordu */
+ };
+@@ -1480,11 +1492,11 @@
+ }
+ 
+ /* Debit reserve a une instance cake_mq non saturee : son debit servi
+- * lisse + 25 % de marge, jamais sous le plancher.
++ * lisse + une marge de 1/2^shift, jamais sous le plancher.
+  */
+-static u64 cake_mq_light_cap(u64 served, u64 floor)
++static u64 cake_mq_light_cap(u64 served, u64 floor, u32 shift)
+ {
+-	return max_t(u64, served + (served >> 2), floor);
++	return max_t(u64, served + (served >> shift), floor);
+ }
+ 
+ static u32 cake_calc_overhead(struct cake_sched_data *qd, u32 len, u32 off)
+@@ -2163,9 +2175,17 @@
+ 				       g_sync_time_ns;
+ 			u32 tin_others[CAKE_MAX_TINS] = { 0 };
+ 			u32 mode = READ_ONCE(g_mq_rebalance);
++			u64 hold = (u64)READ_ONCE(g_mq_active_hold) * g_sync_time_ns;
++			u32 ewma_shift = clamp_t(u32, READ_ONCE(g_mq_ewma_shift), 1, 8);
++			u32 head_shift = clamp_t(u32, READ_ONCE(g_mq_v1_headroom_shift), 1, 8);
++			u32 sat_shift = clamp_t(u32, READ_ONCE(g_mq_v1_sat_shift), 1, 8);
++			u32 spare_pct = min_t(u32, READ_ONCE(g_mq_v2_spare_pct), 100);
+ 			u64 rate = cfg->rate_bps;
+ 			u64 floor = rate >> 5;
+-			u64 light_sum = 0;	/* caps reserves par les autres non saturees */
++			u64 light_sum = 0;	/* v1 : caps reserves par les autres non saturees */
++			u64 light_rate = 0;	/* v2 : debit servi des autres non saturees */
++			u64 caps_sum = 0;	/* stats : caps des autres instances actives */
++			u32 num_light = 0;	/* v2 : autres non saturees */
+ 			u32 num_sat = 0;	/* instances saturees, soi comprise */
+ 			u64 new_rate = rate;	/* part de cette instance, calculee une fois */
+ 
+@@ -2178,6 +2198,8 @@
+ 				 */
+ 				won_tick = true;
+ 				for (ntx = 0; ntx < cake_mq_queue_count(dev); ntx++) {
++					bool active;
++
+ 					other_sch = rcu_dereference(netdev_get_tx_queue(dev, ntx)->qdisc_sleeping);
+ 					other_priv = qdisc_priv(other_sch);
+ 
+@@ -2196,17 +2218,29 @@
+ 								tin_others[i]++;
+ 					}
+ 
+-					if (other_qlen || other_last_active > active_since) {
+-						num_active_qs++;
++					if (hold)
++						active = other_qlen ||
++							 other_last_active + hold >= now;
++					else
++						active = other_qlen ||
++							 other_last_active > active_since;
++					if (!active)
++						continue;
+ 
+-						if (mode) {
+-							if (READ_ONCE(other_priv->rb_saturated))
+-								num_sat++;
+-							else
+-								light_sum += cake_mq_light_cap(
+-									READ_ONCE(other_priv->rb_rate),
+-									floor);
+-						}
++					num_active_qs++;
++					caps_sum += READ_ONCE(other_priv->rb_cap);
++					if (!mode)
++						continue;
++
++					if (READ_ONCE(other_priv->rb_saturated)) {
++						num_sat++;
++					} else {
++						u64 r = READ_ONCE(other_priv->rb_rate);
++
++						num_light++;
++						light_rate += r;
++						light_sum += cake_mq_light_cap(r, floor,
++									       head_shift);
+ 					}
+ 				}
+ 
+@@ -2234,16 +2268,26 @@
+ 					u64 dt = now_ns - last_checked;
+ 					u64 cap = q->rb_cap ? q->rb_cap : rate;
+ 					u32 ol = sch->qstats.overlimits;
++					bool throttled = ol != q->rb_overlimits;
+ 					u64 r = 0;
+ 					u8 sat;
+ 
+ 					if (dt)
+ 						r = div64_u64(q->rb_bytes * NSEC_PER_SEC, dt);
+-					sat = ol != q->rb_overlimits &&
+-					      r >= cap - (cap >> 3);
++					if (mode == 1)
++						/* v1 : bride en servant au plus
++						 * pres de son cap
++						 */
++						sat = throttled &&
++						      r >= cap - (cap >> sat_shift);
++					else
++						/* v2 et amont : bride avec du
++						 * backlog encore en file
++						 */
++						sat = throttled && sch->q.qlen;
+ 					q->rb_bytes = 0;
+ 					q->rb_overlimits = ol;
+-					WRITE_ONCE(q->rb_rate, cake_ewma(q->rb_rate, r, 2));
++					WRITE_ONCE(q->rb_rate, cake_ewma(q->rb_rate, r, ewma_shift));
+ 					WRITE_ONCE(q->rb_saturated, sat);
+ 				}
+ 
+@@ -2275,7 +2319,7 @@
+ 						num_sat++;
+ 					new_rate = num_active_qs > 1 ?
+ 						div64_u64(rate, num_active_qs) : rate;
+-					if (mode && num_active_qs > 1) {
++					if (mode == 1 && num_active_qs > 1) {
+ 						if (q->rb_saturated)
+ 							/* ce que les non saturees
+ 							 * laissent
+@@ -2285,12 +2329,34 @@
+ 									     num_sat) : floor;
+ 						else
+ 							new_rate = cake_mq_light_cap(
+-								q->rb_rate, floor);
++								q->rb_rate, floor,
++								head_shift);
+ 						new_rate = clamp_t(u64, new_rate,
+ 								   floor, rate);
++					} else if (mode == 2 && num_active_qs > 1 &&
++						   q->rb_saturated) {
++						/* jamais sous la part egale ;
++						 * les saturees prennent en plus
++						 * la part egale que les non
++						 * saturees n'utilisent pas
++						 */
++						u64 eq = new_rate;
++						u64 spare = num_light * eq > light_rate ?
++							    num_light * eq - light_rate : 0;
++
++						spare = div64_u64(spare * spare_pct, 100);
++						new_rate = min_t(u64,
++								 eq + div64_u64(spare, num_sat),
++								 rate);
+ 					}
+ 					atomic64_add(new_rate >> 10, &st->rate_kbs_sum);
+-					q->rb_cap = new_rate;
++					caps_sum += new_rate;
++					if (caps_sum > rate) {
++						atomic64_inc(&st->overcommit);
++						atomic64_add((caps_sum - rate) >> 10,
++							     &st->overcommit_kbs_sum);
++					}
++					WRITE_ONCE(q->rb_cap, new_rate);
+ 
+ 					if (tin_share) {
+ 						u32 i;
+@@ -3708,6 +3774,9 @@
+ 			   (s64)atomic64_read(&st->nact_changes),
+ 			   (s64)atomic64_read(&st->saturated),
+ 			   (s64)atomic64_read(&st->rate_kbs_sum));
++		seq_printf(m, "%s: overcommit %lld overcommit_kbs_sum %lld\n",
++			   dir[d], (s64)atomic64_read(&st->overcommit),
++			   (s64)atomic64_read(&st->overcommit_kbs_sum));
+ 		seq_printf(m, "%s: nact", dir[d]);
+ 		for (i = 0; i < CAKE_MQ_NACT_BINS; i++)
+ 			seq_printf(m, " %lld", (s64)atomic64_read(&st->nact[i]));
+@@ -3776,6 +3845,16 @@
+ 				   &g_active_release);
+ 		debugfs_create_u32("rebalance", 0644, cake_mq_debugfs,
+ 				   &g_mq_rebalance);
++		debugfs_create_u32("active_hold", 0644, cake_mq_debugfs,
++				   &g_mq_active_hold);
++		debugfs_create_u32("ewma_shift", 0644, cake_mq_debugfs,
++				   &g_mq_ewma_shift);
++		debugfs_create_u32("v1_headroom_shift", 0644, cake_mq_debugfs,
++				   &g_mq_v1_headroom_shift);
++		debugfs_create_u32("v1_sat_shift", 0644, cake_mq_debugfs,
++				   &g_mq_v1_sat_shift);
++		debugfs_create_u32("v2_spare_pct", 0644, cake_mq_debugfs,
++				   &g_mq_v2_spare_pct);
+ 		debugfs_create_file("stats", 0644, cake_mq_debugfs, NULL,
+ 				    &cake_mq_stats_fops);
+ 		debugfs_create_u32("tin_share", 0644, cake_mq_debugfs,
