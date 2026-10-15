@@ -39,7 +39,7 @@ exit 1
 X
 	printf '#!/bin/sh\nexit 0\n' > "$T/bin/logger"
 	chmod +x "$T/bin/uci" "$T/bin/tc" "$T/bin/logger"
-	for k in sync_time_ns active_window_ns active_release tin_share tin_hold tin_cap; do : > "$T/dbg/$k"; done
+	for k in sync_time_ns active_window_ns active_release tin_share tin_hold tin_cap rebalance; do : > "$T/dbg/$k"; done
 	export QOS_T="$T" QOS_TC="$T/bin/tc" QOS_UCI="$T/bin/uci" QOS_SYSNET="$T/sys" \
 		QOS_DEBUGFS="$T/dbg" QOS_LOCKDIR="$T/lock" QOS_LOCK_TRIES=2 PATH="$T/bin:$PATH"
 	unset TC_FAIL
@@ -70,6 +70,7 @@ set_cfg active_window_ns 250000
 set_cfg tin_share 0
 set_cfg tin_hold 8
 set_cfg tin_cap 0
+set_cfg rebalance 2
 run start
 expect_rc 0 "start reussit"
 expect_tc "qdisc replace dev eth1 root cake_mq bandwidth 850Mbit diffserv4 nat triple-isolate wash ack-filter split-gso rtt 30ms noatm overhead 38 mpu 84" "tc qdisc replace appele avec les bons arguments"
@@ -77,6 +78,7 @@ grep -q 'qdisc change' "$T/tc.log" && ko "jamais tc qdisc change" || ok "jamais 
 [ "$(cat "$T/dbg/sync_time_ns")" = 200000 ] && ok "debugfs sync_time_ns ecrit" || ko "debugfs sync_time_ns"
 [ "$(cat "$T/dbg/active_window_ns")" = 250000 ] && ok "debugfs active_window_ns ecrit" || ko "debugfs active_window_ns"
 [ "$(cat "$T/dbg/tin_hold")" = 8 ] && ok "debugfs tin_hold ecrit" || ko "debugfs tin_hold"
+[ "$(cat "$T/dbg/rebalance")" = 2 ] && ok "debugfs rebalance ecrit" || ko "debugfs rebalance"
 [ -s "$T/dbg/active_release" ] && ko "active_release non ecrit s'il est absent" || ok "active_release non ecrit s'il est absent"
 [ ! -d "$T/lock" ] && ok "verrou libere" || ko "verrou libere"
 run status
@@ -104,7 +106,7 @@ teardown
 echo "[validation : valeurs invalides]"
 for kv in "bandwidth abc" "bandwidth 850" "rtt 30" "rtt 30ms;touch/tmp/pwn" "diffserv foo" "flow_isolation x" "nat 2" "wash yes" \
 	"ack_filter maybe" "split_gso 5" "link_type dsl" "overhead 999" "overhead abc" "mpu -1" "mpu 999" "memlimit 3x" \
-	"device eth1;reboot" "device a/b" "qdisc htb" "tin_cap 101" "tin_share 2" "tin_hold 0" "sync_time_ns abc" "enabled maybe"; do
+	"device eth1;reboot" "device a/b" "qdisc htb" "tin_cap 101" "tin_share 2" "tin_hold 0" "rebalance 3" "sync_time_ns abc" "enabled maybe"; do
 	setup
 	set_cfg "${kv%% *}" "${kv#* }"
 	run start

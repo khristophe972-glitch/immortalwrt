@@ -16,10 +16,12 @@ config global 'global'
 	option link_type 'noatm'
 	option overhead '38'
 	option mpu '84'
-	# Reglages debugfs de cake_mq (series 999-711 a 717), ecrits apres le qdisc.
+	# Reglages debugfs de cake_mq (series 999-711 a 722), ecrits apres le qdisc.
 	# Une option absente ou vide n'est pas ecrite.
 	option sync_time_ns '200000'
 	option active_window_ns '250000'
 	option tin_share '0'
 	option tin_hold '8'
 	option tin_cap '0'
+	# 0 = partage egal amont, 1 = rebalance v1, 2 = rebalance v2.
+	option rebalance '0'

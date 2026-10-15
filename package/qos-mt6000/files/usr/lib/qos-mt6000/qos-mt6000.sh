@@ -24,7 +24,7 @@ DEBUGFS=${QOS_DEBUGFS:-/sys/kernel/debug/cake_mq}
 SYSNET=${QOS_SYSNET:-/sys/class/net}
 LOCKDIR=${QOS_LOCKDIR:-/tmp/qos-mt6000.lock}
 LOCK_TRIES=${QOS_LOCK_TRIES:-15}
-KNOBS="sync_time_ns active_window_ns active_release tin_share tin_hold tin_cap"
+KNOBS="sync_time_ns active_window_ns active_release tin_share tin_hold tin_cap rebalance"
 
 log() {
 	logger -t "$NAME" "$*" 2> /dev/null
@@ -153,6 +153,9 @@ validate() {
 			continue
 		fi
 		case "$k" in
+		rebalance)
+			[ "$v" -le 2 ] || { log "rebalance invalide : '$v' (0, 1 ou 2)"; err=1; }
+			;;
 		tin_share)
 			[ "$v" -le 1 ] || { log "tin_share invalide : '$v' (0 ou 1)"; err=1; }
 			;;
