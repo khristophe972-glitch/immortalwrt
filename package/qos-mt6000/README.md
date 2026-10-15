@@ -10,7 +10,7 @@ Gestion du qdisc racine `cake_mq` du port WAN du GL-MT6000 : un paquet backend
 | `package/qos-mt6000/files/usr/lib/qos-mt6000/qos-mt6000.sh` | programme : start, stop, check (dry-run), status |
 | `package/qos-mt6000/files/etc/init.d/qos-mt6000` | script de demarrage procd (START=26), recharge sur changement de `/etc/config/qos-mt6000` et sur `ifup` de l'interface declenchante |
 | `package/qos-mt6000/files/etc/config/qos-mt6000` | configuration UCI, valeurs par defaut = qdisc de production du 04/10/2026 |
-| `package/qos-mt6000/tests/test-qos-mt6000.sh` | 77 tests avec faux tc/uci/logger (`sh tests/test-qos-mt6000.sh`, ou `busybox ash`) |
+| `package/qos-mt6000/tests/test-qos-mt6000.sh` | 80 tests avec faux tc/uci/logger (`sh tests/test-qos-mt6000.sh`, ou `busybox ash`) |
 | `package/luci-app-qos-mt6000/` | page LuCI : menu, ACL rpcd, vue JavaScript |
 
 ## Comportement
@@ -20,8 +20,11 @@ Gestion du qdisc racine `cake_mq` du port WAN du GL-MT6000 : un paquet backend
   comparee a une liste ou a un motif strict).
 * Le qdisc est remplace par `tc qdisc replace` (jamais `change`), puis verifie par `tc qdisc show`.
 * Les reglages debugfs de cake_mq (`sync_time_ns`, `active_window_ns`, `active_release`,
-  `tin_share`, `tin_hold`, `tin_cap`) sont ecrits avec `printf` apres le qdisc. Une option
-  absente ou vide n'est pas ecrite.
+  `tin_share`, `tin_hold`, `tin_cap`, `rebalance`) sont ecrits avec `printf` apres le qdisc.
+  Une option absente ou vide n'est pas ecrite.
+* `rebalance` : `0` partage egal amont (defaut du paquet), `1` v1 (une instance non saturee
+  reserve sa marge disponible), `2` v2 (une instance saturee ne descend jamais sous la part
+  egale). Hors `0`, le partage est recalcule a chaque synchronisation.
 * `enabled '0'` : rien n'est modifie. `stop` supprime le qdisc racine (retour au qdisc par defaut).
 * Un verrou (`/tmp/qos-mt6000.lock`) evite deux applications simultanees.
 
