@@ -1,0 +1,203 @@
+net/sched: sch_cake: cake_mq demand-aware rate split (v1)
+
+Upstream cake_mq splits the global rate equally between the active
+sub-instances (rate_bps / num_active_qs). When the TX-queue spread is
+uneven, lightly loaded instances leave part of their share unused while
+busier ones are capped and drop.
+
+Add an optional water-filling split, off by default:
+
+  0  partage egal amont (defaut)
+  1  v1 : une instance non saturee reserve son debit servi + 25 %,
+     les saturees se partagent ce qui reste du debit global
+
+Runtime toggle, no rebuild:
+
+  echo 1 > /sys/kernel/debug/cake_mq/rebalance
+
+Each instance publishes its smoothed served rate and whether it was
+shaper-limited during the last interval; the tick winner sums the caps
+reserved by the non-saturated instances and hands the remainder to the
+saturated ones. Lockless, same READ_ONCE/WRITE_ONCE pattern as the rest
+of the sync block.
+
+Ported from Segalmen's experimental series (his 712,
+instrumentation/712-net-sched-sch_cake-mq-demand-rebalance.patch,
+Segalmen/cake-mq-patches). Three adaptations to our tree:
+
+ - The measurement half is already ours. Our 999-714 carries his 713
+   verbatim (rb_bytes charged at the two cake_advance_shaper sites,
+   rb_rate, rb_cap, rb_overlimits, rb_saturated) and his 712 adds
+   nothing to the struct or to cake_dequeue, so the port is only the
+   split: his helper, his knob, his loop accumulation, his formula.
+
+ - His sampling sits at the head of the sync block and anchors on
+   q->last_checked_active. That field has had no writer since our
+   999-711 and reads 0, which our 999-714 states in its own comment: his
+   guard "if (q->last_checked_active && dt)" would leave r at 0 forever
+   and the whole mechanism inert. The port therefore keeps our sampling
+   block where it is (after the loop, anchored on the published tick) and
+   only consumes its output, the way his loop consumes its peers'.
+
+ - His 712 computes new_rate at a single site. Our 999-714 computes it
+   twice: once in the stats block, from active_queues as read BEFORE the
+   hysteresis, and once in the application block, from the count after
+   it. The stats-block value derives from the count as published one
+   tick earlier, so q->rb_cap never equalled the rate applied in the
+   same pass: it lagged it by one tick, and the saturation criterion of
+   our 999-714 compared against that lagging cap. The port hoists the
+   computation to one site, as he has it, and both consumers read it:
+   rb_cap now equals the rate actually applied at that tick.
+
+Consequence to be aware of before enabling: with rebalance = 1 the sum
+of the local rates is still the global rate, but it is no longer
+rate_bps / N per instance, so a single guest flow spread over several
+queues can be capped below its former share. That is the intent of the
+mechanism, not a side effect.
+
+Observable fact, verifiable without a rebuild: /sys/kernel/debug/cake_mq
+gains the "rebalance" knob (0644, default 0). With 0 the split is
+bit-identical to our current series.
+
+Not built, not flashed. Local port only.
+
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -104,6 +104,15 @@
+  */
+ static u32 g_active_release = 1;
+ 
++/* Rebalance a la demande entre instances cake_mq (portage du 712 de
++ * Segalmen). 0 (defaut) = partage egal amont ; 1 = v1 : une instance
++ * non saturee reserve son debit servi + 25 %, les saturees se partagent
++ * ce qui reste du debit global. La somme des debits locaux reste le
++ * debit global. Bascule live, sans rebuild :
++ *   echo 1 > /sys/kernel/debug/cake_mq/rebalance
++ */
++static u32 g_mq_rebalance;
++
+ /* Instrumentation cake_mq (999-714) : compteurs de synchro en
+  * lecture seule, indexes par direction (0 = egress, 1 = ingress/IFB).
+  * Lecture : cat /sys/kernel/debug/cake_mq/stats
+@@ -1470,6 +1479,14 @@
+ 	return avg;
+ }
+ 
++/* Debit reserve a une instance cake_mq non saturee : son debit servi
++ * lisse + 25 % de marge, jamais sous le plancher.
++ */
++static u64 cake_mq_light_cap(u64 served, u64 floor)
++{
++	return max_t(u64, served + (served >> 2), floor);
++}
++
+ static u32 cake_calc_overhead(struct cake_sched_data *qd, u32 len, u32 off)
+ {
+ 	struct cake_sched_config *q = qd->config;
+@@ -2145,6 +2162,12 @@
+ 			u64 tin_hold = (u64)max_t(u32, READ_ONCE(g_mq_tin_hold), 1) *
+ 				       g_sync_time_ns;
+ 			u32 tin_others[CAKE_MAX_TINS] = { 0 };
++			u32 mode = READ_ONCE(g_mq_rebalance);
++			u64 rate = cfg->rate_bps;
++			u64 floor = rate >> 5;
++			u64 light_sum = 0;	/* caps reserves par les autres non saturees */
++			u32 num_sat = 0;	/* instances saturees, soi comprise */
++			u64 new_rate = rate;	/* part de cette instance, calculee une fois */
+ 
+ 			last_checked = cfg->shared_last_checked;
+ 			active_queues = cfg->shared_active_queues;
+@@ -2173,8 +2196,18 @@
+ 								tin_others[i]++;
+ 					}
+ 
+-					if (other_qlen || other_last_active > active_since)
++					if (other_qlen || other_last_active > active_since) {
+ 						num_active_qs++;
++
++						if (mode) {
++							if (READ_ONCE(other_priv->rb_saturated))
++								num_sat++;
++							else
++								light_sum += cake_mq_light_cap(
++									READ_ONCE(other_priv->rb_rate),
++									floor);
++						}
++					}
+ 				}
+ 
+ 				/* Hysteresis : montee immediate, descente d'au plus
+@@ -2198,7 +2231,6 @@
+ 				 * verrou, donc une instance sur 16 par tick.
+ 				 */
+ 				{
+-					u64 rate = cfg->rate_bps;
+ 					u64 dt = now_ns - last_checked;
+ 					u64 cap = q->rb_cap ? q->rb_cap : rate;
+ 					u32 ol = sch->qstats.overlimits;
+@@ -2221,7 +2253,6 @@
+ 				{
+ 					struct cake_mq_stats *st = &g_mq_stats[
+ 						!!(cfg->rate_flags & CAKE_FLAG_INGRESS)];
+-					u64 new_rate;
+ 
+ 					atomic64_inc(&st->syncs);
+ 					atomic64_inc(&st->nact[
+@@ -2231,9 +2262,33 @@
+ 					if (q->rb_saturated)
+ 						atomic64_inc(&st->saturated);
+ 
+-					new_rate = active_queues > 1 ?
+-						div64_u64(cfg->rate_bps, active_queues) :
+-						cfg->rate_bps;
++					/* Part de cette instance, calculee une seule
++					 * fois : c'est le debit applique plus bas ET la
++					 * reference de saturation du prochain tick. Les
++					 * deux sites d'origine de notre 999-714 la
++					 * recalculaient separement, et le premier la
++					 * derivait de active_queues relu AVANT
++					 * l'hysteresis : rb_cap y decrivait alors un tick
++					 * de retard sur le debit reellement pose.
++					 */
++					if (q->rb_saturated)
++						num_sat++;
++					new_rate = num_active_qs > 1 ?
++						div64_u64(rate, num_active_qs) : rate;
++					if (mode && num_active_qs > 1) {
++						if (q->rb_saturated)
++							/* ce que les non saturees
++							 * laissent
++							 */
++							new_rate = light_sum + floor < rate ?
++								   div64_u64(rate - light_sum,
++									     num_sat) : floor;
++						else
++							new_rate = cake_mq_light_cap(
++								q->rb_rate, floor);
++						new_rate = clamp_t(u64, new_rate,
++								   floor, rate);
++					}
+ 					atomic64_add(new_rate >> 10, &st->rate_kbs_sum);
+ 					q->rb_cap = new_rate;
+ 
+@@ -2269,11 +2324,6 @@
+ 		if (tin_share ?
+ 		    q->last_synced_tick != READ_ONCE(cfg->shared_last_checked) :
+ 		    q->active_queues != active_queues) {
+-			u64 new_rate = cfg->rate_bps;
+-
+-			if (active_queues > 1)
+-				new_rate = div64_u64(cfg->rate_bps, active_queues);
+-
+ 			if (tin_share && new_rate < cfg->rate_bps) {
+ 				u32 i, tin_cap = min_t(u32, READ_ONCE(g_mq_tin_cap), 100);
+ 				u64 cap = div64_u64(new_rate * (u64)tin_cap, 100);
+@@ -3724,6 +3774,8 @@
+ 				   &g_active_window_ns);
+ 		debugfs_create_u32("active_release", 0644, cake_mq_debugfs,
+ 				   &g_active_release);
++		debugfs_create_u32("rebalance", 0644, cake_mq_debugfs,
++				   &g_mq_rebalance);
+ 		debugfs_create_file("stats", 0644, cake_mq_debugfs, NULL,
+ 				    &cake_mq_stats_fops);
+ 		debugfs_create_u32("tin_share", 0644, cake_mq_debugfs,
