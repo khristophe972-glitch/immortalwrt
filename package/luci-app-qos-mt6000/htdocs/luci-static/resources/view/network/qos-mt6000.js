@@ -200,6 +200,14 @@ return view.extend({
 		o.placeholder = '0';
 		o.optional = true;
 
+		o = s.taboption('tuning', form.ListValue, 'rebalance', _('Demand rebalance'),
+			_('How a saturated instance gets more than its equal share. Off keeps the upstream equal split.'));
+		o.value('0', _('Off'));
+		o.value('1', _('v1: reserve the headroom of the light instances'));
+		o.value('2', _('v2: never below the equal share'));
+		o.default = '0';
+		o.optional = true;
+
 		return m.render().then(function(node) {
 			return E('div', {}, [
 				node,
