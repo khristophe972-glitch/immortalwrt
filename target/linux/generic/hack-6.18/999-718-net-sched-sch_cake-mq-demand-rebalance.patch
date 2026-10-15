@@ -45,9 +45,16 @@ Segalmen/cake-mq-patches). Three adaptations to our tree:
    it. The stats-block value derives from the count as published one
    tick earlier, so q->rb_cap never equalled the rate applied in the
    same pass: it lagged it by one tick, and the saturation criterion of
-   our 999-714 compared against that lagging cap. The port hoists the
-   computation to one site, as he has it, and both consumers read it:
-   rb_cap now equals the rate actually applied at that tick.
+   our 999-714 compared against that lagging cap. The port computes it
+   once, in the sync block, and both consumers read it: rb_cap now
+   equals the rate actually applied at that tick.
+
+   That hoist is ours, not his. His 712 computes and applies new_rate at
+   a single site and needs no such move; ours has two consumer sites, and
+   pulling the computation up into the sync block leaves the application
+   block below without the declaration it used to make for itself. This
+   patch therefore does not compile on its own -- it needs 999-722, which
+   restores that declaration by reading rb_cap back.
 
 Consequence to be aware of before enabling: with rebalance = 1 the sum
 of the local rates is still the global rate, but it is no longer
