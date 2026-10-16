@@ -39,7 +39,7 @@ exit 1
 X
 	printf '#!/bin/sh\nexit 0\n' > "$T/bin/logger"
 	chmod +x "$T/bin/uci" "$T/bin/tc" "$T/bin/logger"
-	for k in sync_time_ns active_window_ns active_release tin_share tin_hold tin_cap rebalance; do : > "$T/dbg/$k"; done
+	for k in sync_time_ns active_window_ns active_release active_hold tin_share tin_hold tin_cap rebalance ewma_shift v1_headroom_shift v1_sat_shift v2_spare_pct; do : > "$T/dbg/$k"; done
 	export QOS_T="$T" QOS_TC="$T/bin/tc" QOS_UCI="$T/bin/uci" QOS_SYSNET="$T/sys" \
 		QOS_DEBUGFS="$T/dbg" QOS_LOCKDIR="$T/lock" QOS_LOCK_TRIES=2 PATH="$T/bin:$PATH"
 	unset TC_FAIL
@@ -86,6 +86,78 @@ expect_out "== qdisc reel sur eth1 ==" "status affiche le qdisc reel"
 expect_out "qdisc cake_mq" "status montre cake_mq"
 teardown
 
+echo "[reglages de tuning : knobs neufs, valeurs aux bornes acceptees]"
+setup
+set_cfg active_release 1
+set_cfg active_hold 2
+set_cfg ewma_shift 8
+set_cfg v1_headroom_shift 1
+set_cfg v1_sat_shift 8
+set_cfg v2_spare_pct 100
+run start
+expect_rc 0 "start accepte les knobs neufs"
+[ "$(cat "$T/dbg/active_release")" = 1 ] && ok "debugfs active_release ecrit" || ko "debugfs active_release"
+[ "$(cat "$T/dbg/active_hold")" = 2 ] && ok "debugfs active_hold ecrit" || ko "debugfs active_hold"
+[ "$(cat "$T/dbg/ewma_shift")" = 8 ] && ok "debugfs ewma_shift ecrit (borne haute)" || ko "debugfs ewma_shift"
+[ "$(cat "$T/dbg/v1_headroom_shift")" = 1 ] && ok "debugfs v1_headroom_shift ecrit (borne basse)" || ko "debugfs v1_headroom_shift"
+[ "$(cat "$T/dbg/v1_sat_shift")" = 8 ] && ok "debugfs v1_sat_shift ecrit (borne haute)" || ko "debugfs v1_sat_shift"
+[ "$(cat "$T/dbg/v2_spare_pct")" = 100 ] && ok "debugfs v2_spare_pct ecrit (borne haute)" || ko "debugfs v2_spare_pct"
+teardown
+
+echo "[rebalance : 0, 1 et 2 acceptes, 3 refuse]"
+for m in 0 1 2; do
+	setup
+	set_cfg rebalance "$m"
+	run start
+	expect_rc 0 "rebalance $m accepte"
+	[ "$(cat "$T/dbg/rebalance")" = "$m" ] && ok "debugfs rebalance ecrit ($m)" || ko "debugfs rebalance ($m)"
+	teardown
+done
+
+echo "[sync_time_ns et active_hold : cadence et produit bornes]"
+setup
+set_cfg active_hold 0
+run start
+expect_rc 0 "active_hold 0 (defaut amont) accepte"
+teardown
+
+setup
+set_cfg sync_time_ns 1
+set_cfg active_hold 1000000000
+run start
+expect_rc 0 "sync_time_ns 1 et active_hold 1000000000 acceptes"
+teardown
+
+setup
+set_cfg sync_time_ns 1000000000
+set_cfg active_hold 1
+run start
+expect_rc 0 "sync_time_ns 1000000000 (borne haute) accepte"
+teardown
+
+setup
+set_cfg sync_time_ns 200000
+set_cfg active_hold 5000
+run start
+expect_rc 0 "active_hold x sync_time_ns = 1000000000 ns, borne exacte acceptee"
+teardown
+
+setup
+set_cfg sync_time_ns 200000
+set_cfg active_hold 5001
+run start
+expect_rc 1 "active_hold x sync_time_ns > 1000000000 ns refuse"
+expect_no_tc "  tc non appele pour le produit hors borne"
+teardown
+
+setup
+set_cfg sync_time_ns 0200000
+set_cfg active_hold 5001
+run start
+expect_rc 1 "sync_time_ns 0200000 lu en decimal (200000), pas en octal : produit refuse"
+expect_no_tc "  tc non appele (sync_time_ns a zero de tete)"
+teardown
+
 echo "[variantes d'options]"
 setup
 set_cfg nat 0; set_cfg wash 0; set_cfg ack_filter none; set_cfg split_gso 0
@@ -106,7 +178,10 @@ teardown
 echo "[validation : valeurs invalides]"
 for kv in "bandwidth abc" "bandwidth 850" "rtt 30" "rtt 30ms;touch/tmp/pwn" "diffserv foo" "flow_isolation x" "nat 2" "wash yes" \
 	"ack_filter maybe" "split_gso 5" "link_type dsl" "overhead 999" "overhead abc" "mpu -1" "mpu 999" "memlimit 3x" \
-	"device eth1;reboot" "device a/b" "qdisc htb" "tin_cap 101" "tin_share 2" "tin_hold 0" "rebalance 3" "sync_time_ns abc" "enabled maybe"; do
+	"device eth1;reboot" "device a/b" "qdisc htb" "tin_cap 101" "tin_share 2" "tin_hold 0" "rebalance 3" "sync_time_ns abc" \
+	"ewma_shift abc" "ewma_shift 0" "ewma_shift 9" "v1_headroom_shift 0" "v1_sat_shift 9" "v2_spare_pct 101" \
+	"sync_time_ns 0" "sync_time_ns 1000000001" "sync_time_ns 99999999999999999999" \
+	"active_hold 1000000001" "active_hold 99999999999999999999" "enabled maybe"; do
 	setup
 	set_cfg "${kv%% *}" "${kv#* }"
 	run start

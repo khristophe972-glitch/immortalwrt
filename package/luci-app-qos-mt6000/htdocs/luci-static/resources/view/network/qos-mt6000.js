@@ -167,8 +167,8 @@ return view.extend({
 		o.validate = validateMemlimit;
 
 		o = s.taboption('tuning', form.Value, 'sync_time_ns', _('Sync time (ns)'),
-			_('Interval between two synchronizations of the cake_mq instances.'));
-		o.datatype = 'uinteger';
+			_('Interval between two synchronizations of the cake_mq instances. 1 to 1000000000.'));
+		o.datatype = 'range(1,1000000000)';
 		o.optional = true;
 
 		o = s.taboption('tuning', form.Value, 'active_window_ns', _('Activity window (ns)'),
@@ -179,6 +179,13 @@ return view.extend({
 		o = s.taboption('tuning', form.Value, 'active_release', _('Activity release'),
 			_('Hysteresis of the activity count. Left empty, the kernel value is kept.'));
 		o.datatype = 'uinteger';
+		o.optional = true;
+
+		o = s.taboption('tuning', form.Value, 'active_hold', _('Activity hold (sync periods)'),
+			_('How many sync periods an instance stays active after its last packet. 0 keeps the upstream rule. ' +
+			  'Bounded so that active_hold x sync_time_ns stays at or below 1000000000 ns.'));
+		o.datatype = 'range(0,1000000000)';
+		o.placeholder = '0';
 		o.optional = true;
 
 		o = s.taboption('tuning', form.ListValue, 'tin_share', _('Per-tin share'),
@@ -206,6 +213,30 @@ return view.extend({
 		o.value('1', _('v1: reserve the headroom of the light instances'));
 		o.value('2', _('v2: never below the equal share'));
 		o.default = '0';
+		o.optional = true;
+
+		o = s.taboption('tuning', form.Value, 'ewma_shift', _('Served rate smoothing shift'),
+			_('Smoothing of the served rate, as a power of two. 1 to 8.'));
+		o.datatype = 'range(1,8)';
+		o.placeholder = '2';
+		o.optional = true;
+
+		o = s.taboption('tuning', form.Value, 'v1_headroom_shift', _('v1 headroom shift'),
+			_('v1: smoothing of the headroom reserved by a light instance. 1 to 8.'));
+		o.datatype = 'range(1,8)';
+		o.placeholder = '2';
+		o.optional = true;
+
+		o = s.taboption('tuning', form.Value, 'v1_sat_shift', _('v1 saturation shift'),
+			_('v1: how close to its cap an instance counts as saturated. 1 to 8.'));
+		o.datatype = 'range(1,8)';
+		o.placeholder = '3';
+		o.optional = true;
+
+		o = s.taboption('tuning', form.Value, 'v2_spare_pct', _('v2 spare (%)'),
+			_('v2: share of the unused equal share handed to the saturated instances. 0 to 100.'));
+		o.datatype = 'range(0,100)';
+		o.placeholder = '100';
 		o.optional = true;
 
 		return m.render().then(function(node) {

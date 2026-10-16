@@ -24,7 +24,7 @@ DEBUGFS=${QOS_DEBUGFS:-/sys/kernel/debug/cake_mq}
 SYSNET=${QOS_SYSNET:-/sys/class/net}
 LOCKDIR=${QOS_LOCKDIR:-/tmp/qos-mt6000.lock}
 LOCK_TRIES=${QOS_LOCK_TRIES:-15}
-KNOBS="sync_time_ns active_window_ns active_release tin_share tin_hold tin_cap rebalance"
+KNOBS="sync_time_ns active_window_ns active_release active_hold tin_share tin_hold tin_cap rebalance ewma_shift v1_headroom_shift v1_sat_shift v2_spare_pct"
 
 log() {
 	logger -t "$NAME" "$*" 2> /dev/null
@@ -103,7 +103,7 @@ is_memlimit() {
 # validate : verifie toutes les valeurs, signale chacune de celles qui sont
 # invalides, et renvoie 1 s'il y en a au moins une.
 validate() {
-	local err=0 k v
+	local err=0 k v s
 
 	is_ifname "$DEV" || { log "device invalide : '$DEV'"; err=1; }
 	case "$QDISC" in
@@ -153,6 +153,38 @@ validate() {
 			continue
 		fi
 		case "$k" in
+		sync_time_ns)
+			# Cadence de resynchronisation du diviseur (999-712) : a 0, la
+			# condition >= serait vraie a chaque paquet de chaque file ; au-
+			# dela d'une seconde le diviseur ne se recalcule plus a l'echelle
+			# d'un shaper. Ce plafond ferme aussi le produit u32 x
+			# sync_time_ns de 999-715 et 999-719 sous 2^64.
+			if [ "${#v}" -gt 10 ] || [ "$v" -lt 1 ] || [ "$v" -gt 1000000000 ]; then
+				log "sync_time_ns invalide : '$v' (1 a 1000000000 ns)"
+				err=1
+			fi
+			;;
+		active_hold)
+			# hold = active_hold x sync_time_ns (999-719) est ajoute a
+			# last_active, un compteur u64 de ns depuis le boot : au-dela
+			# d'une seconde la memoire d'activite n'a plus de sens face a
+			# la fenetre amont de 1 ms.
+			if [ "${#v}" -gt 10 ] || [ "$v" -gt 1000000000 ]; then
+				log "active_hold invalide : '$v' (0 a 1000000000)"
+				err=1
+			else
+				s=$(cfg sync_time_ns)
+				# $(()) lirait un zero de tete en octal : forme decimale,
+				# sinon repli sur le defaut (sync_time_ns invalide est deja
+				# signale plus haut).
+				while [ "${s#0}" != "$s" ]; do s=${s#0}; done
+				[ "$s" -ge 1 ] && [ "$s" -le 1000000000 ] || s=200000
+				if [ "$v" -gt 0 ] && [ "$v" -gt "$((1000000000 / s))" ]; then
+					log "active_hold x sync_time_ns > 1000000000 ns : '$v' x '$s'"
+					err=1
+				fi
+			fi
+			;;
 		rebalance)
 			[ "$v" -le 2 ] || { log "rebalance invalide : '$v' (0, 1 ou 2)"; err=1; }
 			;;
@@ -164,6 +196,15 @@ validate() {
 			;;
 		tin_cap)
 			[ "$v" -le 100 ] || { log "tin_cap invalide : '$v' (0 a 100)"; err=1; }
+			;;
+		ewma_shift | v1_headroom_shift | v1_sat_shift)
+			if [ "$v" -lt 1 ] || [ "$v" -gt 8 ]; then
+				log "$k invalide : '$v' (1 a 8)"
+				err=1
+			fi
+			;;
+		v2_spare_pct)
+			[ "$v" -le 100 ] || { log "v2_spare_pct invalide : '$v' (0 a 100)"; err=1; }
 			;;
 		esac
 	done
