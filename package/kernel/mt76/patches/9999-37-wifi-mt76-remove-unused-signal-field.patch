@@ -1,0 +1,80 @@
+From 557a895d92f5b2b738fa60844799d96b23cfc08f Mon Sep 17 00:00:00 2001
+From: Felix Fietkau <nbd@nbd.name>
+Date: Wed, 7 Oct 2026 13:24:15 +0200
+Subject: [PATCH] wifi: mt76: remove the unused signal field from struct
+ mt76_rx_status
+
+mt76_rx_convert() computes the signal for mac80211 from the chain
+signals and overwrites the value of the signal field of struct
+mt76_rx_status. Since mt792x_mac_rssi_iter() also uses the chain
+signals, no code reads the field. mt7921_mac_fill_rx() is the last
+driver that still sets it.
+
+Remove the field and its computation in mt7921_mac_fill_rx().
+
+Link: https://patch.msgid.link/20261007112419.1277594-5-nbd@nbd.name
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
+
+Upstream-Status: Backport [557a895d92f5b2b738fa60844799d96b23cfc08f]
+OpenWrt-Drop-When: package/kernel/mt76/Makefile PKG_SOURCE_VERSION contains
+  557a895d92f5b2b738fa60844799d96b23cfc08f (or an mt76 equivalent of it).
+License: BSD-3-Clause-Clear
+---
+ mac80211.c   |  1 -
+ mt76.h       |  1 -
+ mt7921/mac.c | 11 +----------
+ 3 files changed, 1 insertion(+), 12 deletions(-)
+
+diff --git a/mac80211.c b/mac80211.c
+index 6157e33..800bc50 100644
+--- a/mac80211.c
++++ b/mac80211.c
+@@ -1282,7 +1282,6 @@ mt76_rx_convert(struct mt76_dev *dev, struct sk_buff *skb,
+ 	status->rate_idx = mstat.rate_idx;
+ 	status->nss = mstat.nss;
+ 	status->band = mstat.band;
+-	status->signal = mstat.signal;
+ 	status->chains = mstat.chains;
+ 	status->ampdu_reference = mstat.ampdu_ref;
+ 	status->device_timestamp = mstat.timestamp;
+diff --git a/mt76.h b/mt76.h
+index e8c9f38..41e70c8 100644
+--- a/mt76.h
++++ b/mt76.h
+@@ -776,7 +776,6 @@ struct mt76_rx_status {
+ 	u8 amsdu:1, first_amsdu:1, last_amsdu:1;
+ 	u8 rate_idx;
+ 	u8 nss:5, band:3;
+-	s8 signal;
+ 	u8 chains;
+ 	s8 chain_signal[IEEE80211_MAX_CHAINS];
+ };
+diff --git a/mt7921/mac.c b/mt7921/mac.c
+index e699781..503b186 100644
+--- a/mt7921/mac.c
++++ b/mt7921/mac.c
+@@ -188,7 +188,7 @@ mt7921_mac_fill_rx(struct mt792x_dev *dev, struct sk_buff *skb)
+ 	u16 seq_ctrl = 0;
+ 	__le16 fc = 0;
+ 	u8 mode = 0;
+-	int i, idx;
++	int idx;
+ 
+ 	memset(status, 0, sizeof(*status));
+ 
+@@ -368,15 +368,6 @@ mt7921_mac_fill_rx(struct mt792x_dev *dev, struct sk_buff *skb)
+ 		status->chain_signal[1] = to_rssi(MT_PRXV_RCPI1, v1);
+ 		status->chain_signal[2] = to_rssi(MT_PRXV_RCPI2, v1);
+ 		status->chain_signal[3] = to_rssi(MT_PRXV_RCPI3, v1);
+-		status->signal = -128;
+-		for (i = 0; i < hweight8(mphy->antenna_mask); i++) {
+-			if (!(status->chains & BIT(i)) ||
+-			    status->chain_signal[i] >= 0)
+-				continue;
+-
+-			status->signal = max(status->signal,
+-					     status->chain_signal[i]);
+-		}
+ 	}
+ 
+ 	amsdu_info = FIELD_GET(MT_RXD4_NORMAL_PAYLOAD_FORMAT, rxd4);

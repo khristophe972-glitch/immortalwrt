@@ -1,0 +1,116 @@
+From 833de192a443659de3bf77555523c58727bb153d Mon Sep 17 00:00:00 2001
+From: Felix Fietkau <nbd@nbd.name>
+Date: Wed, 7 Oct 2026 13:24:16 +0200
+Subject: [PATCH] wifi: mt76: mt7996: take the offchannel link of a frame from
+ its wcid
+
+mt7996_mac_write_txwi() and mt7996_tx_prepare_skb() take the own MAC,
+WMM and band index of an offchannel frame from mvif->offchannel_link,
+which holds one link per vif. mac80211 runs one scan or remain on
+channel at a time, so a vif has at most one offchannel link today. A
+scan that runs on several radios at the same time needs one offchannel
+link per radio, and its frames would then be sent with the indexes of
+whichever link was added last.
+
+Each offchannel link has its own wcid, and offchannel frames are sent
+on it, so take the link from the wcid of the frame. Drop
+offchannel_link, which has no other user.
+
+Link: https://patch.msgid.link/20261007112419.1277594-6-nbd@nbd.name
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
+
+Upstream-Status: Backport [833de192a443659de3bf77555523c58727bb153d]
+OpenWrt-Drop-When: package/kernel/mt76/Makefile PKG_SOURCE_VERSION contains
+  833de192a443659de3bf77555523c58727bb153d (or an mt76 equivalent of it).
+License: BSD-3-Clause-Clear
+---
+ channel.c       |  5 -----
+ mt76.h          |  1 -
+ mt7996/mac.c    |  4 ++--
+ mt7996/mt7996.h | 12 ++++++++++++
+ 4 files changed, 14 insertions(+), 8 deletions(-)
+
+diff --git a/channel.c b/channel.c
+index 243d252..75f0db3 100644
+--- a/channel.c
++++ b/channel.c
+@@ -295,7 +295,6 @@ struct mt76_vif_link *mt76_get_vif_phy_link(struct mt76_phy *phy,
+ 		kfree(mlink);
+ 		return ERR_PTR(ret);
+ 	}
+-	rcu_assign_pointer(mvif->offchannel_link, mlink);
+ 
+ 	return mlink;
+ }
+@@ -304,14 +303,10 @@ void mt76_put_vif_phy_link(struct mt76_phy *phy, struct ieee80211_vif *vif,
+ 			   struct mt76_vif_link *mlink)
+ {
+ 	struct mt76_dev *dev = phy->dev;
+-	struct mt76_vif_data *mvif;
+ 
+ 	if (IS_ERR_OR_NULL(mlink) || !mlink->offchannel)
+ 		return;
+ 
+-	mvif = mlink->mvif;
+-
+-	rcu_assign_pointer(mvif->offchannel_link, NULL);
+ 	dev->drv->vif_link_remove(phy, vif, &vif->bss_conf, mlink);
+ 	kfree_rcu(mlink, rcu_head);
+ }
+diff --git a/mt76.h b/mt76.h
+index 41e70c8..557d25f 100644
+--- a/mt76.h
++++ b/mt76.h
+@@ -855,7 +855,6 @@ struct mt76_vif_link {
+ 
+ struct mt76_vif_data {
+ 	struct mt76_vif_link __rcu *link[IEEE80211_MLD_MAX_NUM_LINKS];
+-	struct mt76_vif_link __rcu *offchannel_link;
+ 
+ 	struct mt76_phy *roc_phy;
+ 	u16 valid_links;
+diff --git a/mt7996/mac.c b/mt7996/mac.c
+index f5fdb34..21fcc6a 100644
+--- a/mt7996/mac.c
++++ b/mt7996/mac.c
+@@ -915,7 +915,7 @@ void mt7996_mac_write_txwi(struct mt7996_dev *dev, __le32 *txwi,
+ 	mvif = vif ? (struct mt7996_vif *)vif->drv_priv : NULL;
+ 	if (mvif) {
+ 		if (wcid->offchannel)
+-			mlink = rcu_dereference(mvif->mt76.offchannel_link);
++			mlink = mt7996_offchannel_link(wcid);
+ 		if (!mlink && link_id != IEEE80211_LINK_UNSPECIFIED)
+ 			mlink = rcu_dereference(mvif->mt76.link[link_id]);
+ 	}
+@@ -1197,7 +1197,7 @@ int mt7996_tx_prepare_skb(struct mt76_dev *mdev, void *txwi_ptr,
+ 
+ 		if (mvif) {
+ 			if (wcid->offchannel)
+-				mlink = rcu_dereference(mvif->mt76.offchannel_link);
++				mlink = mt7996_offchannel_link(wcid);
+ 			if (!mlink)
+ 				mlink = rcu_dereference(mvif->mt76.link[wcid->link_id]);
+ 
+diff --git a/mt7996/mt7996.h b/mt7996/mt7996.h
+index 673be6d..8b2f9a7 100644
+--- a/mt7996/mt7996.h
++++ b/mt7996/mt7996.h
+@@ -692,6 +692,18 @@ mt7996_vif_conf_link(struct mt7996_dev *dev, struct ieee80211_vif *vif,
+ 							    link_conf);
+ }
+ 
++static inline struct mt76_vif_link *
++mt7996_offchannel_link(struct mt76_wcid *wcid)
++{
++	struct mt7996_sta_link *msta_link;
++	struct mt7996_vif_link *link;
++
++	msta_link = container_of(wcid, struct mt7996_sta_link, wcid);
++	link = container_of(msta_link, struct mt7996_vif_link, msta_link);
++
++	return &link->mt76;
++}
++
+ static inline struct mt7996_sta_link *
+ mt7996_sta_link(struct mt7996_sta *msta, u8 link_id)
+ {
