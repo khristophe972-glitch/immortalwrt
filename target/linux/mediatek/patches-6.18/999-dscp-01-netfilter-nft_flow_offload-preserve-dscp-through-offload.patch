@@ -21,12 +21,9 @@ Based on work by Airoha (915-01 patch series).
 
 --- a/include/net/netfilter/nf_flow_table.h
 +++ b/include/net/netfilter/nf_flow_table.h
-@@ -139,6 +139,7 @@
- 					xmit_type:3,
- 					encap_num:2,
- 					in_vlan_ingress:2;
-+	u8				dscp;
+@@ -143,3 +143,4 @@
  	u16				mtu;
++	u8				dscp;
  	union {
  		struct {
 --- a/net/netfilter/nft_flow_offload.c
