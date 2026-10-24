@@ -1952,7 +1952,7 @@ define Device/glinet_gl-mt6000
   DEVICE_DTS := mt7986a-glinet-gl-mt6000
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := avahi-dbus-daemon dnsproxy kmod-sched-bpf kmod-sched-mqprio kmod-usb3 kmod-nft-connlimit kmod-sctp kmod-sctp-diag conntrack libsctp sctp-tools kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware \
-	automount f2fsck mkf2fs luci-theme-footstrap
+	automount f2fsck mkf2fs luci-theme-footstrap smartdns luci-app-smartdns
   IMAGES += factory.bin
   IMAGE/factory.bin := append-kernel | pad-to 32M | append-rootfs
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-gl-metadata
