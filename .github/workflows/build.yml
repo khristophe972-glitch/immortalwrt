@@ -140,6 +140,8 @@ jobs:
           echo "CONFIG_PACKAGE_mtr=y" >> .config
           echo "CONFIG_PACKAGE_ethtool-full=y" >> .config
           echo "CONFIG_PACKAGE_irqbalance=y" >> .config
+          # Page LuCI d'irqbalance (le service lui-meme est la ligne au-dessus) — feed luci
+          echo "CONFIG_PACKAGE_luci-app-irqbalance=y" >> .config
           echo "CONFIG_PACKAGE_nano=y" >> .config
           echo "CONFIG_PACKAGE_jq=y" >> .config
           echo "CONFIG_PACKAGE_htop=y" >> .config
@@ -164,6 +166,8 @@ jobs:
           echo "CONFIG_PACKAGE_bridger=y" >> .config
           echo "CONFIG_PACKAGE_qos-mt6000=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-qos-mt6000=y" >> .config
+          echo "CONFIG_PACKAGE_irqbalance=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-irqbalance=y" >> .config
           make defconfig
           # Preuve que kconfig n'a pas ecrase VERSION_REPO apres defconfig
           grep -q '^CONFIG_VERSION_REPO="https://khristophe972-glitch.github.io/immortalwrt"$' .config || { echo "ERREUR: CONFIG_VERSION_REPO non pose ; .config porte :"; grep -n "CONFIG_VERSION_REPO\|CONFIG_IMAGEOPT\|CONFIG_VERSIONOPT" .config; exit 1; }
@@ -174,6 +178,9 @@ jobs:
           # Preuve que kconfig a garde qos-mt6000 et sa page LuCI (commit inerte)
           grep -q '^CONFIG_PACKAGE_qos-mt6000=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_qos-mt6000 non pose ; .config porte :"; grep -n "qos-mt6000" .config; exit 1; }
           grep -q '^CONFIG_PACKAGE_luci-app-qos-mt6000=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_luci-app-qos-mt6000 non pose ; .config porte :"; grep -n "qos-mt6000" .config; exit 1; }
+          # Preuve que kconfig a garde irqbalance + sa page LuCI : sinon page ABSENTE de l'image (commit inerte)
+          grep -q '^CONFIG_PACKAGE_irqbalance=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_irqbalance non pose ; .config porte :"; grep -n "irqbalance" .config; exit 1; }
+          grep -q '^CONFIG_PACKAGE_luci-app-irqbalance=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_luci-app-irqbalance non pose ; .config porte :"; grep -n "irqbalance" .config; exit 1; }
           echo "=== Target vérifié ==="
           grep "CONFIG_TARGET.*=y\|DEVICE.*glinet" .config | head -10
 
