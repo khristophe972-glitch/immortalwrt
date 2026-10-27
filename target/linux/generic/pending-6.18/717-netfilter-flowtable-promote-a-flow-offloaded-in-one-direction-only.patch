@@ -68,7 +68,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	mtu = flow->tuplehash[dir].tuple.mtu + ctx->offset;
  	if (unlikely(nf_flow_exceeds_mtu(skb, mtu)))
  		return 0;
-@@ -718,6 +741,9 @@
+@@ -721,6 +744,9 @@
  			       tuplehash->tuple.out.h_dest)))
  		return 0;
  

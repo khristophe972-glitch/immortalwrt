@@ -66,7 +66,7 @@ Based on work by Airoha (915-01 patch series).
  static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
  {
  	if (skb_sec_path(skb))
-@@ -120,6 +143,8 @@
+@@ -137,6 +160,8 @@
  	if (!flow)
  		goto err_flow_alloc;
  

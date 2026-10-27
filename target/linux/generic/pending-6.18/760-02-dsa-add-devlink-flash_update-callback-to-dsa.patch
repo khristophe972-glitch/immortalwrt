@@ -25,7 +25,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 
 --- a/include/net/dsa.h
 +++ b/include/net/dsa.h
-@@ -1164,6 +1164,9 @@ struct dsa_switch_ops {
+@@ -1170,6 +1170,9 @@
  	int	(*devlink_info_get)(struct dsa_switch *ds,
  				    struct devlink_info_req *req,
  				    struct netlink_ext_ack *extack);
@@ -37,7 +37,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  				       struct devlink_sb_pool_info *pool_info);
 --- a/net/dsa/devlink.c
 +++ b/net/dsa/devlink.c
-@@ -20,6 +20,18 @@ static int dsa_devlink_info_get(struct d
+@@ -20,6 +20,18 @@
  	return -EOPNOTSUPP;
  }
  
@@ -56,7 +56,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  static int dsa_devlink_sb_pool_get(struct devlink *dl,
  				   unsigned int sb_index, u16 pool_index,
  				   struct devlink_sb_pool_info *pool_info)
-@@ -169,6 +181,7 @@ dsa_devlink_sb_occ_tc_port_bind_get(stru
+@@ -169,6 +181,7 @@
  
  static const struct devlink_ops dsa_devlink_ops = {
  	.info_get			= dsa_devlink_info_get,

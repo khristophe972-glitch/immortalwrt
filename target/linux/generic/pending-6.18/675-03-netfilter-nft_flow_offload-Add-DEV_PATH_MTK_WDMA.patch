@@ -28,15 +28,15 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 
 --- a/net/netfilter/nf_flow_table_path.c
 +++ b/net/netfilter/nf_flow_table_path.c
-@@ -103,6 +103,7 @@ static void nft_dev_path_info(const stru
- 		switch (path->type) {
+@@ -110,6 +110,7 @@
  		case DEV_PATH_ETHERNET:
+ 		case DEV_PATH_IEEE80211:
  		case DEV_PATH_DSA:
 +		case DEV_PATH_MTK_WDMA:
  		case DEV_PATH_VLAN:
  		case DEV_PATH_PPPOE:
  			info->indev = path->dev;
-@@ -115,6 +116,10 @@ static void nft_dev_path_info(const stru
+@@ -123,6 +124,10 @@
  				i = stack->num_paths;
  				break;
  			}
@@ -46,4 +46,4 @@ Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 +			}
  
  			/* DEV_PATH_VLAN and DEV_PATH_PPPOE */
- 			if (info->num_encaps >= NF_FLOW_TABLE_ENCAP_MAX) {
+ 			if (info->num_encaps >= NF_FLOW_TABLE_ENCAP_MAX)

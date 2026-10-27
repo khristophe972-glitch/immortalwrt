@@ -62,7 +62,7 @@ License: GPL-2.0-only
  	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
  	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
  
-@@ -173,6 +176,12 @@
+@@ -172,6 +175,12 @@
  	match->dissector.used_keys |= BIT_ULL(key->control.addr_type);
  	mask->basic.n_proto = 0xffff;
  

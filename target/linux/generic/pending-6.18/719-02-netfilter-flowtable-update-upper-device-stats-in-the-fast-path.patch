@@ -112,7 +112,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  static struct flow_offload_tuple_rhash *
  nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
  		       struct nf_flowtable *flow_table, struct sk_buff *skb)
-@@ -474,6 +517,14 @@
+@@ -477,6 +520,14 @@
  	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
  		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
  
@@ -127,7 +127,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	return 1;
  }
  
-@@ -783,6 +834,14 @@
+@@ -786,6 +837,14 @@
  	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
  		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
  
@@ -153,7 +153,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	struct id {
  		__u16	id;
  		__be16	proto;
-@@ -204,6 +206,10 @@
+@@ -205,6 +207,10 @@
  
  	info->hw_outdev = info->indev;
  
@@ -164,7 +164,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	if (nf_flowtable_hw_offload(flowtable) &&
  	    nft_is_valid_ether_device(info->indev))
  		info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
-@@ -256,6 +262,9 @@
+@@ -257,6 +263,9 @@
  	}
  	route->tuple[!dir].in.num_encaps = info.num_encaps;
  	route->tuple[!dir].in.ingress_vlans = info.ingress_vlans;

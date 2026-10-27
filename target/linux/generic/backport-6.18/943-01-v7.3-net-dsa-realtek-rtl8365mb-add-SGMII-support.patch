@@ -215,7 +215,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  enum rtl8365mb_phy_interface_mode {
  	RTL8365MB_PHY_INTERFACE_MODE_INVAL = 0,
  	RTL8365MB_PHY_INTERFACE_MODE_INTERNAL = BIT(0),
-@@ -744,6 +830,9 @@
+@@ -730,6 +816,9 @@
   * @cpu: CPU tagging and CPU port configuration for this chip
   * @mib_lock: prevent concurrent reads of MIB counters
   * @ports: per-port data
@@ -225,7 +225,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
   *
   * Private data for this driver.
   */
-@@ -754,8 +843,12 @@
+@@ -740,8 +829,12 @@
  	struct rtl8365mb_cpu cpu;
  	struct mutex mib_lock;
  	struct rtl8365mb_port ports[RTL8365MB_MAX_NUM_PORTS];
@@ -238,7 +238,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  static int rtl8365mb_phy_poll_busy(struct realtek_priv *priv)
  {
  	u32 val;
-@@ -1056,6 +1149,334 @@
+@@ -1042,6 +1135,334 @@
  	return 0;
  }
  
@@ -573,7 +573,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  static int rtl8365mb_ext_config_forcemode(struct realtek_priv *priv, int port,
  					  bool link, int speed, int duplex,
  					  bool tx_pause, bool rx_pause)
-@@ -1132,6 +1553,8 @@
+@@ -1118,6 +1539,8 @@
  {
  	const struct rtl8365mb_extint *extint =
  		rtl8365mb_get_port_extint(ds->priv, port);
@@ -582,7 +582,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  
  	config->mac_capabilities = MAC_SYM_PAUSE | MAC_ASYM_PAUSE |
  				   MAC_10 | MAC_100 | MAC_1000FD;
-@@ -1155,6 +1578,25 @@
+@@ -1141,6 +1564,25 @@
  
  	if (extint->supported_interfaces & RTL8365MB_PHY_INTERFACE_MODE_RGMII)
  		phy_interface_set_rgmii(config->supported_interfaces);
@@ -608,7 +608,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  }
  
  static void rtl8365mb_phylink_mac_config(struct phylink_config *config,
-@@ -1182,6 +1624,12 @@
+@@ -1168,6 +1610,12 @@
  		return;
  	}
  
@@ -621,7 +621,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	/* TODO: Implement MII and RMII modes, which the RTL8365MB-VC also
  	 * supports
  	 */
-@@ -1202,7 +1650,13 @@
+@@ -1188,7 +1636,13 @@
  	p = &mb->ports[port];
  	cancel_delayed_work_sync(&p->mib_work);
  
@@ -636,7 +636,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  		ret = rtl8365mb_ext_config_forcemode(priv, port, false, 0, 0,
  						     false, false);
  		if (ret)
-@@ -1232,14 +1686,51 @@
+@@ -1218,14 +1672,51 @@
  	p = &mb->ports[port];
  	schedule_delayed_work(&p->mib_work, 0);
  
@@ -690,7 +690,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  
  		return;
  	}
-@@ -2433,6 +2924,14 @@
+@@ -2419,6 +2910,14 @@
  	mb = priv->chip_data;
  	cpu = &mb->cpu;
  
@@ -705,7 +705,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	ret = rtl8365mb_reset_chip(priv);
  	if (ret) {
  		dev_err(priv->dev, "failed to reset chip: %pe\n",
-@@ -2440,6 +2939,13 @@
+@@ -2426,6 +2925,13 @@
  		goto out_error;
  	}
  
@@ -719,7 +719,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	/* Configure switch to vendor-defined initial state */
  	ret = rtl8365mb_switch_init(priv);
  	if (ret) {
-@@ -2672,6 +3178,7 @@
+@@ -2658,6 +3164,7 @@
  }
  
  static const struct phylink_mac_ops rtl8365mb_phylink_mac_ops = {

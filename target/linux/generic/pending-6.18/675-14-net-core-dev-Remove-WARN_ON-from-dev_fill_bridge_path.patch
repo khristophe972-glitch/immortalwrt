@@ -17,7 +17,7 @@ will simply skip offloading this flow, which is the correct behavior.
 
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -802,7 +802,7 @@ int dev_fill_bridge_path(struct net_devi
+@@ -811,7 +811,7 @@
  	if (br_dev->netdev_ops->ndo_fill_forward_path(ctx, path) < 0)
  		return -1;
  
