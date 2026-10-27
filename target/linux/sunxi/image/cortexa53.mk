@@ -113,7 +113,7 @@ TARGET_DEVICES += pine64_sopine-baseboard
 define Device/radxa_cubie-a5e
   DEVICE_VENDOR := Radxa
   DEVICE_MODEL := Cubie A5E
-  DEVICE_PACKAGES := kmod-aic8800-sdio wpad-openssl
+  DEVICE_PACKAGES := kmod-aic8800-sdio kmod-nvme wpad-openssl
   $(Device/sun55i-a527)
 endef
 TARGET_DEVICES += radxa_cubie-a5e
@@ -135,6 +135,7 @@ TARGET_DEVICES += xunlong_orangepi-pc2
 define Device/xunlong_orangepi-zero2
   DEVICE_VENDOR := Xunlong
   DEVICE_MODEL := Orange Pi Zero 2
+  DEVICE_PACKAGES := kmod-uwe5622 wpad-openssl
   $(Device/sun50i-h616)
 endef
 TARGET_DEVICES += xunlong_orangepi-zero2
@@ -149,6 +150,7 @@ TARGET_DEVICES += xunlong_orangepi-zero2w
 define Device/xunlong_orangepi-zero3
   DEVICE_VENDOR := Xunlong
   DEVICE_MODEL := Orange Pi Zero 3
+  DEVICE_PACKAGES := kmod-uwe5622 wpad-openssl
   $(Device/sun50i-h618)
 endef
 TARGET_DEVICES += xunlong_orangepi-zero3

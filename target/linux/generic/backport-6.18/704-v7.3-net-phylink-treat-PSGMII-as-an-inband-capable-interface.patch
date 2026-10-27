@@ -35,7 +35,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/phy/phylink.c
 +++ b/drivers/net/phy/phylink.c
-@@ -1036,6 +1036,7 @@
+@@ -1036,6 +1036,7 @@ static enum inband_type phylink_get_inba
  {
  	switch (interface) {
  	case PHY_INTERFACE_MODE_SGMII:
@@ -43,7 +43,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	case PHY_INTERFACE_MODE_QSGMII:
  	case PHY_INTERFACE_MODE_QUSGMII:
  	case PHY_INTERFACE_MODE_USXGMII:
-@@ -4107,6 +4108,7 @@
+@@ -4107,6 +4108,7 @@ void phylink_mii_c22_pcs_decode_state(st
  		break;
  
  	case PHY_INTERFACE_MODE_SGMII:
@@ -51,7 +51,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	case PHY_INTERFACE_MODE_QSGMII:
  		if (neg_mode == PHYLINK_PCS_NEG_INBAND_ENABLED)
  			phylink_decode_sgmii_word(state, lpa);
-@@ -4187,6 +4189,7 @@
+@@ -4187,6 +4189,7 @@ int phylink_mii_c22_pcs_encode_advertise
  			adv |= ADVERTISE_1000XPSE_ASYM;
  		return adv;
  	case PHY_INTERFACE_MODE_SGMII:
@@ -61,7 +61,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	default:
 --- a/include/linux/phylink.h
 +++ b/include/linux/phylink.h
-@@ -762,6 +762,7 @@
+@@ -762,6 +762,7 @@ static inline int phylink_get_link_timer
  {
  	switch (interface) {
  	case PHY_INTERFACE_MODE_SGMII:

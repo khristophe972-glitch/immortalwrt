@@ -43,7 +43,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/phy/sfp.c
 +++ b/drivers/net/phy/sfp.c
-@@ -206,6 +206,16 @@
+@@ -206,6 +206,16 @@ static const enum gpiod_flags gpio_flags
  #define T_PROBE_RETRY_SLOW	msecs_to_jiffies(5000)
  #define R_PROBE_RETRY_SLOW	12
  
@@ -60,7 +60,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  /* SFP modules appear to always have their PHY configured for bus address
   * 0x56 (which with mdio-i2c, translates to a PHY address of 22).
   * RollBall SFPs access phy via SFP Enhanced Digital Diagnostic Interface
-@@ -249,6 +259,13 @@
+@@ -249,6 +259,13 @@ struct sfp {
  
  	bool need_poll;
  
@@ -74,7 +74,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	/* Access rules:
  	 * state_hw_drive: st_mutex held
  	 * state_hw_mask: st_mutex held
-@@ -864,6 +881,45 @@
+@@ -864,6 +881,45 @@ static int sfp_read(struct sfp *sfp, boo
  	return sfp->read(sfp, a2, addr, buf, len);
  }
  
@@ -120,7 +120,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  static int sfp_write(struct sfp *sfp, bool a2, u8 addr, void *buf, size_t len)
  {
  	return sfp->write(sfp, a2, addr, buf, len);
-@@ -3162,9 +3218,30 @@
+@@ -3162,9 +3218,30 @@ static int sfp_probe(struct platform_dev
  	sfp->get_state = sfp_gpio_get_state;
  	sfp->set_state = sfp_gpio_set_state;
  

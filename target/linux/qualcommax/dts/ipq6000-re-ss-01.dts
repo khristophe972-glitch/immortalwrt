@@ -2,6 +2,7 @@
 
 /dts-v1/;
 
+#include "ipq6018.dtsi"
 #include "ipq6018-512m.dtsi"
 #include "ipq6018-ess.dtsi"
 
@@ -124,6 +125,8 @@
 };
 
 &usb3 {
+	dr_mode = "host";
+
 	status = "okay";
 };
 

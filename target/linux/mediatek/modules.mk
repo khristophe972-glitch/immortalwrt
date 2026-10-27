@@ -19,7 +19,7 @@ define KernelPackage/btmtkuart
   SUBMENU:=Other modules
   TITLE:=MediaTek HCI UART driver
   DEPENDS:=@TARGET_mediatek_mt7622 +kmod-bluetooth +kmod-btmtk +mt7622bt-firmware \
-	   +!LINUX_6_12:kmod-hci-uart
+	   +kmod-hci-uart
   KCONFIG:=CONFIG_BT_MTKUART
   FILES:= \
 	$(LINUX_DIR)/drivers/bluetooth/btmtkuart.ko
@@ -43,7 +43,7 @@ $(eval $(call KernelPackage,iio-mt6577-auxadc))
 define KernelPackage/phy-mediatek-2p5g
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=MediaTek 2.5G Ethernet PHY
-  DEPENDS:=@TARGET_mediatek_filogic @!LINUX_6_12 +kmod-libphy
+  DEPENDS:=@TARGET_mediatek_filogic +kmod-libphy
   KCONFIG:=CONFIG_MEDIATEK_2P5GE_PHY
   FILES:= \
    $(LINUX_DIR)/drivers/net/phy/mediatek/mtk-2p5ge.ko
@@ -56,18 +56,3 @@ define KernelPackage/phy-mediatek-2p5g/description
 endef
 
 $(eval $(call KernelPackage,phy-mediatek-2p5g))
-
-
-define KernelPackage/switch-rtl8367s
-  SUBMENU:=Network Devices
-  TITLE:=Realtek RTL8367S switch support
-  KCONFIG:= \
-	CONFIG_RTL8367S_GSW \
-	CONFIG_SWCONFIG=y
-  DEPENDS:=@TARGET_mediatek +kmod-swconfig
-  FILES:= \
-	$(LINUX_DIR)/drivers/net/phy/rtk/rtl8367s_gsw.ko
-  AUTOLOAD:=$(call AutoProbe,rtl8367s_gsw,1)
-endef
-
-$(eval $(call KernelPackage,switch-rtl8367s))

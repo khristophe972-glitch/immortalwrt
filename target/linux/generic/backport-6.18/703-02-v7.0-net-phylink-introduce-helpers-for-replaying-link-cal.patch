@@ -38,7 +38,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/phy/phylink.c
 +++ b/drivers/net/phy/phylink.c
-@@ -28,6 +28,7 @@
+@@ -28,6 +28,7 @@ enum {
  	PHYLINK_DISABLE_STOPPED,
  	PHYLINK_DISABLE_LINK,
  	PHYLINK_DISABLE_MAC_WOL,
@@ -46,7 +46,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  
  	PCS_STATE_DOWN = 0,
  	PCS_STATE_STARTING,
-@@ -77,6 +78,7 @@
+@@ -77,6 +78,7 @@ struct phylink {
  
  	bool link_failed;
  	bool suspend_link_up;
@@ -54,7 +54,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	bool major_config_failed;
  	bool mac_supports_eee_ops;
  	bool mac_supports_eee;
-@@ -1681,9 +1683,10 @@
+@@ -1681,9 +1683,10 @@ static void phylink_resolve(struct work_
  	if (pl->act_link_an_mode != MLO_AN_FIXED)
  		phylink_apply_manual_flow(pl, &link_state);
  
@@ -68,7 +68,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  		 */
  		if (cur_link_state) {
  			phylink_link_down(pl);
-@@ -1691,6 +1694,7 @@
+@@ -1691,6 +1694,7 @@ static void phylink_resolve(struct work_
  		}
  		phylink_major_config(pl, false, &link_state);
  		pl->link_config.interface = link_state.interface;
@@ -76,7 +76,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	}
  
  	/* If configuration of the interface failed, force the link down
-@@ -4288,6 +4292,57 @@
+@@ -4288,6 +4292,57 @@ void phylink_mii_c45_pcs_get_state(struc
  }
  EXPORT_SYMBOL_GPL(phylink_mii_c45_pcs_get_state);
  
@@ -136,7 +136,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	for (int i = 0; i < ARRAY_SIZE(phylink_sfp_interface_preference); ++i)
 --- a/include/linux/phylink.h
 +++ b/include/linux/phylink.h
-@@ -808,4 +808,9 @@
+@@ -808,4 +808,9 @@ void phylink_mii_c45_pcs_get_state(struc
  
  void phylink_decode_usxgmii_word(struct phylink_link_state *state,
  				 uint16_t lpa);

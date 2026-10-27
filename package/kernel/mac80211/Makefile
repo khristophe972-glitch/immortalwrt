@@ -10,16 +10,17 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=mac80211
 
-PKG_VERSION:=7.2
-PKG_RELEASE:=3
+PKG_SOURCE_VERSION:=7.2
+PKG_VERSION:=$(subst -,_,$(PKG_SOURCE_VERSION))
+PKG_RELEASE:=11
 PKG_LICENSE:=GPL-2.0-only
 PKG_LICENSE_FILES:=COPYING
 
-PKG_SOURCE_URL:=https://github.com/openwrt/backports/releases/download/backports-v$(PKG_VERSION)
+PKG_SOURCE_URL:=https://github.com/openwrt/backports/releases/download/backports-v$(PKG_SOURCE_VERSION)
 PKG_HASH:=6ec76a4cb0988b5382b2fc5053610a56ada90b8ef6a5a4f2807cd433badb9454
 
-PKG_SOURCE:=backports-$(PKG_VERSION).tar.zst
-PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(if $(BUILD_VARIANT),$(PKG_NAME)-$(BUILD_VARIANT)/)backports-$(PKG_VERSION)
+PKG_SOURCE:=backports-$(PKG_SOURCE_VERSION).tar.zst
+PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(if $(BUILD_VARIANT),$(PKG_NAME)-$(BUILD_VARIANT)/)backports-$(PKG_SOURCE_VERSION)
 PKG_BUILD_PARALLEL:=1
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
@@ -39,6 +40,8 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_IWLWIFI_DEBUG \
 	CONFIG_PACKAGE_IWLWIFI_DEBUGFS \
 	CONFIG_PACKAGE_RTLWIFI_DEBUG \
+
+SCAN_DEPS = *.mk
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -343,7 +346,6 @@ define Build/Patch
 	$(if $(QUILT),rm -rf $(PKG_BUILD_DIR)/patches; mkdir -p $(PKG_BUILD_DIR)/patches)
 	$(call PatchDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/build,build/)
 	$(call PatchDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/subsys,subsys/)
-	$(call PatchDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/mtk,mtk/)
 	$(call PatchDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/ath,ath/)
 	$(call PatchDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/ath5k,ath5k/)
 	$(call PatchDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/ath9k,ath9k/)
@@ -361,7 +363,6 @@ endef
 define Quilt/Refresh/Package
 	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/build,build/)
 	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/subsys,subsys/)
-	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/mtk,mtk/)
 	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/ath,ath/)
 	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/ath5k,ath5k/)
 	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(PATCH_DIR)/ath9k,ath9k/)
