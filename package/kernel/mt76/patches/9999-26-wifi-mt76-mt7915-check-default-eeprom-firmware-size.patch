@@ -20,11 +20,9 @@ License: BSD-3-Clause-Clear
  mt7915/eeprom.c | 6 ++++++
  1 file changed, 6 insertions(+)
 
-diff --git a/mt7915/eeprom.c b/mt7915/eeprom.c
-index fe7b29e..145d14a 100644
 --- a/mt7915/eeprom.c
 +++ b/mt7915/eeprom.c
-@@ -111,6 +111,12 @@ mt7915_eeprom_load_default(struct mt7915_dev *dev)
+@@ -117,6 +117,12 @@
  		goto out;
  	}
  

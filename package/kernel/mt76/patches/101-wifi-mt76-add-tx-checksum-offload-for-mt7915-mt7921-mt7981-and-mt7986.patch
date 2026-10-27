@@ -25,11 +25,9 @@ Signed-off-by: Aleksander Jan Bajkowski <olek2@wp.pl>
  mt792x_core.c     | 3 +++
  3 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/mt76_connac_mac.c b/mt76_connac_mac.c
-index a0ec654..36e1a77 100644
 --- a/mt76_connac_mac.c
 +++ b/mt76_connac_mac.c
-@@ -382,6 +382,8 @@ mt76_connac2_mac_write_txwi_8023(__le32 *txwi, struct sk_buff *skb,
+@@ -382,6 +382,8 @@
  		sta = container_of((void *)wcid, struct ieee80211_sta, drv_priv);
  		wmm = sta->wme;
  	}
@@ -38,7 +36,7 @@ index a0ec654..36e1a77 100644
  
  	val = FIELD_PREP(MT_TXD1_HDR_FORMAT, MT_HDR_FORMAT_802_3) |
  	      FIELD_PREP(MT_TXD1_TID, tid);
-@@ -402,6 +404,8 @@ mt76_connac2_mac_write_txwi_8023(__le32 *txwi, struct sk_buff *skb,
+@@ -402,6 +404,8 @@
  
  	val = FIELD_PREP(MT_TXD7_TYPE, fc_type) |
  	      FIELD_PREP(MT_TXD7_SUB_TYPE, fc_stype);
@@ -47,11 +45,9 @@ index a0ec654..36e1a77 100644
  
  	txwi[7] |= cpu_to_le32(val);
  }
-diff --git a/mt7915/init.c b/mt7915/init.c
-index 617574c..4ad0dab 100644
 --- a/mt7915/init.c
 +++ b/mt7915/init.c
-@@ -366,7 +366,8 @@ mt7915_init_wiphy(struct mt7915_phy *phy)
+@@ -407,7 +407,8 @@
  	hw->queues = 4;
  	hw->max_rx_aggregation_subframes = IEEE80211_MAX_AMPDU_BUF_HE;
  	hw->max_tx_aggregation_subframes = IEEE80211_MAX_AMPDU_BUF_HE;
@@ -61,11 +57,9 @@ index 617574c..4ad0dab 100644
  
  	if (mtk_wed_device_active(&mdev->mmio.wed))
  		hw->netdev_features |= NETIF_F_HW_TC;
-diff --git a/mt792x_core.c b/mt792x_core.c
-index b50825e..0d17c3f 100644
 --- a/mt792x_core.c
 +++ b/mt792x_core.c
-@@ -673,6 +673,9 @@ int mt792x_init_wiphy(struct ieee80211_hw *hw)
+@@ -764,6 +764,9 @@
  		hw->max_tx_aggregation_subframes = IEEE80211_MAX_AMPDU_BUF_HE;
  	}
  	hw->netdev_features = NETIF_F_RXCSUM;

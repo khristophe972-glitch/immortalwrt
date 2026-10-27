@@ -10,7 +10,7 @@ Signed-off-by: Peter Chiu <chui-hao.chiu@mediatek.com>
 
 --- a/mt7915/regs.h
 +++ b/mt7915/regs.h
-@@ -948,6 +948,7 @@ enum offs_rev {
+@@ -946,6 +946,7 @@
  #define MT_ADIE_XTAL_TRIM1_40M_OSC	0x399
  #define MT_ADIE_WRI_CK_SEL		0x4ac
  #define MT_ADIE_RG_STRAP_PIN_IN		0x4fc
@@ -20,7 +20,7 @@ Signed-off-by: Peter Chiu <chui-hao.chiu@mediatek.com>
  #define MT_ADIE_RG_XO_01		0x65c
 --- a/mt7915/soc.c
 +++ b/mt7915/soc.c
-@@ -506,6 +506,7 @@ static int mt798x_wmac_adie_patch_7976(s
+@@ -505,6 +505,7 @@
  {
  	u32 id, version, rg_xo_01, rg_xo_03;
  	int ret;
@@ -28,7 +28,7 @@ Signed-off-by: Peter Chiu <chui-hao.chiu@mediatek.com>
  
  	ret = mt76_wmac_spi_read(dev, adie, MT_ADIE_CHIP_ID, &id);
  	if (ret)
-@@ -525,6 +526,7 @@ static int mt798x_wmac_adie_patch_7976(s
+@@ -524,6 +525,7 @@
  		if (is_mt7981(&dev->mt76)) {
  			rg_xo_01 = 0x1959c80f;
  		} else if (is_mt7986(&dev->mt76)) {
@@ -36,7 +36,7 @@ Signed-off-by: Peter Chiu <chui-hao.chiu@mediatek.com>
  			rg_xo_01 = 0x1959f80f;
  		} else {
  			WARN_ON(1);
-@@ -537,7 +539,14 @@ static int mt798x_wmac_adie_patch_7976(s
+@@ -536,7 +538,14 @@
  	if (ret)
  		return ret;
  

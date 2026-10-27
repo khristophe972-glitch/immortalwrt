@@ -1,6 +1,8 @@
+
+
 --- a/mt7915/mac.c
 +++ b/mt7915/mac.c
-@@ -2165,6 +2165,8 @@ int mt7915_dfs_init_radar_detector(struc
+@@ -2137,6 +2137,8 @@
  	enum mt76_dfs_state dfs_state, prev_state;
  	int err, rdd_idx = mt7915_get_rdd_idx(phy, false);
  
@@ -11,7 +13,7 @@
  
 --- a/mt7915/mcu.c
 +++ b/mt7915/mcu.c
-@@ -316,6 +316,8 @@ static void
+@@ -307,6 +307,8 @@
  mt7915_mcu_rx_radar_detected(struct mt7915_dev *dev, struct sk_buff *skb)
  {
  	struct mt76_phy *mphy = &dev->mt76.phy;
@@ -20,7 +22,7 @@
  	struct mt7915_mcu_rdd_report *r;
  	u32 sku;
  
-@@ -345,12 +347,24 @@ mt7915_mcu_rx_radar_detected(struct mt79
+@@ -336,12 +338,24 @@
  	if (!mphy)
  		return;
  
@@ -49,7 +51,7 @@
  
 --- a/mt7915/mt7915.h
 +++ b/mt7915/mt7915.h
-@@ -373,6 +373,8 @@ struct mt7915_phy {
+@@ -229,6 +229,8 @@
  	s16 coverage_class;
  	u8 slottime;
  
