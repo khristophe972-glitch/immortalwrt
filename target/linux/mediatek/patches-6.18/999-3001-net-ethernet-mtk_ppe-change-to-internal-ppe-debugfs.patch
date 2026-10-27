@@ -16,17 +16,17 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
 
 --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
 +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -6812,6 +6812,7 @@ static int mtk_probe(struct platform_dev
+@@ -6202,6 +6202,7 @@
  			if (err)
  				goto err_deinit_ppe;
  		}
 +		mtk_ppe_internal_debugfs_init(eth);
  	}
- #endif
  
+ 	for (i = 0; i < MTK_MAX_DEVS; i++) {
 --- a/drivers/net/ethernet/mediatek/mtk_ppe.c
 +++ b/drivers/net/ethernet/mediatek/mtk_ppe.c
-@@ -905,6 +905,7 @@ struct mtk_ppe *mtk_ppe_init(struct mtk_
+@@ -912,6 +912,7 @@
  	ppe->base = base;
  	ppe->eth = eth;
  	ppe->dev = dev;
@@ -36,7 +36,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  
 --- a/drivers/net/ethernet/mediatek/mtk_ppe.h
 +++ b/drivers/net/ethernet/mediatek/mtk_ppe.h
-@@ -326,6 +326,7 @@ struct mtk_ppe {
+@@ -330,6 +330,7 @@
  	struct mtk_eth *eth;
  	struct device *dev;
  	void __iomem *base;
@@ -44,7 +44,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  	int version;
  	char dirname[5];
  	bool accounting;
-@@ -401,6 +402,7 @@ int mtk_foe_entry_set_queue(struct mtk_e
+@@ -406,6 +407,7 @@
  int mtk_foe_entry_commit(struct mtk_ppe *ppe, struct mtk_flow_entry *entry);
  void mtk_foe_entry_clear(struct mtk_ppe *ppe, struct mtk_flow_entry *entry);
  int mtk_ppe_debugfs_init(struct mtk_ppe *ppe, int index);
@@ -54,7 +54,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  
 --- a/drivers/net/ethernet/mediatek/mtk_ppe_debugfs.c
 +++ b/drivers/net/ethernet/mediatek/mtk_ppe_debugfs.c
-@@ -125,6 +125,8 @@ mtk_ppe_debugfs_foe_show(struct seq_file
+@@ -126,6 +126,8 @@
  			break;
  		}
  
@@ -63,7 +63,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  		seq_printf(m, " orig=");
  		mtk_print_addr_info(m, &ai);
  
-@@ -192,3 +194,61 @@ int mtk_ppe_debugfs_init(struct mtk_ppe
+@@ -193,3 +195,61 @@
  
  	return 0;
  }

@@ -18,7 +18,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
 
 --- a/net/netfilter/nf_flow_table_bpf.c
 +++ b/net/netfilter/nf_flow_table_bpf.c
-@@ -50,6 +50,10 @@ bpf_xdp_flow_tuple_lookup(struct net_dev
+@@ -50,6 +50,10 @@
  
  	nf_flow = container_of(tuplehash, struct flow_offload,
  			       tuplehash[tuplehash->tuple.dir]);
@@ -31,7 +31,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	return tuplehash;
 --- a/net/netfilter/nf_flow_table_ip.c
 +++ b/net/netfilter/nf_flow_table_ip.c
-@@ -376,6 +376,26 @@ nf_flow_offload_lookup(struct nf_flowtab
+@@ -390,6 +390,26 @@
  	return flow_offload_lookup(flow_table, &tuple);
  }
  
@@ -58,9 +58,9 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
  				   struct nf_flowtable *flow_table,
  				   struct flow_offload_tuple_rhash *tuplehash,
-@@ -389,6 +409,9 @@ static int nf_flow_offload_forward(struc
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+@@ -411,6 +431,9 @@
+ 			       tuplehash->tuple.out.h_dest)))
+ 		return 0;
  
 +	if (nf_flow_reply_unoffloaded(flow_table, flow, dir))
 +		return 0;
@@ -68,9 +68,9 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	mtu = flow->tuplehash[dir].tuple.mtu + ctx->offset;
  	if (unlikely(nf_flow_exceeds_mtu(skb, mtu)))
  		return 0;
-@@ -681,6 +704,9 @@ static int nf_flow_offload_ipv6_forward(
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+@@ -718,6 +741,9 @@
+ 			       tuplehash->tuple.out.h_dest)))
+ 		return 0;
  
 +	if (nf_flow_reply_unoffloaded(flow_table, flow, dir))
 +		return 0;

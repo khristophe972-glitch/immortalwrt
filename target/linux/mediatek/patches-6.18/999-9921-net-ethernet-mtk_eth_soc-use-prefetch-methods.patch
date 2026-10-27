@@ -22,7 +22,7 @@ Signed-off-by: SmartWRT <smartwrt@localhost>
 
 --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
 +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -2469,6 +2469,7 @@ static u32 mtk_xdp_run(struct mtk_eth *eth, struct mtk_rx_ring *ring,
+@@ -2498,6 +2498,7 @@
  	if (!prog)
  		goto out;
  
@@ -30,7 +30,7 @@ Signed-off-by: SmartWRT <smartwrt@localhost>
  	act = bpf_prog_run_xdp(prog, xdp);
  	switch (act) {
  	case XDP_PASS:
-@@ -2544,6 +2545,7 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+@@ -2573,6 +2574,7 @@
  
  		idx = NEXT_DESP_IDX(ring->calc_idx, ring->dma_size);
  		rxd = ring->dma + RX_DESC_OFS(eth, idx);
@@ -38,7 +38,7 @@ Signed-off-by: SmartWRT <smartwrt@localhost>
  		data = ring->data[idx];
  
  		if (!mtk_rx_get_desc(eth, &trxd, rxd, ring->in_sram))
-@@ -2611,6 +2613,7 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+@@ -2640,6 +2642,7 @@
  			if (ret != XDP_PASS)
  				goto skip_rx;
  
@@ -46,7 +46,7 @@ Signed-off-by: SmartWRT <smartwrt@localhost>
  			skb = napi_build_skb(data, PAGE_SIZE);
  			if (unlikely(!skb)) {
  				page_pool_put_full_page(ring->page_pool,
-@@ -2619,6 +2622,7 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+@@ -2648,6 +2651,7 @@
  				goto skip_rx;
  			}
  
@@ -54,7 +54,7 @@ Signed-off-by: SmartWRT <smartwrt@localhost>
  			skb_reserve(skb, xdp.data - xdp.data_hard_start);
  			skb_put(skb, xdp.data_end - xdp.data);
  			metasize = xdp.data - xdp.data_meta;
-@@ -2660,7 +2664,8 @@ static int mtk_poll_rx(struct napi_struct *napi, int budget,
+@@ -2689,7 +2693,8 @@
  				goto skip_rx;
  			}
  

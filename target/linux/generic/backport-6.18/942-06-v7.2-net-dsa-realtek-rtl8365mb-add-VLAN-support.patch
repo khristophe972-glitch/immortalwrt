@@ -61,7 +61,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/dsa/realtek/Makefile
 +++ b/drivers/net/dsa/realtek/Makefile
-@@ -18,4 +18,5 @@ endif
+@@ -18,4 +18,5 @@
  obj-$(CONFIG_NET_DSA_REALTEK_RTL8365MB) += rtl8365mb.o
  rtl8365mb-objs := rtl8365mb_main.o \
  		  rtl8365mb_table.o \
@@ -69,7 +69,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  # end of rtl8365mb-objs
 --- a/drivers/net/dsa/realtek/realtek.h
 +++ b/drivers/net/dsa/realtek/realtek.h
-@@ -54,6 +54,11 @@ struct realtek_priv {
+@@ -54,6 +54,11 @@
  	struct regmap		*map;
  	struct regmap		*map_nolock;
  	struct mutex		map_lock;
@@ -149,7 +149,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  /* MIB counter value registers */
  #define RTL8365MB_MIB_COUNTER_BASE	0x1000
  #define RTL8365MB_MIB_COUNTER_REG(_x)	(RTL8365MB_MIB_COUNTER_BASE + (_x))
-@@ -1210,6 +1262,286 @@ static void rtl8365mb_port_stp_state_set
+@@ -1224,6 +1276,286 @@
  			   val << RTL8365MB_MSTI_CTRL_PORT_STATE_OFFSET(port));
  }
  
@@ -436,7 +436,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  static int rtl8365mb_port_set_learning(struct realtek_priv *priv, int port,
  				       bool enable)
  {
-@@ -2100,6 +2432,13 @@ static int rtl8365mb_setup(struct dsa_sw
+@@ -2114,6 +2446,13 @@
  	if (ret)
  		goto out_teardown_irq;
  
@@ -450,7 +450,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	ret = rtl83xx_setup_user_mdio(ds);
  	if (ret) {
  		dev_err(priv->dev, "could not set up MDIO bus\n");
-@@ -2210,6 +2549,9 @@ static const struct dsa_switch_ops rtl83
+@@ -2224,6 +2563,9 @@
  	.teardown = rtl8365mb_teardown,
  	.phylink_get_caps = rtl8365mb_phylink_get_caps,
  	.port_stp_state_set = rtl8365mb_port_stp_state_set,
@@ -1451,7 +1451,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 +#endif /* _REALTEK_RTL8365MB_VLAN_H */
 --- a/drivers/net/dsa/realtek/rtl83xx.c
 +++ b/drivers/net/dsa/realtek/rtl83xx.c
-@@ -155,6 +155,7 @@ rtl83xx_probe(struct device *dev,
+@@ -155,6 +155,7 @@
  		return ERR_PTR(-ENOMEM);
  
  	mutex_init(&priv->map_lock);

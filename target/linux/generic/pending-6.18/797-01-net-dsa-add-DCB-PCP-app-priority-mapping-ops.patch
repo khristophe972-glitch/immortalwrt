@@ -17,7 +17,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
 
 --- a/include/net/dsa.h
 +++ b/include/net/dsa.h
-@@ -445,6 +445,9 @@ struct dsa_switch {
+@@ -451,6 +451,9 @@
  	 */
  	u32			dscp_prio_mapping_is_global:1;
  
@@ -27,7 +27,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	/* Listener for switch fabric events */
  	struct notifier_block	nb;
  
-@@ -968,6 +971,11 @@ struct dsa_switch_ops {
+@@ -974,6 +977,11 @@
  				      u8 prio);
  	int	(*port_del_dscp_prio)(struct dsa_switch *ds, int port, u8 dscp,
  				      u8 prio);
@@ -41,7 +41,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	int	(*port_get_apptrust)(struct dsa_switch *ds, int port, u8 *sel,
 --- a/net/dsa/user.c
 +++ b/net/dsa/user.c
-@@ -2238,11 +2238,11 @@ dsa_user_dcbnl_set_default_prio(struct n
+@@ -2255,11 +2255,11 @@
  	return 0;
  }
  
@@ -57,7 +57,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  {
  	int (*setdel)(struct net_device *dev, struct dcb_app *app);
  	struct dsa_port *dp = dsa_user_to_port(dev);
-@@ -2284,7 +2284,7 @@ err_try_to_restore:
+@@ -2301,7 +2301,7 @@
  
  		restore_err = setdel(user, app);
  		if (restore_err)
@@ -66,7 +66,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	}
  
  	return err;
-@@ -2324,7 +2324,7 @@ dsa_user_dcbnl_add_dscp_prio(struct net_
+@@ -2341,7 +2341,7 @@
  	if (!ds->dscp_prio_mapping_is_global)
  		return 0;
  
@@ -75,7 +75,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	if (err) {
  		if (ds->ops->port_del_dscp_prio)
  			ds->ops->port_del_dscp_prio(ds, port, dscp, new_prio);
-@@ -2335,6 +2335,52 @@ dsa_user_dcbnl_add_dscp_prio(struct net_
+@@ -2352,6 +2352,52 @@
  	return 0;
  }
  
@@ -128,7 +128,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  static int __maybe_unused dsa_user_dcbnl_ieee_setapp(struct net_device *dev,
  						     struct dcb_app *app)
  {
-@@ -2349,6 +2395,8 @@ static int __maybe_unused dsa_user_dcbnl
+@@ -2366,6 +2412,8 @@
  		break;
  	case IEEE_8021QAZ_APP_SEL_DSCP:
  		return dsa_user_dcbnl_add_dscp_prio(dev, app);
@@ -137,7 +137,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	default:
  		return -EOPNOTSUPP;
  	}
-@@ -2405,7 +2453,7 @@ dsa_user_dcbnl_del_dscp_prio(struct net_
+@@ -2422,7 +2470,7 @@
  	if (!ds->dscp_prio_mapping_is_global)
  		return 0;
  
@@ -146,7 +146,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	if (err) {
  		if (ds->ops->port_add_dscp_prio)
  			ds->ops->port_add_dscp_prio(ds, port, dscp,
-@@ -2417,6 +2465,42 @@ dsa_user_dcbnl_del_dscp_prio(struct net_
+@@ -2434,6 +2482,42 @@
  	return 0;
  }
  
@@ -189,7 +189,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  static int __maybe_unused dsa_user_dcbnl_ieee_delapp(struct net_device *dev,
  						     struct dcb_app *app)
  {
-@@ -2431,6 +2515,8 @@ static int __maybe_unused dsa_user_dcbnl
+@@ -2448,6 +2532,8 @@
  		break;
  	case IEEE_8021QAZ_APP_SEL_DSCP:
  		return dsa_user_dcbnl_del_dscp_prio(dev, app);
@@ -198,7 +198,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	default:
  		return -EOPNOTSUPP;
  	}
-@@ -2476,6 +2562,30 @@ static int dsa_user_dcbnl_init(struct ne
+@@ -2493,6 +2579,30 @@
  			if (prio == -EOPNOTSUPP)
  				continue;
  			if (prio < 0)

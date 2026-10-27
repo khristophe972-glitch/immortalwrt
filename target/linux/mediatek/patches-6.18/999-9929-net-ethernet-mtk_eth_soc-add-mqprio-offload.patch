@@ -8,10 +8,10 @@
  #include <net/dsa.h>
  #include <linux/dsa/8021q.h>
  #include "mtk_eth_soc.h"
-@@ -673,6 +674,53 @@
+@@ -709,6 +710,53 @@
  	}
  }
-
+ 
 +/*
 + * mqprio hardware offload. The traffic classes are mapped onto the QDMA TX
 + * queues; mtk_tx_hash() then routes each packet to its class queue through
@@ -62,7 +62,7 @@
  int mtk_eth_setup_tc(struct net_device *dev, enum tc_setup_type type,
  		     void *type_data)
  {
-@@ -680,6 +728,8 @@
+@@ -716,6 +764,8 @@
  	case TC_SETUP_BLOCK:
  	case TC_SETUP_FT:
  		return mtk_eth_setup_tc_block(dev, type_data);

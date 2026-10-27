@@ -86,7 +86,7 @@ Not built, not flashed. Local port only.
  /* Instrumentation cake_mq (999-714) : compteurs de synchro en
   * lecture seule, indexes par direction (0 = egress, 1 = ingress/IFB).
   * Lecture : cat /sys/kernel/debug/cake_mq/stats
-@@ -1470,6 +1479,14 @@
+@@ -1469,6 +1478,14 @@
  	return avg;
  }
  
@@ -101,7 +101,7 @@ Not built, not flashed. Local port only.
  static u32 cake_calc_overhead(struct cake_sched_data *qd, u32 len, u32 off)
  {
  	struct cake_sched_config *q = qd->config;
-@@ -2145,6 +2162,12 @@
+@@ -2144,6 +2161,12 @@
  			u64 tin_hold = (u64)max_t(u32, READ_ONCE(g_mq_tin_hold), 1) *
  				       g_sync_time_ns;
  			u32 tin_others[CAKE_MAX_TINS] = { 0 };
@@ -114,7 +114,7 @@ Not built, not flashed. Local port only.
  
  			last_checked = cfg->shared_last_checked;
  			active_queues = cfg->shared_active_queues;
-@@ -2173,8 +2196,18 @@
+@@ -2172,8 +2195,18 @@
  								tin_others[i]++;
  					}
  
@@ -134,7 +134,7 @@ Not built, not flashed. Local port only.
  				}
  
  				/* Hysteresis : montee immediate, descente d'au plus
-@@ -2198,7 +2231,6 @@
+@@ -2197,7 +2230,6 @@
  				 * verrou, donc une instance sur 16 par tick.
  				 */
  				{
@@ -142,7 +142,7 @@ Not built, not flashed. Local port only.
  					u64 dt = now_ns - last_checked;
  					u64 cap = q->rb_cap ? q->rb_cap : rate;
  					u32 ol = sch->qstats.overlimits;
-@@ -2221,7 +2253,6 @@
+@@ -2220,7 +2252,6 @@
  				{
  					struct cake_mq_stats *st = &g_mq_stats[
  						!!(cfg->rate_flags & CAKE_FLAG_INGRESS)];
@@ -150,7 +150,7 @@ Not built, not flashed. Local port only.
  
  					atomic64_inc(&st->syncs);
  					atomic64_inc(&st->nact[
-@@ -2231,9 +2262,33 @@
+@@ -2230,9 +2261,33 @@
  					if (q->rb_saturated)
  						atomic64_inc(&st->saturated);
  
@@ -187,7 +187,7 @@ Not built, not flashed. Local port only.
  					atomic64_add(new_rate >> 10, &st->rate_kbs_sum);
  					q->rb_cap = new_rate;
  
-@@ -2269,11 +2324,6 @@
+@@ -2268,11 +2323,6 @@
  		if (tin_share ?
  		    q->last_synced_tick != READ_ONCE(cfg->shared_last_checked) :
  		    q->active_queues != active_queues) {
@@ -199,7 +199,7 @@ Not built, not flashed. Local port only.
  			if (tin_share && new_rate < cfg->rate_bps) {
  				u32 i, tin_cap = min_t(u32, READ_ONCE(g_mq_tin_cap), 100);
  				u64 cap = div64_u64(new_rate * (u64)tin_cap, 100);
-@@ -3724,6 +3774,8 @@
+@@ -3723,6 +3773,8 @@
  				   &g_active_window_ns);
  		debugfs_create_u32("active_release", 0644, cake_mq_debugfs,
  				   &g_active_release);

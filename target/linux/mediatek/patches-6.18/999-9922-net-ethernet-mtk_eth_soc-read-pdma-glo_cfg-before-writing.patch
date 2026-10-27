@@ -15,7 +15,7 @@ Signed-off-by: SmartWRT <smartwrt@localhost>
 
 --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
 +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -4002,10 +4002,10 @@ static int mtk_start_dma(struct mtk_eth *eth)
+@@ -4031,10 +4031,10 @@
  		}
  		mtk_w32(eth, val, reg_map->qdma.glo_cfg);
  
@@ -30,4 +30,3 @@ Signed-off-by: SmartWRT <smartwrt@localhost>
  	} else {
  		mtk_w32(eth, MTK_TX_WB_DDONE | MTK_TX_DMA_EN | MTK_RX_DMA_EN |
  			MTK_MULTI_EN | MTK_PDMA_SIZE_8DWORDS,
- 

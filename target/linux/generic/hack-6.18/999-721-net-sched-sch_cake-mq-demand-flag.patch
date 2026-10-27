@@ -83,7 +83,7 @@ Requires 999-718 and 999-719. Not built, not flashed. Local port only.
  
  	/* partage des tins (999-715) */
  	u64		tin_last_active[CAKE_MAX_TINS];	/* dernier dequeue par tin */
-@@ -2269,6 +2271,7 @@
+@@ -2268,6 +2270,7 @@
  					u64 cap = q->rb_cap ? q->rb_cap : rate;
  					u32 ol = sch->qstats.overlimits;
  					bool throttled = ol != q->rb_overlimits;
@@ -91,7 +91,7 @@ Requires 999-718 and 999-719. Not built, not flashed. Local port only.
  					u64 r = 0;
  					u8 sat;
  
-@@ -2281,10 +2284,16 @@
+@@ -2280,10 +2283,16 @@
  						sat = throttled &&
  						      r >= cap - (cap >> sat_shift);
  					else
@@ -111,7 +111,7 @@ Requires 999-718 and 999-719. Not built, not flashed. Local port only.
  					q->rb_bytes = 0;
  					q->rb_overlimits = ol;
  					WRITE_ONCE(q->rb_rate, cake_ewma(q->rb_rate, r, ewma_shift));
-@@ -2458,6 +2467,14 @@
+@@ -2457,6 +2466,14 @@
  		u64 next = min(ktime_to_ns(q->time_next_packet),
  			       ktime_to_ns(q->failsafe_next_packet));
  
@@ -126,7 +126,7 @@ Requires 999-718 and 999-719. Not built, not flashed. Local port only.
  		sch->qstats.overlimits++;
  		qdisc_watchdog_schedule_ns(&q->watchdog, next);
  		return NULL;
-@@ -3777,6 +3794,8 @@
+@@ -3776,6 +3793,8 @@
  		seq_printf(m, "%s: overcommit %lld overcommit_kbs_sum %lld\n",
  			   dir[d], (s64)atomic64_read(&st->overcommit),
  			   (s64)atomic64_read(&st->overcommit_kbs_sum));

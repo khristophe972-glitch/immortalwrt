@@ -63,7 +63,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	};
  	struct neighbour *n;
  	u8 nud_state;
-@@ -112,6 +113,7 @@
+@@ -110,6 +111,7 @@
  		path = &stack->path[i];
  		switch (path->type) {
  		case DEV_PATH_ETHERNET:
@@ -71,7 +71,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  		case DEV_PATH_DSA:
  		case DEV_PATH_MTK_WDMA:
  		case DEV_PATH_VLAN:
-@@ -120,7 +122,8 @@
+@@ -118,7 +120,8 @@
  			if (is_zero_ether_addr(info->h_source))
  				memcpy(info->h_source, path->dev->dev_addr, ETH_ALEN);
  

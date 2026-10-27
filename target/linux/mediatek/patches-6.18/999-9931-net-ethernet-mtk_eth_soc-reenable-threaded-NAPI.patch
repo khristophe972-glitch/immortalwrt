@@ -23,10 +23,10 @@ rx_napi[0] and every RSS ring in one go, exactly as 702 intended.
 This must remain the last patch touching this block: 999-9910 is, as of now.
 
 ---
+
 --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
 +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -6265,8 +6265,10 @@ static int mtk_probe(struct platform_dev
- 		err = -ENOMEM;
+@@ -6806,6 +6806,8 @@
  		dev_err(eth->dev, "failed to allocate dummy device\n");
  		goto err_deinit_ppe;
  	}
@@ -35,4 +35,3 @@ This must remain the last patch touching this block: 999-9910 is, as of now.
  	netif_napi_add_weight(eth->dummy_dev, &eth->tx_napi, mtk_napi_tx,
  			      MTK_NAPI_WEIGHT);
  	netif_napi_add_weight(eth->dummy_dev, &eth->rx_napi[0].napi, mtk_napi_rx,
- 			      MTK_NAPI_WEIGHT);

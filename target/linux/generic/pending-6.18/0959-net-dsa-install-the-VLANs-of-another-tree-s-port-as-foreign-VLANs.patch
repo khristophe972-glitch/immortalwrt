@@ -17,7 +17,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
 
 --- a/net/dsa/user.c
 +++ b/net/dsa/user.c
-@@ -3937,6 +3937,47 @@ static int dsa_user_switchdev_event(stru
+@@ -3803,6 +3803,47 @@
  	return NOTIFY_OK;
  }
  
@@ -65,7 +65,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  static int dsa_user_switchdev_blocking_event(struct notifier_block *unused,
  					     unsigned long event, void *ptr)
  {
-@@ -3949,12 +3990,16 @@ static int dsa_user_switchdev_blocking_e
+@@ -3815,12 +3856,16 @@
  							    dsa_user_dev_check,
  							    dsa_foreign_dev_check,
  							    dsa_user_port_obj_add);

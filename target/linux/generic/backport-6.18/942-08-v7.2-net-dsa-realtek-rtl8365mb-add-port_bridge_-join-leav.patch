@@ -45,7 +45,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/dsa/realtek/realtek.h
 +++ b/drivers/net/dsa/realtek/realtek.h
-@@ -127,6 +127,13 @@ struct realtek_ops {
+@@ -127,6 +127,13 @@
  	int	(*enable_vlan)(struct realtek_priv *priv, bool enable);
  	int	(*enable_vlan4k)(struct realtek_priv *priv, bool enable);
  	int	(*enable_port)(struct realtek_priv *priv, int port, bool enable);
@@ -61,7 +61,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  			     u16 efid, u16 vid);
 --- a/drivers/net/dsa/realtek/rtl8365mb_main.c
 +++ b/drivers/net/dsa/realtek/rtl8365mb_main.c
-@@ -1568,10 +1568,44 @@ static int rtl8365mb_port_set_learning(s
+@@ -1582,10 +1582,44 @@
  			    enable ? RTL8365MB_LEARN_LIMIT_MAX : 0);
  }
  
@@ -107,7 +107,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  }
  
  static int rtl8365mb_mib_counter_read(struct realtek_priv *priv, int port,
-@@ -2378,6 +2412,11 @@ static int rtl8365mb_setup(struct dsa_sw
+@@ -2392,6 +2426,11 @@
  		if (ret)
  			goto out_teardown_irq;
  
@@ -119,7 +119,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  		/* Disable learning */
  		ret = rtl8365mb_port_set_learning(priv, dp->index, false);
  		if (ret)
-@@ -2567,6 +2606,8 @@ static const struct dsa_switch_ops rtl83
+@@ -2581,6 +2620,8 @@
  	.setup = rtl8365mb_setup,
  	.teardown = rtl8365mb_teardown,
  	.phylink_get_caps = rtl8365mb_phylink_get_caps,
@@ -128,7 +128,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	.port_stp_state_set = rtl8365mb_port_stp_state_set,
  	.port_fast_age = rtl83xx_port_fast_age,
  	.port_fdb_add = rtl83xx_port_fdb_add,
-@@ -2590,6 +2631,10 @@ static const struct dsa_switch_ops rtl83
+@@ -2604,6 +2645,10 @@
  
  static const struct realtek_ops rtl8365mb_ops = {
  	.detect = rtl8365mb_detect,
@@ -141,7 +141,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	.l2_get_next_uc = rtl8365mb_l2_get_next_uc,
 --- a/drivers/net/dsa/realtek/rtl83xx.c
 +++ b/drivers/net/dsa/realtek/rtl83xx.c
-@@ -329,6 +329,175 @@ void rtl83xx_reset_deassert(struct realt
+@@ -329,6 +329,175 @@
  }
  
  /**
@@ -319,7 +319,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
   * @port: port index
 --- a/drivers/net/dsa/realtek/rtl83xx.h
 +++ b/drivers/net/dsa/realtek/rtl83xx.h
-@@ -21,6 +21,13 @@ void rtl83xx_remove(struct realtek_priv
+@@ -21,6 +21,13 @@
  void rtl83xx_reset_assert(struct realtek_priv *priv);
  void rtl83xx_reset_deassert(struct realtek_priv *priv);
  

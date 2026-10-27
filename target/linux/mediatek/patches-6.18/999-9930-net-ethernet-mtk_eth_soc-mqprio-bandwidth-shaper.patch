@@ -56,9 +56,10 @@ Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
  3 files changed, 212 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+
 --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
 +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -894,10 +894,21 @@
+@@ -892,10 +892,21 @@
  		eth->netdev[mac->id]->max_mtu = MTK_MAX_RX_LENGTH - MTK_RX_ETH_HLEN;
  }
  
@@ -80,7 +81,7 @@ diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/
  	u32 ofs, val;
  
  	if (!MTK_HAS_CAPS(soc->caps, MTK_QDMA))
-@@ -997,22 +1008,23 @@
+@@ -995,22 +1006,23 @@
  		}
  	}
  
@@ -107,7 +108,7 @@ diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/
  	u64 best_err = U64_MAX;
  	u32 best_man = 0, best_exp = 0;
  	u64 div = 1;
-@@ -1044,23 +1056,49 @@
+@@ -1042,23 +1054,49 @@
  	return 0;
  }
  
@@ -165,7 +166,7 @@ diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/
  
  	if (!MTK_HAS_CAPS(soc->caps, MTK_QDMA) ||
  	    mtk_is_netsys_v3_or_greater(eth))
-@@ -1069,15 +1107,20 @@
+@@ -1067,15 +1105,20 @@
  	if (idx >= soc->num_tx_queues)
  		return -EINVAL;
  
@@ -191,7 +192,7 @@ diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/
  
  		val |= MTK_QTX_SCH_MAX_RATE_EN |
  		       FIELD_PREP(MTK_QTX_SCH_MAX_RATE_MAN, man) |
-@@ -1085,9 +1128,91 @@
+@@ -1083,9 +1126,91 @@
  	}
  	mtk_w32(eth, val, soc->reg_map->qdma.qtx_sch + ofs);
  
@@ -283,7 +284,7 @@ diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/
  static void mtk_gdm_mac_link_up(struct mtk_mac *mac,
  				struct phy_device *phy,
  				unsigned int mode, phy_interface_t interface,
-@@ -4355,6 +4480,7 @@
+@@ -4377,6 +4502,7 @@
  		s.base.speed = 0;
  
  	mtk_set_queue_speed(eth, queue, s.base.speed);
@@ -291,10 +292,9 @@ diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/
  
  	return NOTIFY_DONE;
  }
-diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.h b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
 --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.h
 +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.h
-@@ -1715,6 +1715,9 @@
+@@ -1718,6 +1718,9 @@
  u32 mtk_m32(struct mtk_eth *eth, u32 mask, u32 set, unsigned int reg);
  int mtk_qdma_set_queue_max_rate(struct mtk_eth *eth, unsigned int idx,
  				unsigned int rate_mbps);
@@ -304,10 +304,9 @@ diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.h b/drivers/net/ethernet/
  
  static inline void mtk_pse_wdma_enable(struct mtk_eth *eth, int id, bool enable)
  {
-diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
 --- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
 +++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
-@@ -705,19 +705,28 @@
+@@ -711,19 +711,28 @@
  }
  
  /*
@@ -339,7 +338,7 @@ diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ether
  		netdev_reset_tc(dev);
  		return 0;
  	}
-@@ -725,10 +734,17 @@
+@@ -731,10 +740,17 @@
  	if (num_tc > TC_QOPT_MAX_QUEUE)
  		return -EINVAL;
  
@@ -359,7 +358,7 @@ diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ether
  	for (i = 0; i < num_tc; i++) {
  		u16 offset = qopt->offset[i];
  		u16 count = qopt->count[i];
-@@ -744,10 +760,56 @@
+@@ -750,10 +766,56 @@
  		}
  	}
  

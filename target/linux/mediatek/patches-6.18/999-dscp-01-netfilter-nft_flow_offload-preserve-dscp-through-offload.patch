@@ -21,11 +21,14 @@ Based on work by Airoha (915-01 patch series).
 
 --- a/include/net/netfilter/nf_flow_table.h
 +++ b/include/net/netfilter/nf_flow_table.h
-@@ -143,3 +143,4 @@
+@@ -145,6 +145,7 @@
+ 					port_vlans:2,
+ 					in_vlan_ingress:2;
  	u16				mtu;
 +	u8				dscp;
  	union {
  		struct {
+ 			struct dst_entry *dst_cache;
 --- a/net/netfilter/nft_flow_offload.c
 +++ b/net/netfilter/nft_flow_offload.c
 @@ -16,11 +16,34 @@
@@ -34,11 +37,11 @@ Based on work by Airoha (915-01 patch series).
  #include <net/netfilter/nf_flow_table.h>
 +#include <net/dsfield.h>
 +#include <net/inet_dscp.h>
-
+ 
  struct nft_flow_offload {
  	struct nft_flowtable	*flowtable;
  };
-
+ 
 +static void nft_flow_set_dscp(const struct nft_pktinfo *pkt,
 +			      struct flow_offload *flow,
 +			      enum ip_conntrack_dir dir)
@@ -63,10 +66,10 @@ Based on work by Airoha (915-01 patch series).
  static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
  {
  	if (skb_sec_path(skb))
-@@ -119,6 +142,8 @@
+@@ -120,6 +143,8 @@
  	if (!flow)
  		goto err_flow_alloc;
-
+ 
 +	nft_flow_set_dscp(pkt, flow, dir);
 +
  	if (routing)

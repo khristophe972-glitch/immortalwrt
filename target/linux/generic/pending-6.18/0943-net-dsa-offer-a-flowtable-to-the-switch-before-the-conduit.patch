@@ -17,9 +17,10 @@ conduit-side flow engine is reached as before.
 Assisted-by: Claude:claude-fable-5-1
 Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
 ---
+
 --- a/include/net/dsa.h
 +++ b/include/net/dsa.h
-@@ -289,6 +289,12 @@ struct dsa_port {
+@@ -287,6 +287,12 @@
  
  	u8			setup:1;
  
@@ -34,7 +35,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  
 --- a/net/dsa/user.c
 +++ b/net/dsa/user.c
-@@ -1718,15 +1718,30 @@ static int dsa_user_setup_tc_block(struc
+@@ -1718,15 +1718,30 @@
  	}
  }
  
@@ -69,7 +70,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  }
  
  static int dsa_user_setup_tc(struct net_device *dev, enum tc_setup_type type,
-@@ -1739,7 +1754,7 @@ static int dsa_user_setup_tc(struct net_
+@@ -1739,7 +1754,7 @@
  	case TC_SETUP_BLOCK:
  		return dsa_user_setup_tc_block(dev, type_data);
  	case TC_SETUP_FT:

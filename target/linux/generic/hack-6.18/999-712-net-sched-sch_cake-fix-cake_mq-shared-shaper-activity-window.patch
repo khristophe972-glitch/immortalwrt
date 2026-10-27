@@ -62,7 +62,7 @@ retuned without reflashing.
  static unsigned int cake_mq_queue_count(const struct net_device *dev)
  {
  	unsigned int ntx = READ_ONCE(dev->real_num_tx_queues);
-@@ -1809,6 +1820,12 @@
+@@ -1808,6 +1819,12 @@
  		}
  	}
  
@@ -75,7 +75,7 @@ retuned without reflashing.
  	if (unlikely(len > b->max_skblen))
  		b->max_skblen = len;
  
-@@ -2036,6 +2053,8 @@
+@@ -2035,6 +2052,8 @@
  	if (cfg->is_shared && q->rate_ns) {
  		u64 last_checked = READ_ONCE(cfg->shared_last_checked);
  		u32 active_queues = READ_ONCE(cfg->shared_active_queues);
@@ -84,7 +84,7 @@ retuned without reflashing.
  
  		if (now - last_checked >= g_sync_time_ns &&
  		    spin_trylock(&cfg->sync_lock)) {
-@@ -2060,7 +2079,7 @@
+@@ -2059,7 +2078,7 @@
  					other_qlen = READ_ONCE(other_sch->q.qlen);
  					other_last_active = READ_ONCE(other_priv->last_active);
  
@@ -93,7 +93,7 @@ retuned without reflashing.
  						num_active_qs++;
  				}
  
-@@ -3404,6 +3423,8 @@
+@@ -3403,6 +3422,8 @@
  		struct dentry *cake_mq_debugfs = debugfs_create_dir("cake_mq", NULL);
  
  		debugfs_create_u64("sync_time_ns", 0644, cake_mq_debugfs, &g_sync_time_ns);

@@ -42,7 +42,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/dsa/realtek/Makefile
 +++ b/drivers/net/dsa/realtek/Makefile
-@@ -19,4 +19,5 @@ obj-$(CONFIG_NET_DSA_REALTEK_RTL8365MB)
+@@ -19,4 +19,5 @@
  rtl8365mb-objs := rtl8365mb_main.o \
  		  rtl8365mb_table.o \
  		  rtl8365mb_vlan.o \
@@ -50,7 +50,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  # end of rtl8365mb-objs
 --- a/drivers/net/dsa/realtek/realtek.h
 +++ b/drivers/net/dsa/realtek/realtek.h
-@@ -45,6 +45,12 @@ struct rtl8366_vlan_4k {
+@@ -45,6 +45,12 @@
  	u8	fid;
  };
  
@@ -63,7 +63,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  struct realtek_priv {
  	struct device		*dev;
  	struct reset_control    *reset_ctl;
-@@ -59,6 +65,15 @@ struct realtek_priv {
+@@ -59,6 +65,15 @@
  	 * deleting port VLAN memberships and PVID configurations.
  	 */
  	struct mutex		vlan_lock;
@@ -79,7 +79,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	struct mii_bus		*user_mii_bus;
  	struct mii_bus		*bus;
  	int			mdio_addr;
-@@ -112,6 +127,19 @@ struct realtek_ops {
+@@ -112,6 +127,19 @@
  	int	(*enable_vlan)(struct realtek_priv *priv, bool enable);
  	int	(*enable_vlan4k)(struct realtek_priv *priv, bool enable);
  	int	(*enable_port)(struct realtek_priv *priv, int port, bool enable);
@@ -753,7 +753,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  /* MSTP port state registers - indexed by tree instance */
  #define RTL8365MB_MSTI_CTRL_BASE			0x0A00
  #define RTL8365MB_MSTI_CTRL_REG(_msti, _physport) \
-@@ -2432,6 +2446,11 @@ static int rtl8365mb_setup(struct dsa_sw
+@@ -2446,6 +2460,11 @@
  	if (ret)
  		goto out_teardown_irq;
  
@@ -765,7 +765,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	ds->configure_vlan_while_not_filtering = true;
  
  	/* Set up VLAN */
-@@ -2549,6 +2568,12 @@ static const struct dsa_switch_ops rtl83
+@@ -2563,6 +2582,12 @@
  	.teardown = rtl8365mb_teardown,
  	.phylink_get_caps = rtl8365mb_phylink_get_caps,
  	.port_stp_state_set = rtl8365mb_port_stp_state_set,
@@ -778,7 +778,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	.port_vlan_add = rtl8365mb_port_vlan_add,
  	.port_vlan_del = rtl8365mb_port_vlan_del,
  	.port_vlan_filtering = rtl8365mb_port_vlan_filtering,
-@@ -2565,6 +2590,12 @@ static const struct dsa_switch_ops rtl83
+@@ -2579,6 +2604,12 @@
  
  static const struct realtek_ops rtl8365mb_ops = {
  	.detect = rtl8365mb_detect,
@@ -801,7 +801,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  
  #include "realtek.h"
  #include "rtl83xx.h"
-@@ -156,6 +157,7 @@ rtl83xx_probe(struct device *dev,
+@@ -156,6 +157,7 @@
  
  	mutex_init(&priv->map_lock);
  	mutex_init(&priv->vlan_lock);
@@ -809,7 +809,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  
  	rc.lock_arg = priv;
  	priv->map = devm_regmap_init(dev, NULL, priv, &rc);
-@@ -326,6 +328,296 @@ void rtl83xx_reset_deassert(struct realt
+@@ -326,6 +328,296 @@
  	gpiod_set_value_cansleep(priv->reset, false);
  }
  
@@ -1108,7 +1108,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  MODULE_DESCRIPTION("Realtek DSA switches common module");
 --- a/drivers/net/dsa/realtek/rtl83xx.h
 +++ b/drivers/net/dsa/realtek/rtl83xx.h
-@@ -21,4 +21,20 @@ void rtl83xx_remove(struct realtek_priv
+@@ -21,4 +21,20 @@
  void rtl83xx_reset_assert(struct realtek_priv *priv);
  void rtl83xx_reset_deassert(struct realtek_priv *priv);
  

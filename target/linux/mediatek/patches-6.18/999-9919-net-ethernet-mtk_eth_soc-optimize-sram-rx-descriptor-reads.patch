@@ -26,10 +26,10 @@ Source: pesa1234/openwrt c44ac1df91999a0eda8406dc2166924ed234c76d
 
 --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
 +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -1408,21 +1408,59 @@
+@@ -1430,21 +1430,59 @@
  	return buf_size;
  }
-
+ 
 +#ifdef CONFIG_64BIT
 +static bool mtk_rx_get_desc_sram(struct mtk_eth *eth,
 +				 struct mtk_rx_dma_v2 *rxd,
@@ -76,7 +76,7 @@ Source: pesa1234/openwrt c44ac1df91999a0eda8406dc2166924ed234c76d
  	rxd->rxd2 = READ_ONCE(dma_rxd->rxd2);
  	if (!(rxd->rxd2 & RX_DMA_DONE))
  		return false;
-
+ 
 +	dma_rmb();
 +
  	rxd->rxd1 = READ_ONCE(dma_rxd->rxd1);
@@ -88,15 +88,15 @@ Source: pesa1234/openwrt c44ac1df91999a0eda8406dc2166924ed234c76d
 -		rxd->rxd6 = READ_ONCE(dma_rxd->rxd6);
 -		rxd->rxd7 = READ_ONCE(dma_rxd->rxd7);
 -	}
-
+ 
  	return true;
  }
-@@ -2515,7 +2553,7 @@
+@@ -2537,7 +2575,7 @@
  		rxd = ring->dma + RX_DESC_OFS(eth, idx);
  		data = ring->data[idx];
-
+ 
 -		if (!mtk_rx_get_desc(eth, &trxd, rxd))
 +		if (!mtk_rx_get_desc(eth, &trxd, rxd, ring->in_sram))
  			break;
-
+ 
  		/* find out which mac the packet come from. values start at 1 */

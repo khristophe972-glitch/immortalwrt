@@ -16,7 +16,7 @@ fragments shorter than 16 bytes.
 
 --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
 +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -2149,7 +2149,7 @@ static bool mtk_skb_has_small_frag(struc
+@@ -2361,7 +2361,7 @@
  static bool mtk_skb_valid_gso(struct mtk_eth *eth, struct sk_buff *skb,
  			      unsigned int header_len)
  {
@@ -25,7 +25,7 @@ fragments shorter than 16 bytes.
  		return false;
  
  	if (!(skb_shinfo(skb)->gso_type & SKB_GSO_FRAGLIST))
-@@ -2231,8 +2231,7 @@ static netdev_tx_t mtk_start_xmit(struct
+@@ -2443,8 +2443,7 @@
  
  send:
  	skb_list_walk_safe(skb, skb, next) {

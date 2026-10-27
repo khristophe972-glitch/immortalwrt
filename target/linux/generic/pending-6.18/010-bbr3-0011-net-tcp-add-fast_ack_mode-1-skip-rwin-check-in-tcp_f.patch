@@ -21,7 +21,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 
 --- a/include/linux/tcp.h
 +++ b/include/linux/tcp.h
-@@ -294,7 +294,8 @@ struct tcp_sock {
+@@ -294,7 +294,8 @@
  	u8	nonagle     : 4,/* Disable Nagle algorithm?             */
  		rate_app_limited:1;  /* rate_{delivered,interval_us} limited? */
  	u8	received_ce_pending:4, /* Not yet transmit cnt of received_ce */
@@ -33,7 +33,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  		accecn_opt_demand:2,/* Demand AccECN option for n next ACKs */
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -3091,6 +3091,7 @@ int tcp_disconnect(struct sock *sk, int
+@@ -3466,6 +3466,7 @@
  	tp->rx_opt.dsack = 0;
  	tp->rx_opt.num_sacks = 0;
  	tp->rcv_ooopack = 0;
@@ -43,7 +43,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  	/* Clean up fastopen related fields */
 --- a/net/ipv4/tcp_cong.c
 +++ b/net/ipv4/tcp_cong.c
-@@ -179,6 +179,7 @@ void tcp_init_congestion_control(struct
+@@ -238,6 +238,7 @@
  	struct inet_connection_sock *icsk = inet_csk(sk);
  
  	tcp_sk(sk)->prior_ssthresh = 0;
@@ -53,7 +53,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  	if (tcp_ca_needs_ecn(sk))
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -5521,13 +5521,14 @@ static void __tcp_ack_snd_check(struct s
+@@ -5942,13 +5942,14 @@
  
  	    /* More than one full frame received... */
  	if (((tp->rcv_nxt - tp->rcv_wup) > inet_csk(sk)->icsk_ack.rcv_mss &&

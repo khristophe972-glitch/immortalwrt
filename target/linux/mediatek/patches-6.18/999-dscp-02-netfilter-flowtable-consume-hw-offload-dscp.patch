@@ -61,11 +61,11 @@ License: GPL-2.0-only
 +	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_IP, ip);
  	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
  	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
-
-@@ -168,6 +171,12 @@
+ 
+@@ -173,6 +176,12 @@
  	match->dissector.used_keys |= BIT_ULL(key->control.addr_type);
  	mask->basic.n_proto = 0xffff;
-
+ 
 +	if (tuple->dscp) {
 +		key->ip.tos = FIELD_PREP(INET_DSCP_MASK, tuple->dscp);
 +		mask->ip.tos = 0xff;

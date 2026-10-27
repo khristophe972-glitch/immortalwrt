@@ -16,7 +16,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
 
 --- a/drivers/net/ethernet/mediatek/mtk_ppe.c
 +++ b/drivers/net/ethernet/mediatek/mtk_ppe.c
-@@ -76,6 +76,21 @@ static int mtk_ppe_wait_busy(struct mtk_
+@@ -78,6 +78,21 @@
  	return ret;
  }
  
@@ -38,7 +38,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  static int mtk_ppe_mib_wait_busy(struct mtk_ppe *ppe)
  {
  	int ret;
-@@ -139,15 +154,147 @@ struct mtk_foe_accounting *mtk_ppe_mib_e
+@@ -141,15 +156,147 @@
  	return acct;
  }
  
@@ -188,7 +188,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  
  	ppe_m32(ppe, MTK_PPE_CACHE_CTL, MTK_PPE_CACHE_CTL_EN,
  		enable * MTK_PPE_CACHE_CTL_EN);
-@@ -558,6 +705,7 @@ __mtk_foe_entry_clear(struct mtk_ppe *pp
+@@ -526,6 +673,7 @@
  		      bool set_state)
  {
  	struct hlist_node *tmp;
@@ -196,7 +196,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  
  	if (entry->type == MTK_FLOW_TYPE_L2) {
  		rhashtable_remove_fast(&ppe->l2_flows, &entry->l2_node,
-@@ -571,10 +719,13 @@ __mtk_foe_entry_clear(struct mtk_ppe *pp
+@@ -539,10 +687,13 @@
  	if (entry->hash != 0xffff && set_state) {
  		struct mtk_foe_entry *hwe = mtk_foe_get_entry(ppe, entry->hash);
  
@@ -211,7 +211,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  	}
  	entry->hash = 0xffff;
  
-@@ -733,8 +884,6 @@ __mtk_foe_entry_commit(struct mtk_ppe *p
+@@ -701,8 +852,6 @@
  		acct->packets = 0;
  		acct->bytes = 0;
  	}
@@ -220,7 +220,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  }
  
  void mtk_foe_entry_clear(struct mtk_ppe *ppe, struct mtk_flow_entry *entry)
-@@ -983,6 +1132,8 @@ struct mtk_ppe *mtk_ppe_init(struct mtk_
+@@ -953,6 +1102,8 @@
  		ppe->acct_table = acct;
  	}
  
@@ -229,7 +229,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  	mtk_ppe_debugfs_init(ppe, index);
  
  	return ppe;
-@@ -1058,8 +1209,6 @@ void mtk_ppe_start(struct mtk_ppe *ppe)
+@@ -1058,8 +1209,6 @@
  	ppe_w32(ppe, MTK_PPE_IP_PROTO_CHK,
  		MTK_PPE_IP_PROTO_CHK_IPV4 | MTK_PPE_IP_PROTO_CHK_IPV6);
  
@@ -238,8 +238,8 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  	val = MTK_PPE_FLOW_CFG_IP6_3T_ROUTE |
  	      MTK_PPE_FLOW_CFG_IP6_5T_ROUTE |
  	      MTK_PPE_FLOW_CFG_IP6_6RD |
-@@ -1111,6 +1260,8 @@ void mtk_ppe_start(struct mtk_ppe *ppe)
- 	}
+@@ -1107,6 +1256,8 @@
+ 	      MTK_PPE_GLO_CFG_FLOW_DROP_UPDATE;
  	ppe_w32(ppe, MTK_PPE_GLO_CFG, val);
  
 +	mtk_ppe_cache_enable(ppe, true);
@@ -249,7 +249,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  	if (mtk_is_netsys_v2_or_greater(ppe->eth)) {
 --- a/drivers/net/ethernet/mediatek/mtk_ppe.h
 +++ b/drivers/net/ethernet/mediatek/mtk_ppe.h
-@@ -344,6 +344,8 @@ struct mtk_ppe {
+@@ -348,6 +348,8 @@
  	struct rhashtable l2_flows;
  
  	void *acct_table;
@@ -258,7 +258,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  };
  
  struct mtk_ppe *mtk_ppe_init(struct mtk_eth *eth, void __iomem *base, int index);
-@@ -357,7 +359,6 @@ int mtk_ppe_prepare_reset(struct mtk_ppe
+@@ -360,7 +362,6 @@
  struct mtk_foe_accounting *mtk_ppe_mib_entry_read(struct mtk_ppe *ppe, u16 index);
  
  void __mtk_ppe_check_skb(struct mtk_ppe *ppe, struct sk_buff *skb, u16 hash);
@@ -268,7 +268,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  {
 --- a/drivers/net/ethernet/mediatek/mtk_ppe_regs.h
 +++ b/drivers/net/ethernet/mediatek/mtk_ppe_regs.h
-@@ -23,6 +23,7 @@
+@@ -21,6 +21,7 @@
  #define MTK_PPE_GLO_CFG_BUSY			BIT(31)
  
  #define MTK_PPE_FLOW_CFG			0x204
@@ -276,7 +276,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  #define MTK_PPE_MD_TOAP_BYP_CRSN0		BIT(1)
  #define MTK_PPE_MD_TOAP_BYP_CRSN1		BIT(2)
  #define MTK_PPE_MD_TOAP_BYP_CRSN2		BIT(3)
-@@ -40,6 +41,9 @@
+@@ -38,6 +39,9 @@
  #define MTK_PPE_FLOW_CFG_IP4_HASH_FLOW_LABEL	BIT(18)
  #define MTK_PPE_FLOW_CFG_IP4_HASH_GRE_KEY	BIT(19)
  #define MTK_PPE_FLOW_CFG_IP6_HASH_GRE_KEY	BIT(20)
@@ -286,7 +286,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  
  #define MTK_PPE_IP_PROTO_CHK			0x208
  #define MTK_PPE_IP_PROTO_CHK_IPV4		GENMASK(15, 0)
-@@ -144,6 +148,13 @@ enum {
+@@ -142,6 +146,13 @@
  #define MTK_PPE_CACHE_CTL_REQ			BIT(8)
  #define MTK_PPE_CACHE_CTL_CLEAR			BIT(9)
  #define MTK_PPE_CACHE_CTL_CMD			GENMASK(13, 12)
@@ -300,7 +300,7 @@ Signed-off-by: Bo-Cun Chen <bc-bocun.chen@mediatek.com>
  
  #define MTK_PPE_MIB_CFG				0x334
  #define MTK_PPE_MIB_CFG_EN			BIT(0)
-@@ -173,4 +184,7 @@ enum {
+@@ -171,4 +182,7 @@
  
  #define MTK_PPE_SBW_CTRL			0x374
  

@@ -52,7 +52,7 @@ Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
  #include <linux/ethtool.h>
  #include <linux/netlink.h>
  #include <net/dsa.h>
-@@ -3768,6 +3771,107 @@
+@@ -3797,6 +3800,107 @@
  	mtk_w32(eth, val, reg_map->pdma.rss_glo_cfg);
  }
  
@@ -160,7 +160,7 @@ Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
  static netdev_features_t mtk_fix_features(struct net_device *dev,
  					  netdev_features_t features)
  {
-@@ -6520,6 +6624,8 @@
+@@ -6565,6 +6669,8 @@
  		mtk_ppe_internal_debugfs_init(eth);
  	}
  

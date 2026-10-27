@@ -9,9 +9,10 @@ own drops by reason can report them as devlink drop traps.
 Assisted-by: Claude:claude-opus-5-5
 Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
 ---
+
 --- a/include/net/dsa.h
 +++ b/include/net/dsa.h
-@@ -1213,6 +1213,16 @@ struct dsa_switch_ops {
+@@ -1219,6 +1219,16 @@
  						   unsigned int sb_index, u16 tc_index,
  						   enum devlink_sb_pool_type pool_type,
  						   u32 *p_cur, u32 *p_max);
@@ -30,7 +31,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  	 * MTU change functionality. Switches can also adjust their MRU through
 --- a/net/dsa/devlink.c
 +++ b/net/dsa/devlink.c
-@@ -179,6 +179,43 @@ dsa_devlink_sb_occ_tc_port_bind_get(stru
+@@ -179,6 +179,43 @@
  							p_max);
  }
  
@@ -74,7 +75,7 @@ Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
  static const struct devlink_ops dsa_devlink_ops = {
  	.info_get			= dsa_devlink_info_get,
  	.flash_update			= dsa_devlink_flash_update,
-@@ -192,6 +229,9 @@ static const struct devlink_ops dsa_devl
+@@ -192,6 +229,9 @@
  	.sb_occ_max_clear		= dsa_devlink_sb_occ_max_clear,
  	.sb_occ_port_pool_get		= dsa_devlink_sb_occ_port_pool_get,
  	.sb_occ_tc_port_bind_get	= dsa_devlink_sb_occ_tc_port_bind_get,

@@ -25,7 +25,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -404,6 +404,7 @@
+@@ -403,6 +403,7 @@
  #define	TCP_ECN_SEEN		BIT(3)
  #define	TCP_ECN_MODE_ACCECN	BIT(4)
  #define	TCP_ECN_LOW		BIT(5)
@@ -35,7 +35,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  #define	TCP_ECN_MODE_PENDING	(TCP_ECN_MODE_RFC3168 | TCP_ECN_MODE_ACCECN)
 --- a/net/ipv4/tcp_bbr.c
 +++ b/net/ipv4/tcp_bbr.c
-@@ -2149,6 +2149,9 @@ static void bbr_init(struct sock *sk)
+@@ -2148,6 +2148,9 @@
  	bbr->plb.pause_until = 0;
  
  	tp->fast_ack_mode = bbr_fast_ack_mode ? 1 : 0;

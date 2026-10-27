@@ -91,7 +91,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  /* SerDes indirect access registers */
  #define RTL8365MB_SDS_INDACS_CMD_REG		0x6600
  #define   RTL8365MB_SDS_INDACS_CMD_BUSY_MASK	0x0100
-@@ -637,6 +649,18 @@ static const struct rtl8365mb_jam_tbl_en
+@@ -637,6 +649,18 @@
  	{ 0x0424, 0xD810 }, { 0x002E, 0x83F2 },
  };
  
@@ -110,7 +110,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  enum rtl8365mb_phy_interface_mode {
  	RTL8365MB_PHY_INTERFACE_MODE_INVAL = 0,
  	RTL8365MB_PHY_INTERFACE_MODE_INTERNAL = BIT(0),
-@@ -1242,20 +1266,70 @@ static int rtl8365mb_sds_probe_option(st
+@@ -1256,20 +1280,70 @@
  	return 0;
  }
  
@@ -181,7 +181,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	/* Hold the embedded DW8051 microcontroller in reset and keep it
  	 * disabled. The vendor driver loads firmware into it to manage the
  	 * SerDes link, but the firmware only duplicates work that phylink
-@@ -1283,24 +1357,24 @@ static int rtl8365mb_pcs_config(struct p
+@@ -1297,24 +1371,24 @@
  		return ret;
  
  	/* Tune the SerDes with vendor-prescribed parameters */
@@ -214,7 +214,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	ret = regmap_update_bits(priv->map,
  				 RTL8365MB_DIGITAL_INTERFACE_SELECT_REG(id),
  				 RTL8365MB_DIGITAL_INTERFACE_SELECT_MODE_MASK(id),
-@@ -1346,7 +1420,8 @@ static int rtl8365mb_pcs_config(struct p
+@@ -1360,7 +1434,8 @@
  
  static bool rtl8365mb_interface_is_serdes(phy_interface_t interface)
  {
@@ -224,7 +224,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  }
  
  static unsigned int rtl8365mb_pcs_inband_caps(struct phylink_pcs *pcs,
-@@ -1401,7 +1476,9 @@ static void rtl8365mb_pcs_get_state(stru
+@@ -1415,7 +1490,9 @@
  
  	switch (FIELD_GET(RTL8365MB_SDS_MISC_SGMII_SPD_MASK, val)) {
  	case RTL8365MB_PORT_SPEED_1000M:
@@ -235,7 +235,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  		break;
  	case RTL8365MB_PORT_SPEED_100M:
  		state->speed = SPEED_100;
-@@ -1426,7 +1503,11 @@ static void rtl8365mb_pcs_link_up(struct
+@@ -1440,7 +1517,11 @@
  	u32 r_speed;
  	int ret;
  
@@ -248,7 +248,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  		r_speed = RTL8365MB_PORT_SPEED_1000M;
  	} else if (speed == SPEED_100) {
  		r_speed = RTL8365MB_PORT_SPEED_100M;
-@@ -1486,7 +1567,11 @@ static int rtl8365mb_ext_config_forcemod
+@@ -1500,7 +1581,11 @@
  		r_rx_pause = rx_pause ? 1 : 0;
  		r_tx_pause = tx_pause ? 1 : 0;
  
@@ -261,7 +261,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  			r_speed = RTL8365MB_PORT_SPEED_1000M;
  		} else if (speed == SPEED_100) {
  			r_speed = RTL8365MB_PORT_SPEED_100M;
-@@ -1569,6 +1654,13 @@ static void rtl8365mb_phylink_get_caps(s
+@@ -1583,6 +1668,13 @@
  	    mb->sds_supported)
  		__set_bit(PHY_INTERFACE_MODE_SGMII,
  			  config->supported_interfaces);
@@ -275,7 +275,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  }
  
  static struct phylink_pcs *
-@@ -1610,8 +1702,8 @@ static void rtl8365mb_phylink_mac_config
+@@ -1624,8 +1716,8 @@
  		return;
  	}
  
@@ -286,7 +286,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	 */
  	if (rtl8365mb_interface_is_serdes(state->interface))
  		return;
-@@ -2940,6 +3032,16 @@ static int rtl8365mb_setup(struct dsa_sw
+@@ -2954,6 +3046,16 @@
  		goto out_error;
  	}
  

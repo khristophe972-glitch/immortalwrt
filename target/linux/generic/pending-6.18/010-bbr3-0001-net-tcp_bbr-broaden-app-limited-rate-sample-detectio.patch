@@ -32,7 +32,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3827,6 +3827,7 @@ static int tcp_ack(struct sock *sk, cons
+@@ -4078,6 +4078,7 @@
  
  	prior_fack = tcp_is_sack(tp) ? tcp_highest_sack_seq(tp) : tp->snd_una;
  	rs.prior_in_flight = tcp_packets_in_flight(tp);
@@ -42,14 +42,11 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  	 * is in window.
 --- a/net/ipv4/tcp_timer.c
 +++ b/net/ipv4/tcp_timer.c
-@@ -702,7 +702,8 @@ void tcp_write_timer_handler(struct sock
- 			       icsk_timeout(icsk));
+@@ -705,6 +705,7 @@
+ 			       tcp_timeout_expires(sk));
  		return;
  	}
--	tcp_mstamp_refresh(tcp_sk(sk));
 +	tcp_rate_check_app_limited(sk);
-+	tcp_mstamp_refresh(tcp_sk(sk));
+ 	tcp_mstamp_refresh(tcp_sk(sk));
  	event = icsk->icsk_pending;
- 
- 	switch (event) {
  

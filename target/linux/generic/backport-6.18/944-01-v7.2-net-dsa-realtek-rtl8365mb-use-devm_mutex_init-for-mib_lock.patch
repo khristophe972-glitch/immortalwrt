@@ -23,7 +23,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/dsa/realtek/rtl8365mb_main.c
 +++ b/drivers/net/dsa/realtek/rtl8365mb_main.c
-@@ -2571,16 +2571,19 @@ static void rtl8365mb_get_stats64(struct
+@@ -2585,16 +2585,19 @@
  	spin_unlock(&p->stats_lock);
  }
  
@@ -45,7 +45,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  
  	dsa_switch_for_each_available_port(dp, ds) {
  		struct rtl8365mb_port *p = &mb->ports[dp->index];
-@@ -2593,6 +2596,8 @@ static void rtl8365mb_stats_setup(struct
+@@ -2607,6 +2610,8 @@
  		 */
  		INIT_DELAYED_WORK(&p->mib_work, rtl8365mb_stats_poll);
  	}
@@ -54,7 +54,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  }
  
  static void rtl8365mb_stats_teardown(struct realtek_priv *priv)
-@@ -3175,7 +3180,12 @@ static int rtl8365mb_setup(struct dsa_sw
+@@ -3189,7 +3194,12 @@
  	}
  
  	/* Start statistics counter polling */

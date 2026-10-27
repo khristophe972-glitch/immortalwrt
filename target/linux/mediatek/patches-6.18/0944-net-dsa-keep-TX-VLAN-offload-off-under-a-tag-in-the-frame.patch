@@ -12,9 +12,10 @@ before the tagger runs.
 
 Assisted-by: Claude:claude-opus-5-5
 Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
+
 --- a/net/dsa/user.c
 +++ b/net/dsa/user.c
-@@ -2860,6 +2860,13 @@ void dsa_user_setup_tagger(struct net_de
+@@ -2862,6 +2862,13 @@
  	user->hw_features |= NETIF_F_HW_TC;
  	if (user->needed_tailroom)
  		user->features &= ~(NETIF_F_SG | NETIF_F_FRAGLIST);

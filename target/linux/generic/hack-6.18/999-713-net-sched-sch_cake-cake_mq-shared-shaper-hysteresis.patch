@@ -40,7 +40,6 @@ active_window_ns, so it can be retuned without reflashing. Setting it
 to 0 disables the hysteresis and publishes the instantaneous sample
 again, which gives the control arm of a live A/B.
 
-
 --- a/net/sched/sch_cake.c
 +++ b/net/sched/sch_cake.c
 @@ -94,6 +94,13 @@
@@ -57,7 +56,7 @@ again, which gives the control arm of a live A/B.
  static unsigned int cake_mq_queue_count(const struct net_device *dev)
  {
  	unsigned int ntx = READ_ONCE(dev->real_num_tx_queues);
-@@ -2083,6 +2090,18 @@
+@@ -2082,6 +2089,18 @@
  						num_active_qs++;
  				}
  
@@ -76,7 +75,7 @@ again, which gives the control arm of a live A/B.
  				WRITE_ONCE(cfg->shared_last_checked, now);
  				WRITE_ONCE(cfg->shared_active_queues, num_active_qs);
  				active_queues = num_active_qs;
-@@ -3425,6 +3444,8 @@
+@@ -3424,6 +3443,8 @@
  		debugfs_create_u64("sync_time_ns", 0644, cake_mq_debugfs, &g_sync_time_ns);
  		debugfs_create_u64("active_window_ns", 0644, cake_mq_debugfs,
  				   &g_active_window_ns);
