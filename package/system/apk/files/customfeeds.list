@@ -1,7 +1,24 @@
 # add your custom package feeds here
 #
 # http://www.example.com/path/to/files/packages.adb
-https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/packages/packages.adb
-https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/luci/packages.adb
+#
+# GL-MT6000 fork: the two feeds below MUST point at our own repository
+# (khristophe972-glitch.github.io/immortalwrt), which the CI republishes on
+# every build from the very tree the image was built from.
+#
+# They used to point at https://downloads.immortalwrt.org/snapshots/..., which
+# is rebuilt continuously upstream: any image, however fresh, was compared
+# against upstream's index of the moment, so "apk list -u" could never come
+# back empty - rebuilding or merging changed nothing.
+#
+# base/ and targets/ already come from our repository through the generated
+# distfeeds.list, and luci/packages are emitted there commented out because
+# build.yml selects them as modules, hence they are listed here explicitly.
+https://khristophe972-glitch.github.io/immortalwrt/packages/aarch64_cortex-a53/packages/packages.adb
+https://khristophe972-glitch.github.io/immortalwrt/packages/aarch64_cortex-a53/luci/packages.adb
+#
+# routing/ and telephony/ are NOT published by our CI (404 on gh-pages); they
+# stay on upstream on purpose. Nothing installed on the router comes from
+# these two, so they do not feed "apk list -u".
 https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/routing/packages.adb
 https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/telephony/packages.adb
