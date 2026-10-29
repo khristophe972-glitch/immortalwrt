@@ -39,11 +39,7 @@ Signed-off-by: StanleyYP Wang <StanleyYP.Wang@mediatek.com>
  int mt7915_mac_sta_add(struct mt76_dev *mdev, struct ieee80211_vif *vif,
  		       struct ieee80211_sta *sta)
  {
-@@ -1841,6 +1862,7 @@
- {
- 	struct mt7915_phy *phy = mt7915_hw_phy(hw);
- 
+@@ -1876,2 +1877,3 @@
+ 	.set_sar_specs = mt7915_set_sar_specs,
 +	.post_channel_switch = mt7915_post_channel_switch,
- 	ieee80211_wake_queues(hw);
- 	ieee80211_queue_delayed_work(hw, &phy->mt76->mac_work,
- 				     MT7915_WATCHDOG_TIME);
+ 	.get_stats = mt7915_get_stats,
