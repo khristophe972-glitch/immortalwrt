@@ -11,7 +11,7 @@ Signed-off-by: Michael Lee <michael-cy.lee@mediatek.com>
 
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -4329,6 +4329,7 @@
+@@ -4374,6 +4374,7 @@
  			return -EINVAL;
  
  		if (netdev->ieee80211_ptr->iftype != NL80211_IFTYPE_AP &&

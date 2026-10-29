@@ -17,7 +17,7 @@ Signed-off-by: Peter Chiu <chui-hao.chiu@mediatek.com>
 
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -5060,7 +5060,8 @@
+@@ -5086,7 +5086,8 @@
  	info = IEEE80211_SKB_CB(skb);
  
  	info->flags |= IEEE80211_TX_CTL_REQ_TX_STATUS |

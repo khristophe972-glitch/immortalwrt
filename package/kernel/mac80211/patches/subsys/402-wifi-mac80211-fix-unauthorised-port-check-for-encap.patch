@@ -21,9 +21,10 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 diff --git a/net/mac80211/tx.c b/net/mac80211/tx.c
 index 409c217..f2ac693 100644
+
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -3873,6 +3873,38 @@ static bool ieee80211_xmit_fast(struct ieee80211_sub_if_data *sdata,
+@@ -3885,6 +3885,38 @@
  	return true;
  }
  
@@ -62,7 +63,7 @@ index 409c217..f2ac693 100644
  struct sk_buff *ieee80211_tx_dequeue(struct ieee80211_hw *hw,
  				     struct ieee80211_txq *txq)
  {
-@@ -3939,20 +3971,8 @@ begin:
+@@ -3951,20 +3983,8 @@
  
  	if (txq->sta) {
  		tx.sta = container_of(txq->sta, struct sta_info, sta);
@@ -85,6 +86,3 @@ index 409c217..f2ac693 100644
  			I802_DEBUG_INC(local->tx_handlers_drop_unauth_port);
  			ieee80211_free_txskb(&local->hw, skb);
  			goto begin;
--- 
-2.53.0
-

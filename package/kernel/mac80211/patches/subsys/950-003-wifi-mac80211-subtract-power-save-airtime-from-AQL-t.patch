@@ -24,7 +24,8 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  1 file changed, 15 insertions(+), 1 deletion(-)
 
 --- a/net/mac80211/tx.c
-@@ -4186,6 +4186,8 @@ ieee80211_txq_schedule_airtime_check(str
++++ b/net/mac80211/tx.c
+@@ -4462,6 +4462,8 @@
  {
  	unsigned int num_txq = 0;
  	struct txq_info *txq;
@@ -33,7 +34,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  	u32 aql_limit;
  
  	if (!wiphy_ext_feature_isset(local->hw.wiphy, NL80211_EXT_FEATURE_AQL))
-@@ -4197,7 +4199,19 @@ ieee80211_txq_schedule_airtime_check(str
+@@ -4473,7 +4475,19 @@
  	aql_limit = (num_txq - 1) * local->aql_txq_limit_low[ac] / 2 +
  		    local->aql_txq_limit_high[ac];
  
