@@ -8,7 +8,7 @@ untagged DHCP packets
 
 --- a/hostapd/config_file.c
 +++ b/hostapd/config_file.c
-@@ -2383,6 +2383,8 @@ static int hostapd_config_fill(struct ho
+@@ -2383,6 +2383,8 @@
  			os_strlcpy(bss->wds_bridge, pos, sizeof(bss->wds_bridge));
  	} else if (os_strcmp(buf, "bridge_hairpin") == 0) {
  		bss->bridge_hairpin = atoi(pos);
@@ -19,7 +19,7 @@ untagged DHCP packets
  	} else if (os_strcmp(buf, "wds_bridge") == 0) {
 --- a/src/ap/ap_config.h
 +++ b/src/ap/ap_config.h
-@@ -286,6 +286,7 @@ struct hostapd_bss_config {
+@@ -286,6 +286,7 @@
  	char iface[IFNAMSIZ + 1];
  	char bridge[IFNAMSIZ + 1];
  	char ft_iface[IFNAMSIZ + 1];
@@ -29,7 +29,7 @@ untagged DHCP packets
  	int bridge_hairpin; /* hairpin_mode on bridge members */
 --- a/src/ap/ap_drv_ops.h
 +++ b/src/ap/ap_drv_ops.h
-@@ -367,12 +367,12 @@ static inline int hostapd_drv_br_port_se
+@@ -369,12 +369,12 @@
  
  static inline int hostapd_drv_br_set_net_param(struct hostapd_data *hapd,
  					       enum drv_br_net_param param,
@@ -46,7 +46,7 @@ untagged DHCP packets
  static inline int hostapd_drv_vendor_cmd(struct hostapd_data *hapd,
 --- a/src/ap/x_snoop.c
 +++ b/src/ap/x_snoop.c
-@@ -33,28 +33,31 @@ int x_snoop_init(struct hostapd_data *ha
+@@ -33,28 +33,31 @@
  
  	hapd->x_snoop_initialized = true;
  
@@ -82,7 +82,7 @@ untagged DHCP packets
  		wpa_printf(MSG_DEBUG,
  			   "x_snoop: Failed to enable multicast snooping on the bridge");
  		return -1;
-@@ -73,8 +76,12 @@ x_snoop_get_l2_packet(struct hostapd_dat
+@@ -73,8 +76,12 @@
  {
  	struct hostapd_bss_config *conf = hapd->conf;
  	struct l2_packet_data *l2;
@@ -96,7 +96,7 @@ untagged DHCP packets
  	if (l2 == NULL) {
  		wpa_printf(MSG_DEBUG,
  			   "x_snoop: Failed to initialize L2 packet processing %s",
-@@ -127,9 +134,12 @@ void x_snoop_mcast_to_ucast_convert_send
+@@ -127,9 +134,12 @@
  
  void x_snoop_deinit(struct hostapd_data *hapd)
  {
@@ -112,7 +112,7 @@ untagged DHCP packets
  	hapd->x_snoop_initialized = false;
 --- a/src/drivers/driver.h
 +++ b/src/drivers/driver.h
-@@ -4857,7 +4857,7 @@ struct wpa_driver_ops {
+@@ -4870,7 +4870,7 @@
  	 * Returns: 0 on success, negative (<0) on failure
  	 */
  	int (*br_set_net_param)(void *priv, enum drv_br_net_param param,
@@ -123,7 +123,7 @@ untagged DHCP packets
  	 * get_wowlan - Get wake-on-wireless status
 --- a/src/drivers/driver_nl80211.c
 +++ b/src/drivers/driver_nl80211.c
-@@ -13650,7 +13650,7 @@ static const char * drv_br_net_param_str
+@@ -13686,7 +13686,7 @@
  
  
  static int wpa_driver_br_set_net_param(void *priv, enum drv_br_net_param param,
@@ -132,7 +132,7 @@ untagged DHCP packets
  {
  	struct i802_bss *bss = priv;
  	char path[128];
-@@ -13676,8 +13676,11 @@ static int wpa_driver_br_set_net_param(v
+@@ -13712,8 +13712,11 @@
  			return -EINVAL;
  	}
  

@@ -77,7 +77,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/src/ap/accounting.c
 +++ b/src/ap/accounting.c
-@@ -457,6 +457,14 @@ static void accounting_report_state(stru
+@@ -457,6 +457,14 @@
  }
  
  
@@ -92,7 +92,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static void accounting_interim_error_cb(const u8 *addr, void *ctx)
  {
  	struct hostapd_data *hapd = ctx;
-@@ -464,7 +472,9 @@ static void accounting_interim_error_cb(
+@@ -464,7 +472,9 @@
  	unsigned int i, wait_time;
  	int res;
  
@@ -103,7 +103,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (!sta)
  		return;
  	sta->acct_interim_errors++;
-@@ -514,6 +524,21 @@ static void accounting_interim_error_cb(
+@@ -514,6 +524,21 @@
  }
  
  
@@ -125,7 +125,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  /**
   * accounting_init: Initialize accounting
   * @hapd: hostapd BSS data
-@@ -529,7 +554,8 @@ int accounting_init(struct hostapd_data
+@@ -529,7 +554,8 @@
  				   accounting_receive, hapd))
  		return -1;
  	radius_client_set_interim_error_cb(hapd->radius,
@@ -135,7 +135,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	accounting_report_state(hapd, 1);
  
-@@ -537,6 +563,18 @@ int accounting_init(struct hostapd_data
+@@ -537,6 +563,18 @@
  }
  
  
@@ -154,7 +154,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  /**
   * accounting_deinit: Deinitialize accounting
   * @hapd: hostapd BSS data
-@@ -544,4 +582,7 @@ int accounting_init(struct hostapd_data
+@@ -544,4 +582,7 @@
  void accounting_deinit(struct hostapd_data *hapd)
  {
  	accounting_report_state(hapd, 0);
@@ -164,7 +164,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  }
 --- a/src/ap/accounting.h
 +++ b/src/ap/accounting.h
-@@ -34,12 +34,19 @@ static inline int accounting_init(struct
+@@ -34,12 +34,19 @@
  static inline void accounting_deinit(struct hostapd_data *hapd)
  {
  }
@@ -186,7 +186,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #endif /* ACCOUNTING_H */
 --- a/src/ap/authsrv.c
 +++ b/src/ap/authsrv.c
-@@ -387,6 +387,9 @@ int authsrv_init(struct hostapd_data *ha
+@@ -387,6 +387,9 @@
  #ifdef EAP_SIM_DB
  		hapd->eap_sim_db_priv = first->eap_sim_db_priv;
  #endif /* EAP_SIM_DB */
@@ -196,7 +196,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		return 0;
  	}
  #endif /* CONFIG_IEEE80211BE */
-@@ -503,6 +506,41 @@ int authsrv_init(struct hostapd_data *ha
+@@ -503,6 +506,41 @@
  }
  
  
@@ -251,7 +251,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #endif /* AUTHSRV_H */
 --- a/src/ap/hostapd.c
 +++ b/src/ap/hostapd.c
-@@ -137,7 +137,8 @@ static void hostapd_reload_bss(struct ho
+@@ -137,7 +137,8 @@
  			hapd->iconf->ieee80211ax;
  
  #ifndef CONFIG_NO_RADIUS
@@ -261,7 +261,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #endif /* CONFIG_NO_RADIUS */
  
  	ssid = &hapd->conf->ssid;
-@@ -5930,6 +5931,28 @@ int hostapd_mld_add_link(struct hostapd_
+@@ -6230,6 +6231,28 @@
  }
  
  
@@ -290,7 +290,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  int hostapd_mld_remove_link(struct hostapd_data *hapd)
  {
  	struct hostapd_mld *mld = hapd->mld;
-@@ -5971,6 +5994,10 @@ int hostapd_mld_remove_link(struct hosta
+@@ -6271,6 +6294,10 @@
  			hostapd_mld_move_vlan_list(hapd, next_fbss);
  
  		mld->fbss = next_fbss;
@@ -303,7 +303,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	wpa_printf(MSG_DEBUG, "AP MLD %s: First link BSS set to %p",
 --- a/src/ap/ieee802_11_auth.c
 +++ b/src/ap/ieee802_11_auth.c
-@@ -674,6 +674,8 @@ void hostapd_acl_deinit(struct hostapd_d
+@@ -674,6 +674,8 @@
  	struct hostapd_acl_query_data *query, *prev;
  
  #ifndef CONFIG_NO_RADIUS
@@ -314,7 +314,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #endif /* CONFIG_NO_RADIUS */
 --- a/src/ap/ieee802_1x.c
 +++ b/src/ap/ieee802_1x.c
-@@ -2678,6 +2678,54 @@ void ieee802_1x_erp_flush(struct hostapd
+@@ -2678,6 +2678,54 @@
  }
  
  
@@ -369,7 +369,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  void ieee802_1x_deinit(struct hostapd_data *hapd)
  {
  #ifdef CONFIG_IEEE80211BE
-@@ -2694,6 +2742,11 @@ void ieee802_1x_deinit(struct hostapd_da
+@@ -2694,6 +2742,11 @@
  	eloop_cancel_timeout(ieee802_1x_rekey, hapd, NULL);
  #endif /* CONFIG_WEP */
  
@@ -383,7 +383,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		hostapd_set_drv_ieee8021x(hapd, hapd->conf->iface, 0);
 --- a/src/ap/ieee802_1x.h
 +++ b/src/ap/ieee802_1x.h
-@@ -29,6 +29,8 @@ void ieee802_1x_set_sta_authorized(struc
+@@ -29,6 +29,8 @@
  void ieee802_1x_dump_state(FILE *f, const char *prefix, struct sta_info *sta);
  int ieee802_1x_init(struct hostapd_data *hapd);
  void ieee802_1x_erp_flush(struct hostapd_data *hapd);
@@ -394,7 +394,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			 const u8 *buf, size_t len, int ack);
 --- a/src/eap_server/eap_sim_db.c
 +++ b/src/eap_server/eap_sim_db.c
-@@ -861,6 +861,18 @@ void eap_sim_db_deinit(void *priv)
+@@ -861,6 +861,18 @@
  }
  
  
@@ -415,7 +415,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
 --- a/src/eap_server/eap_sim_db.h
 +++ b/src/eap_server/eap_sim_db.h
-@@ -37,6 +37,8 @@ eap_sim_db_init(const char *config, unsi
+@@ -37,6 +37,8 @@
  
  void eap_sim_db_deinit(void *priv);
  
@@ -426,7 +426,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  				u8 *_rand, u8 *kc, u8 *sres,
 --- a/src/radius/radius_client.c
 +++ b/src/radius/radius_client.c
-@@ -324,6 +324,102 @@ int radius_client_register(struct radius
+@@ -324,6 +324,102 @@
  
  
  /**
@@ -529,7 +529,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * radius_client_set_interim_erro_cb - Register an interim acct error callback
   * @radius: RADIUS client context from radius_client_init()
   * @addr: Station address from the failed message
-@@ -342,6 +438,24 @@ void radius_client_set_interim_error_cb(
+@@ -342,6 +438,24 @@
  }
  
  
@@ -556,7 +556,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * the error is not available anymore)
 --- a/src/radius/radius_client.h
 +++ b/src/radius/radius_client.h
-@@ -271,9 +271,29 @@ int radius_client_register(struct radius
+@@ -271,9 +271,29 @@
  			    const u8 *shared_secret, size_t shared_secret_len,
  			    void *data),
  			   void *data);
@@ -588,7 +588,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  int radius_client_send(struct radius_client_data *radius,
 --- a/src/radius/radius_das.c
 +++ b/src/radius/radius_das.c
-@@ -689,3 +689,10 @@ void radius_das_deinit(struct radius_das
+@@ -689,3 +689,10 @@
  	os_free(das->shared_secret);
  	os_free(das);
  }
@@ -601,7 +601,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +}
 --- a/src/radius/radius_das.h
 +++ b/src/radius/radius_das.h
-@@ -61,4 +61,6 @@ radius_das_init(struct radius_das_conf *
+@@ -61,4 +61,6 @@
  
  void radius_das_deinit(struct radius_das_data *data);
  
@@ -610,7 +610,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #endif /* RADIUS_DAS_H */
 --- a/src/radius/radius_server.c
 +++ b/src/radius/radius_server.c
-@@ -162,7 +162,7 @@ struct radius_server_data {
+@@ -162,7 +162,7 @@
  	 */
  	int num_sess;
  
@@ -619,7 +619,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	struct dl_list erp_keys; /* struct eap_server_erp_key */
  
-@@ -2089,7 +2089,11 @@ radius_server_init(struct radius_server_
+@@ -2089,7 +2089,11 @@
  			  conf->eap_req_id_text_len);
  		data->eap_req_id_text_len = conf->eap_req_id_text_len;
  	}
@@ -632,7 +632,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	if (conf->t_c_server_url) {
  		data->t_c_server_url = os_strdup(conf->t_c_server_url);
-@@ -2181,6 +2185,18 @@ void radius_server_erp_flush(struct radi
+@@ -2181,6 +2185,18 @@
  
  
  /**
@@ -651,7 +651,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * radius_server_deinit - Deinitialize RADIUS server
   * @data: RADIUS server context from radius_server_init()
   */
-@@ -2206,6 +2222,7 @@ void radius_server_deinit(struct radius_
+@@ -2206,6 +2222,7 @@
  	os_free(data->dump_msk_file);
  #endif /* CONFIG_RADIUS_TEST */
  	os_free(data->t_c_server_url);
@@ -661,7 +661,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (data->db)
 --- a/src/radius/radius_server.h
 +++ b/src/radius/radius_server.h
-@@ -129,6 +129,7 @@ struct radius_server_data *
+@@ -129,6 +129,7 @@
  radius_server_init(struct radius_server_conf *conf);
  
  void radius_server_erp_flush(struct radius_server_data *data);

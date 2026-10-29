@@ -46,7 +46,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/src/ap/authsrv.c
 +++ b/src/ap/authsrv.c
-@@ -417,6 +417,14 @@ int authsrv_init(struct hostapd_data *ha
+@@ -417,6 +417,14 @@
  	}
  #endif /* CONFIG_IEEE80211BE */
  
@@ -61,7 +61,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #ifdef EAP_TLS_FUNCS
  	if (hapd->conf->eap_server &&
  	    (hapd->conf->ca_cert || hapd->conf->server_cert ||
-@@ -521,8 +529,10 @@ int authsrv_init(struct hostapd_data *ha
+@@ -521,8 +529,10 @@
  
  #ifdef RADIUS_SERVER
  	if (hapd->conf->radius_server_clients &&
@@ -75,7 +75,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	return 0;
 --- a/src/ap/hostapd.c
 +++ b/src/ap/hostapd.c
-@@ -1058,6 +1058,17 @@ void hostapd_bss_link_deinit(struct host
+@@ -1358,6 +1358,17 @@
  		return;
  
  	hostapd_mld_remove_link(hapd);
@@ -95,7 +95,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/src/ap/ieee802_1x.c
 +++ b/src/ap/ieee802_1x.c
-@@ -2648,6 +2648,12 @@ int ieee802_1x_init(struct hostapd_data
+@@ -2648,6 +2648,12 @@
  	}
  #endif /* CONFIG_IEEE80211BE */
  
@@ -108,7 +108,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	os_memset(&conf, 0, sizeof(conf));
  	conf.eap_cfg = hapd->eap_cfg;
  	conf.ctx = hapd;
-@@ -2688,12 +2694,12 @@ int ieee802_1x_init(struct hostapd_data
+@@ -2688,12 +2694,12 @@
  
  	if ((hapd->conf->ieee802_1x || hapd->conf->wpa) &&
  	    hostapd_set_drv_ieee8021x(hapd, hapd->conf->iface, 1))
@@ -123,7 +123,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #endif /* CONFIG_NO_RADIUS */
  
  #ifdef CONFIG_WEP
-@@ -2708,11 +2714,15 @@ int ieee802_1x_init(struct hostapd_data
+@@ -2708,11 +2714,15 @@
  		ieee802_1x_rekey(hapd, NULL);
  
  		if (!hapd->eapol_auth->default_wep_key)
