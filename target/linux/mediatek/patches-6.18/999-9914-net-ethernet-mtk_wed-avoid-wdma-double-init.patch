@@ -2,7 +2,7 @@
 
 --- a/drivers/net/ethernet/mediatek/mtk_wed.c
 +++ b/drivers/net/ethernet/mediatek/mtk_wed.c
-@@ -1916,31 +1916,33 @@
+@@ -1933,31 +1933,33 @@
  }
  
  static int
@@ -56,7 +56,7 @@
  
  	return 0;
  }
-@@ -1955,8 +1957,9 @@
+@@ -1972,8 +1974,9 @@
  		return -EINVAL;
  
  	wdma = &dev->tx_wdma[idx];
@@ -68,18 +68,21 @@
  		return -ENOMEM;
  
  	if (mtk_wed_is_v3_or_greater(dev->hw)) {
-@@ -2383,10 +2386,6 @@
+@@ -2400,13 +2403,6 @@
  	if (mtk_wed_get_rx_capa(dev) && mtk_wed_rx_buffer_alloc(dev))
  		return;
  
 -	for (i = 0; i < ARRAY_SIZE(dev->rx_wdma); i++)
 -		if (!dev->rx_wdma[i].desc)
--			mtk_wed_wdma_rx_ring_setup(dev, i, 16, false);
+-			if (mtk_wed_wdma_rx_ring_setup(dev, i, 16, false)) {
+-				dev_err(dev->hw->dev, "wdma rx ring %d setup failed\n", i);
+-				return;
+-			}
 -
- 	if (dev->wlan.hw_rro) {
- 		for (i = 0; i < MTK_WED_RX_PAGE_QUEUES; i++) {
- 			u32 addr = MTK_WED_RRO_MSDU_PG_CTRL0(i) +
-@@ -2542,12 +2541,12 @@
+ 	/*
+ 	 * non-DBDC MT7986 allocates only rx_ring[1] and tx_wdma[1] during setup
+ 	 * but tx_wdma[0] is also needed for WED to function.
+@@ -2572,12 +2568,12 @@
  	if (WARN_ON(idx >= ARRAY_SIZE(dev->tx_ring)))
  		return -EINVAL;
  
@@ -96,7 +99,7 @@
  		return -ENOMEM;
  
  	ring->reg_base = MTK_WED_RING_TX(idx);
-@@ -2618,8 +2617,9 @@
+@@ -2648,8 +2644,9 @@
  	if (WARN_ON(idx >= ARRAY_SIZE(dev->rx_ring)))
  		return -EINVAL;
  
