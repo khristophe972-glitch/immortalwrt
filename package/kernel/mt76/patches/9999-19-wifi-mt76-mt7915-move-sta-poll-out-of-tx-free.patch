@@ -30,7 +30,7 @@ Signed-off-by: Joshua Klinesmith <joshuaklinesmith@gmail.com>
 
 --- a/mt7915/mac.c
 +++ b/mt7915/mac.c
-@@ -851,8 +851,6 @@
+@@ -852,8 +852,6 @@
  {
  	struct sk_buff *skb, *tmp;
  
@@ -39,7 +39,7 @@ Signed-off-by: Joshua Klinesmith <joshuaklinesmith@gmail.com>
  	if (wake)
  		mt76_set_tx_blocked(&dev->mt76, false);
  
-@@ -2018,6 +2016,7 @@
+@@ -2019,6 +2017,7 @@
  	mt76_update_survey(mphy);
  	if (++mphy->mac_work_count == 5) {
  		mphy->mac_work_count = 0;

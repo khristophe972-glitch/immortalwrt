@@ -10,7 +10,7 @@ Setting up such a schedule appears to cause Tx stalls.
 
 --- a/mt7915/mac.c
 +++ b/mt7915/mac.c
-@@ -2259,7 +2259,7 @@
+@@ -2260,7 +2260,7 @@
  	duration = twt_agrt->min_twt_dur << 8;
  
  	interval = (u64)mantissa << exp;

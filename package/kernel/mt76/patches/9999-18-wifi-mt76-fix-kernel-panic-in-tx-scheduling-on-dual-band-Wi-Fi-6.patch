@@ -2,7 +2,7 @@
 
 --- a/tx.c
 +++ b/tx.c
-@@ -581,6 +581,7 @@
+@@ -602,6 +602,7 @@
  
  	while (1) {
  		int n_frames = 0;
@@ -10,7 +10,7 @@
  
  		txq = ieee80211_next_txq(phy->hw, qid);
  		if (!txq)
-@@ -591,7 +592,11 @@
+@@ -612,7 +613,11 @@
  		if (!wcid)
  			continue;
  

@@ -2,7 +2,7 @@
 
 --- a/mt7915/mac.c
 +++ b/mt7915/mac.c
-@@ -2137,6 +2137,8 @@
+@@ -2138,6 +2138,8 @@
  	enum mt76_dfs_state dfs_state, prev_state;
  	int err, rdd_idx = mt7915_get_rdd_idx(phy, false);
  
@@ -13,7 +13,7 @@
  
 --- a/mt7915/mcu.c
 +++ b/mt7915/mcu.c
-@@ -307,6 +307,8 @@
+@@ -315,6 +315,8 @@
  mt7915_mcu_rx_radar_detected(struct mt7915_dev *dev, struct sk_buff *skb)
  {
  	struct mt76_phy *mphy = &dev->mt76.phy;
@@ -22,7 +22,7 @@
  	struct mt7915_mcu_rdd_report *r;
  	u32 sku;
  
-@@ -336,12 +338,24 @@
+@@ -344,12 +346,24 @@
  	if (!mphy)
  		return;
  

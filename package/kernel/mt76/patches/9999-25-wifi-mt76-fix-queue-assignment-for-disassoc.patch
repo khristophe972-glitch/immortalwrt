@@ -27,7 +27,7 @@ License: BSD-3-Clause-Clear
 
 --- a/tx.c
 +++ b/tx.c
-@@ -705,6 +705,7 @@
+@@ -726,6 +726,7 @@
  		    (!(wcid->tx_info & MT_WCID_TX_INFO_SET) ||
  		     !ieee80211_is_bufferable_mmpdu(skb) ||
  		     ieee80211_is_deauth(hdr->frame_control) ||
