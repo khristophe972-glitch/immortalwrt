@@ -13,6 +13,16 @@ trap 'rmdir /tmp/pkg-reinstall-running 2>/dev/null' EXIT
 # Réseau réellement joignable ?
 ping -c1 -W3 9.9.9.9 || exit 0
 
+# Index apk à jour : /var/cache/apk est un tmpfs, vidé à chaque boot, et
+# aucun service ne rafraîchit l'index au démarrage. Sans index, les apk add
+# échouent en "no such package" pour tout ce qui n'est pas déjà installé.
+u=0
+while [ "$u" -lt 3 ]; do
+	u=$((u+1))
+	apk update && break
+	[ "$u" -lt 3 ] && sleep 10
+done
+
 LIST=/etc/persistent-packages.list
 [ -s "$LIST" ] || {
 	logger -t 99-reinstall-packages "liste $LIST absente ou vide, rien à réinstaller"
