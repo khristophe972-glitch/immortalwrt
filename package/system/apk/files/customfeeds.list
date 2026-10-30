@@ -19,9 +19,17 @@
 # Never run a global "apk upgrade" (rule 8). Kernel modules keep coming from
 # our targets/ feed via distfeeds.list.
 #
+# target-packages is the same target package set the deploy step also writes
+# under targets/mediatek/filogic; it is listed first because the router has
+# always read it from that path. fwlive is a third-party feed (signed by
+# /etc/apk/keys/fwlive-feed.rsa.pub), kept because packages on the router come
+# from it; it is frozen per release, so it does not feed "apk list -u".
+#
 # base/ and targets/ come from our repository through the generated
 # distfeeds.list, and luci/packages are emitted there commented out because
 # build.yml selects them as modules, hence they are listed here explicitly.
+https://khristophe972-glitch.github.io/immortalwrt/target-packages/packages.adb
+https://lucas-albers-lz4.github.io/fwlive-packages/25.12/all/packages.adb
 https://khristophe972-glitch.github.io/immortalwrt/packages/aarch64_cortex-a53/packages/packages.adb
 https://khristophe972-glitch.github.io/immortalwrt/packages/aarch64_cortex-a53/luci/packages.adb
 #
