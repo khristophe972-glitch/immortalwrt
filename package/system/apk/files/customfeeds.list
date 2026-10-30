@@ -6,25 +6,24 @@
 # immortalwrt) comes FIRST and is what matches the running kernel - the CI
 # republishes it on every build from the very tree the image was built from.
 #
-# The upstream snapshot feeds are kept as well (decision 2026-10-30). With our
-# repository alone, the router could only ever install what our CI happened to
-# compile (1600 .apk in total): everything else was missing from "available"
-# and 99-reinstall-packages could not restore it, because an apk index only
-# lists packages that were actually packed.
+# The upstream packages/luci snapshots are NOT listed (decision 2026-10-30,
+# final). An apk index only lists packages that were actually packed, so our
+# repository carries what the CI compiled and nothing else - that is the price
+# of "apk list -u" coming back empty, which is what we want. Adding the
+# upstream indexes back makes the list noisy ("apk list -u" reports any newer
+# version, whatever the world says) and buys nothing we still need: the
+# packages we require are in the image and republished here.
 #
-# Accepted cost: "apk list -u" is noisy again, the upstream index being
-# rebuilt continuously - that was the whole point of 9a468bb8e55 (2026-10-28),
-# which traded availability for a quiet "apk list -u". Never run a global
-# "apk upgrade" (rule 8): a targeted "apk add" only pulls what it needs, and
-# the kernel modules keep coming from our targets/ feed via distfeeds.list.
+# Consequence to respect: a package the router must be able to install later
+# goes into FLOOR_PKGS in build.yml and is built - never into this file.
+# Never run a global "apk upgrade" (rule 8). Kernel modules keep coming from
+# our targets/ feed via distfeeds.list.
 #
 # base/ and targets/ come from our repository through the generated
 # distfeeds.list, and luci/packages are emitted there commented out because
 # build.yml selects them as modules, hence they are listed here explicitly.
 https://khristophe972-glitch.github.io/immortalwrt/packages/aarch64_cortex-a53/packages/packages.adb
 https://khristophe972-glitch.github.io/immortalwrt/packages/aarch64_cortex-a53/luci/packages.adb
-https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/packages/packages.adb
-https://downloads.immortalwrt.org/snapshots/packages/aarch64_cortex-a53/luci/packages.adb
 #
 # routing/ and telephony/ are NOT published by our CI (404 on gh-pages); they
 # stay on upstream on purpose. Nothing installed on the router comes from
