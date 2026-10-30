@@ -146,7 +146,7 @@ jobs:
           # l'image est IRRECUPERABLE par 99-reinstall-packages. Ces 70 paquets viennent de
           # /etc/persistent-packages.list et manquaient aux feeds (xdp-* = chaine hairpin,
           # perdue au flash du 30/10).
-          FLOOR_PKGS="banip bpftool-minimal collectd collectd-mod-exec collectd-mod-sqm gawk hostapd-utils kmod-nf-log libltdl7 librespeed-cli libxdp163 luci-app-banip perl perl-clone perl-encode-locale perl-http-daemon perl-http-date perl-http-message perl-io-html perl-lwp-mediatypes perl-sub-uplevel perl-test-warn perl-time-moment perl-try-tiny perl-uri perlbase-autoloader perlbase-base perlbase-benchmark perlbase-bytes perlbase-class perlbase-compress perlbase-config perlbase-cwd perlbase-dynaloader perlbase-encode \
+          FLOOR_PKGS="banip bpftool-minimal collectd collectd-mod-exec collectd-mod-sqm gawk hostapd-utils kmod-nf-log libltdl librespeed-cli libxdp luci-app-banip perl perl-clone perl-encode-locale perl-http-daemon perl-http-date perl-http-message perl-io-html perl-lwp-mediatypes perl-sub-uplevel perl-test-warn perl-time-moment perl-try-tiny perl-uri perlbase-autoloader perlbase-base perlbase-benchmark perlbase-bytes perlbase-class perlbase-compress perlbase-config perlbase-cwd perlbase-dynaloader perlbase-encode \
             perlbase-errno perlbase-essential perlbase-fcntl perlbase-file perlbase-filehandle perlbase-http-tiny perlbase-i18n perlbase-integer perlbase-io perlbase-list perlbase-locale perlbase-mime perlbase-net perlbase-params perlbase-posix perlbase-re perlbase-scalar perlbase-selectsaver perlbase-selfloader perlbase-socket perlbase-storable perlbase-symbol perlbase-tap perlbase-test perlbase-text perlbase-tie perlbase-time perlbase-unicore perlbase-utf8 perlbase-xsloader rpcd-mod-rpcsys speedtest-go ucode-mod-math xdp-forward xdp-loader"
           for p in $FLOOR_PKGS; do echo "CONFIG_PACKAGE_$p=y" >> .config; done
           echo "CONFIG_PACKAGE_nano=y" >> .config
@@ -192,9 +192,32 @@ jobs:
           grep -q '^CONFIG_PACKAGE_luci-app-irqbalance=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_luci-app-irqbalance non pose ; .config porte :"; grep -n "irqbalance" .config; exit 1; }
           # Preuve : chaque paquet de la liste persistante doit rester selectionne apres
           # defconfig, sinon il sera ABSENT de l'image et irreinstallable (commit inerte).
+          # On enumere TOUS les manquants d'un coup, jamais le premier seulement : un
+          # arret au premier nom coute un cycle CI (~7 min) par nom fautif.
+          #   nom-inconnu  = aucun symbole dans tmp/.config-package.in => le nom n'existe
+          #                  pas dans les feeds epingles. Piege ABI (apk suffixe le nom
+          #                  installe, pas le symbole) : libltdl7 -> libltdl,
+          #                  libxdp163 -> libxdp. /etc/persistent-packages.list porte les
+          #                  noms d'apk, FLOOR_PKGS doit porter les noms de kconfig.
+          #   dependency   = symbole present mais jete par defconfig (dep non satisfaite)
+          NB_MANQUANTS=0
           for p in $FLOOR_PKGS; do
-            grep -q "^CONFIG_PACKAGE_$p=y$" .config || { echo "ERREUR: CONFIG_PACKAGE_$p non pose apres defconfig"; grep -n "$p" .config; exit 1; }
+            if grep -q "^CONFIG_PACKAGE_$p=y$" .config; then
+              continue
+            fi
+            NB_MANQUANTS=$((NB_MANQUANTS + 1))
+            if grep -q "^config PACKAGE_$p$" tmp/.config-package.in; then
+              echo "MANQUANT: $p : dependency (symbole present, jete par defconfig)"
+            else
+              BASE=$(echo "$p" | sed 's/[0-9]*$//')
+              VOISINS=$(grep -o "^config PACKAGE_[A-Za-z0-9._+-]*" tmp/.config-package.in | sed 's/^config PACKAGE_//' | grep -i "^${BASE}" | head -5 | tr '\n' ' ')
+              echo "MANQUANT: $p : nom-inconnu (candidats : ${VOISINS:-aucun})"
+            fi
           done
+          if [ "$NB_MANQUANTS" -ne 0 ]; then
+            echo "ERREUR: $NB_MANQUANTS paquet(s) de FLOOR_PKGS non pose(s) apres defconfig — voir les lignes MANQUANT ci-dessus"
+            exit 1
+          fi
           echo "=== Target vérifié ==="
           grep "CONFIG_TARGET.*=y\|DEVICE.*glinet" .config | head -10
 
