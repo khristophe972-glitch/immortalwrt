@@ -167,5 +167,5 @@ Signed-off-by: khristophe972-glitch <khristophe972@gmail.com>
 +	mtk_rss_debugfs_init(eth);
 +
  	/* we run 2 devices on the same DMA ring so we need a dummy device
- 	 * for NAPI to work
- 	 */
+ 	 * for NAPI to work. Allocate it before registering the netdevs so a
+ 	 * concurrent ndo_open (e.g. netifd bringing the first netdev up the

@@ -97,7 +97,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	help
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -3905,6 +3905,11 @@
+@@ -3921,6 +3921,11 @@
  	if (dev_nit_active_rcu(dev))
  		dev_queue_xmit_nit(skb, dev);
  

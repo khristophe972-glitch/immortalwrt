@@ -26,7 +26,7 @@ This must remain the last patch touching this block: 999-9910 is, as of now.
 
 --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
 +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -6806,6 +6806,8 @@
+@@ -6810,6 +6810,8 @@
  		dev_err(eth->dev, "failed to allocate dummy device\n");
  		goto err_deinit_ppe;
  	}

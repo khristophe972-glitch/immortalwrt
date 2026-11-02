@@ -23,28 +23,7 @@
  static int mtk_free_dev(struct mtk_eth *eth)
  {
  	int i;
-@@ -6328,20 +6344,6 @@
- 		mtk_ppe_internal_debugfs_init(eth);
- 	}
- 
--	for (i = 0; i < MTK_MAX_DEVS; i++) {
--		if (!eth->netdev[i])
--			continue;
--
--		err = register_netdev(eth->netdev[i]);
--		if (err) {
--			dev_err(eth->dev, "error bringing up device\n");
--			goto err_unreg_netdev;
--		} else
--			netif_info(eth, probe, eth->netdev[i],
--				   "mediatek frame engine at 0x%08lx, irq %d\n",
--				   eth->netdev[i]->base_addr, eth->irq_fe[MTK_FE_IRQ_SHARED]);
--	}
--
- 	/* we run 2 devices on the same DMA ring so we need a dummy device
- 	 * for NAPI to work
- 	 */
-@@ -6349,9 +6351,10 @@
+@@ -6339,9 +6355,10 @@
  	if (!eth->dummy_dev) {
  		err = -ENOMEM;
  		dev_err(eth->dev, "failed to allocate dummy device\n");
@@ -57,29 +36,23 @@
  	netif_napi_add_weight(eth->dummy_dev, &eth->rx_napi[0].napi, mtk_napi_rx,
  			      MTK_NAPI_WEIGHT);
  
-@@ -6362,6 +6365,21 @@
- 					      mtk_napi_rx, MTK_NAPI_WEIGHT);
- 	}
- 
-+	for (i = 0; i < MTK_MAX_DEVS; i++) {
-+		if (!eth->netdev[i])
-+			continue;
-+
-+		err = register_netdev(eth->netdev[i]);
-+		if (err) {
-+			dev_err(eth->dev, "error bringing up device\n");
-+			goto err_unreg_netdev;
+@@ -6360,10 +6377,11 @@
+ 		if (err) {
+ 			dev_err(eth->dev, "error bringing up device\n");
+ 			goto err_unreg_netdev;
+-		} else
+-			netif_info(eth, probe, eth->netdev[i],
+-				   "mediatek frame engine at 0x%08lx, irq %d\n",
+-				   eth->netdev[i]->base_addr, eth->irq_fe[MTK_FE_IRQ_SHARED]);
 +		}
 +
 +		netif_info(eth, probe, eth->netdev[i],
 +			   "mediatek frame engine at 0x%08lx, irq %d\n",
 +			   eth->netdev[i]->base_addr, eth->irq_fe[0]);
-+	}
-+
+ 	}
+ 
  	platform_set_drvdata(pdev, eth);
- 	schedule_delayed_work(&eth->reset.monitor_work,
- 			      MTK_DMA_MONITOR_TIMEOUT);
-@@ -6370,6 +6388,9 @@
+@@ -6374,6 +6392,9 @@
  
  err_unreg_netdev:
  	mtk_unreg_dev(eth);
@@ -87,9 +60,9 @@
 +	free_netdev(eth->dummy_dev);
 +	eth->dummy_dev = NULL;
  err_deinit_ppe:
- 	mtk_ppe_deinit(eth);
- 	mtk_mdio_cleanup(eth);
-@@ -6403,13 +6424,7 @@
+ 	/* A netdev opened while probe was still registering can have queued
+ 	 * the frame-engine reset worker, which takes rtnl and drives the
+@@ -6417,13 +6438,7 @@
  	mtk_wed_exit();
  	mtk_hw_deinit(eth);
  
