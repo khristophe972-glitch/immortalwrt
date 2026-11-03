@@ -7,7 +7,8 @@
 # usage : qos-mt6000.sh start | stop | check | status
 #   start  : valide la configuration, remplace le qdisc racine (tc qdisc
 #            replace, jamais change), applique les reglages debugfs de
-#            cake_mq, puis verifie le resultat
+#            cake_mq, pose les filtres d'effacement ECN demandes, puis
+#            verifie le resultat
 #   stop   : supprime le qdisc racine du port (retour au qdisc par defaut)
 #   check  : valide la configuration et affiche les commandes, sans rien
 #            appliquer (dry-run)
@@ -57,6 +58,8 @@ load_config() {
 	OVH=$(get overhead 38)
 	MPU=$(get mpu 84)
 	MEMLIMIT=$(cfg memlimit)
+	ECN_EG=$(get ecn_egress keep)
+	ECN_IG=$(get ecn_ingress keep)
 }
 
 is_uint() {
@@ -143,6 +146,14 @@ validate() {
 		log "memlimit invalide : '$MEMLIMIT' (ex. 32Mb)"
 		err=1
 	fi
+	case "$ECN_EG" in
+	keep | clear) ;;
+	*) log "ecn_egress invalide : '$ECN_EG' (keep ou clear)"; err=1 ;;
+	esac
+	case "$ECN_IG" in
+	keep | clear) ;;
+	*) log "ecn_ingress invalide : '$ECN_IG' (keep ou clear)"; err=1 ;;
+	esac
 
 	for k in $KNOBS; do
 		v=$(cfg "$k")
@@ -261,6 +272,50 @@ apply_knobs() {
 	done
 }
 
+# Effacement des bits ECN, par sens, au moyen d'un qdisc clsact : celui-ci ne
+# prend pas la place du qdisc racine (cake_mq reste en place) et son crochet
+# s'execute avant l'enfilement, donc cake voit deja les paquets sans ECN.
+#   IPv4 : ToS = 2e octet de l'en-tete, ECN = bits 1..0  => retain 0x00030000
+#   IPv6 : Traffic Class = octets 0 et 1, ECN = bits 5..4 de l'octet 1
+#          => retain 0x00300000
+# pedit ne recalcule aucun checksum : IPv4 exige l'action csum iph, et sans le
+# mot-cle pipe l'action suivante ne recoit aucun paquet. IPv6 n'a pas de
+# checksum d'en-tete.
+ECN_IP4="action pedit ex munge offset 0 u32 clear retain 0x00030000 pipe action csum iph"
+ECN_IP6="action pedit ex munge offset 0 u32 clear retain 0x00300000"
+
+ecn_del_filters() {
+	"$TC" filter del dev "$DEV" "$1" prio 1 2> /dev/null
+	return 0
+}
+
+ecn_add_filters() {
+	local dir=$1 out
+	if ! out=$("$TC" filter add dev "$DEV" "$dir" prio 1 protocol ip u32 \
+			match u32 0 0 $ECN_IP4 2>&1); then
+		log "filtre ECN $dir IPv4 non pose, trafic IPv4 non modifie : $out"
+	fi
+	if ! out=$("$TC" filter add dev "$DEV" "$dir" prio 1 protocol ipv6 u32 \
+			match u32 0 0 $ECN_IP6 2>&1); then
+		log "filtre ECN $dir IPv6 non pose, trafic IPv6 non modifie : $out"
+	fi
+}
+
+# Un filtre qui n'a pas pu etre pose laisse le shaping intact : on journalise
+# et on continue (fail-open), le qdisc racine n'est jamais defait pour cela.
+apply_ecn_filters() {
+	local dir opt
+	if [ "$ECN_EG" = clear ] || [ "$ECN_IG" = clear ]; then
+		"$TC" qdisc add dev "$DEV" clsact 2> /dev/null
+	fi
+	for dir in egress ingress; do
+		if [ "$dir" = egress ]; then opt=$ECN_EG; else opt=$ECN_IG; fi
+		ecn_del_filters "$dir"
+		[ "$opt" = clear ] && ecn_add_filters "$dir"
+	done
+	return 0
+}
+
 do_start() {
 	local out cur
 	load_config
@@ -289,6 +344,7 @@ do_start() {
 		;;
 	esac
 	apply_knobs
+	apply_ecn_filters
 	log "actif sur $DEV : $QDISC $ARGS"
 	return 0
 }
@@ -306,11 +362,13 @@ do_stop() {
 		log "pas de qdisc $QDISC racine sur $DEV, rien a supprimer"
 		;;
 	esac
+	ecn_del_filters egress
+	ecn_del_filters ingress
 	return 0
 }
 
 do_check() {
-	local k v
+	local k v opt
 	load_config
 	is_bool "$ENABLED" || { log "enabled invalide : '$ENABLED' (0 ou 1)"; return 1; }
 	if [ "$ENABLED" = 0 ]; then
@@ -325,6 +383,19 @@ do_check() {
 			v=$(cfg "$k")
 			[ -z "$v" ] || echo "printf '$v' > $DEBUGFS/$k"
 		done
+	fi
+	for opt in "$ECN_EG" "$ECN_IG"; do
+		[ "$opt" = clear ] || continue
+		echo "tc qdisc add dev $DEV clsact"
+		break
+	done
+	if [ "$ECN_EG" = clear ]; then
+		echo "tc filter add dev $DEV egress prio 1 protocol ip u32 match u32 0 0 $ECN_IP4"
+		echo "tc filter add dev $DEV egress prio 1 protocol ipv6 u32 match u32 0 0 $ECN_IP6"
+	fi
+	if [ "$ECN_IG" = clear ]; then
+		echo "tc filter add dev $DEV ingress prio 1 protocol ip u32 match u32 0 0 $ECN_IP4"
+		echo "tc filter add dev $DEV ingress prio 1 protocol ipv6 u32 match u32 0 0 $ECN_IP6"
 	fi
 	return 0
 }

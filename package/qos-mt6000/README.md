@@ -35,6 +35,14 @@ Gestion du qdisc racine `cake_mq` du port WAN du GL-MT6000 : un paquet backend
 * `sync_time_ns` est borne a 1 a 1 000 000 000 ns (1 s). C'est la cadence de resynchronisation
   du diviseur, et ce plafond ferme le produit `u32 x sync_time_ns` des deux autres u32
   (`active_hold`, `tin_hold`) sous 2^64.
+* ECN, par sens : `ecn_egress` et `ecn_ingress` valent `keep` (defaut) ou `clear`. `clear` pose
+  un qdisc `clsact` (qui ne remplace pas le qdisc racine) et deux filtres `pedit` a priorite 1,
+  l'un IPv4 (`protocol ip`, `clear retain 0x00030000` + `csum iph`), l'autre IPv6
+  (`protocol ipv6`, `clear retain 0x00300000`, sans csum : IPv6 n'a pas de checksum d'en-tete).
+  Le DSCP et le Traffic Class sont preserves ; seuls les 2 bits ECN sont effaces. Les filtres
+  passent AVANT le qdisc : cake ne voit plus l'ECN et ne marque plus CE sur ce sens.
+  Un filtre impossible a poser est journalise et n'empeche pas le qdisc (fail-open) ; `stop`
+  et le retour a `keep` les retirent. Cout : `pedit` force le chemin lent (skb modifiable).
 * `enabled '0'` : rien n'est modifie. `stop` supprime le qdisc racine (retour au qdisc par defaut).
 * Un verrou (`/tmp/qos-mt6000.lock`) evite deux applications simultanees.
 

@@ -125,6 +125,22 @@ return view.extend({
 		o.default = '1';
 		o.rmempty = false;
 
+		o = s.taboption('qdisc', form.ListValue, 'ecn_egress', _('ECN, outgoing'),
+			_('Clear the two ECN bits of outgoing packets before the qdisc: cake then sees no ECN ' +
+			  'and marks no CE on this direction. The DSCP is preserved. Uses the slow path.'));
+		o.value('keep', _('Keep ECN (cake marks CE)'));
+		o.value('clear', _('Clear the ECN bits'));
+		o.default = 'keep';
+		o.rmempty = false;
+
+		o = s.taboption('qdisc', form.ListValue, 'ecn_ingress', _('ECN, incoming'),
+			_('Clear the two ECN bits of incoming packets, so the LAN never sees the marks set ' +
+			  'upstream. The DSCP is preserved. Uses the slow path.'));
+		o.value('keep', _('Keep ECN'));
+		o.value('clear', _('Clear the ECN bits'));
+		o.default = 'keep';
+		o.rmempty = false;
+
 		o = s.taboption('qdisc', form.ListValue, 'ack_filter', _('ACK filter'));
 		o.value('none', _('Off'));
 		o.value('ack-filter', 'ack-filter');

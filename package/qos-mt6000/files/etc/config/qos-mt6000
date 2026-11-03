@@ -16,6 +16,11 @@ config global 'global'
 	option link_type 'noatm'
 	option overhead '38'
 	option mpu '84'
+	# ECN, par sens : 'keep' laisse cake marquer CE, 'clear' efface les bits
+	# ECN des paquets de ce sens (filtre clsact + pedit, avant le qdisc).
+	# IPv4 : DSCP conserve. IPv6 : Traffic Class conserve. Cout : chemin lent.
+	option ecn_egress 'keep'
+	option ecn_ingress 'keep'
 	# Reglages debugfs de cake_mq (series 999-711 a 722), ecrits apres le qdisc.
 	# Une option absente ou vide n'est pas ecrite.
 	option sync_time_ns '200000'

@@ -35,6 +35,14 @@ if [ "$1 $2" = "qdisc replace" ]; then
 	exit 0
 fi
 if [ "$1 $2" = "qdisc del" ]; then rm -f "$QOS_T/state"; exit 0; fi
+if [ "$1 $2" = "qdisc add" ]; then
+	[ -n "$TC_CLSACT_FAIL" ] && { echo "RTNETLINK answers: File exists" >&2; exit 2; }
+	exit 0
+fi
+if [ "$1" = "filter" ]; then
+	[ -n "$TC_FILTER_FAIL" ] && { echo "RTNETLINK answers: Invalid argument" >&2; exit 2; }
+	exit 0
+fi
 exit 1
 X
 	printf '#!/bin/sh\nexit 0\n' > "$T/bin/logger"
@@ -236,6 +244,79 @@ expect_tc "qdisc del dev eth1 root" "qdisc racine supprime"
 run stop
 expect_rc 0 "stop sans qdisc : succes"
 grep -q 'qdisc del' "$T/tc.log" && ko "stop sans qdisc : pas de suppression" || ok "stop sans qdisc : pas de suppression"
+teardown
+
+echo "[ecn : keep par defaut]"
+setup
+run start
+expect_rc 0 "start sans options ECN"
+grep -q 'clsact' "$T/tc.log" && ko "aucun clsact par defaut" || ok "aucun clsact par defaut"
+grep -q 'filter add' "$T/tc.log" && ko "aucun filtre add par defaut" || ok "aucun filtre add par defaut"
+teardown
+
+echo "[ecn : clear en egress]"
+setup
+set_cfg ecn_egress clear
+run start
+expect_rc 0 "start avec ecn_egress=clear"
+expect_tc "qdisc add dev eth1 clsact" "clsact pose"
+expect_tc "filter add dev eth1 egress prio 1 protocol ip u32 match u32 0 0 action pedit ex munge offset 0 u32 clear retain 0x00030000 pipe action csum iph" "filtre IPv4 egress"
+expect_tc "filter add dev eth1 egress prio 1 protocol ipv6 u32 match u32 0 0 action pedit ex munge offset 0 u32 clear retain 0x00300000" "filtre IPv6 egress"
+grep -q 'filter add dev eth1 ingress' "$T/tc.log" && ko "aucun filtre ingress" || ok "aucun filtre ingress"
+teardown
+
+echo "[ecn : clear dans les deux sens]"
+setup
+set_cfg ecn_egress clear
+set_cfg ecn_ingress clear
+run start
+expect_rc 0 "start avec les deux sens a clear"
+expect_tc "filter add dev eth1 ingress prio 1 protocol ip u32" "filtre IPv4 ingress"
+expect_tc "filter add dev eth1 ingress prio 1 protocol ipv6 u32" "filtre IPv6 ingress"
+teardown
+
+echo "[ecn : valeur invalide refusee]"
+setup
+set_cfg ecn_egress effacer
+run start
+expect_rc 1 "ecn_egress invalide : rc 1"
+expect_out "ecn_egress invalide" "message d'erreur"
+teardown
+
+echo "[ecn : echec du filtre = fail-open]"
+setup
+set_cfg ecn_egress clear
+TC_FILTER_FAIL=1
+export TC_FILTER_FAIL
+run start
+expect_rc 0 "filtre en echec : start reussit quand meme"
+expect_out "non pose" "echec journalise"
+expect_tc "qdisc replace dev eth1 root cake_mq" "le qdisc racine est bien pose"
+unset TC_FILTER_FAIL
+teardown
+
+echo "[ecn : stop retire les filtres]"
+setup
+set_cfg ecn_egress clear
+run start
+: > "$T/tc.log"
+run stop
+expect_rc 0 "stop reussit"
+expect_tc "filter del dev eth1 egress prio 1" "filtres egress retires"
+expect_tc "filter del dev eth1 ingress prio 1" "filtres ingress retires"
+teardown
+
+echo "[ecn : retour a keep efface les filtres]"
+setup
+set_cfg ecn_egress clear
+run start
+: > "$T/tc.log"
+: > "$T/uci.conf"
+set_cfg ecn_egress keep
+run start
+expect_rc 0 "start apres retour a keep"
+expect_tc "filter del dev eth1 egress prio 1" "filtres retires au passage a keep"
+grep -q 'filter add' "$T/tc.log" && ko "aucun filtre repose" || ok "aucun filtre repose"
 teardown
 
 echo "[usage]"
