@@ -226,6 +226,21 @@ jobs:
           cd openwrt
           make download -j$(nproc)
 
+      # Echouer vite : les patchs s'appliquent ici, pas apres 4 h de compilation.
+      # Une ancre perimee (serie noyau) ou un patch de paquet devenu obsolete
+      # (cas qosify, 04/11) se voit en quelques minutes. Les estampilles posees
+      # ici sont reutilisees par le build : le cout net est proche de zero.
+      - name: Prepare sources and patches (fail fast)
+        run: |
+          cd openwrt
+          make -j$(nproc) V=s target/linux/prepare
+          for d in $(find package -maxdepth 3 -type d -name patches | sed 's#/patches$##' | sort); do
+            n=$(basename "$d")
+            grep -q "^CONFIG_PACKAGE_$n=y$" .config || continue
+            echo "=== prepare $d"
+            make -j$(nproc) V=s "$d/prepare"
+          done
+
       - name: Build firmware
         env:
           CCACHE_MAXSIZE: 4G
