@@ -261,7 +261,7 @@ run start
 expect_rc 0 "start avec ecn_egress=clear"
 expect_tc "qdisc add dev eth1 clsact" "clsact pose"
 expect_tc "filter add dev eth1 egress prio 1 protocol ip u32 match u32 0 0 action pedit ex munge offset 0 u32 clear retain 0x00030000 pipe action csum iph" "filtre IPv4 egress"
-expect_tc "filter add dev eth1 egress prio 1 protocol ipv6 u32 match u32 0 0 action pedit ex munge offset 0 u32 clear retain 0x00300000" "filtre IPv6 egress"
+expect_tc "filter add dev eth1 egress prio 1 protocol ipv6 matchall action pedit ex munge offset 0 u32 clear retain 0x00300000" "filtre IPv6 egress"
 grep -q 'filter add dev eth1 ingress' "$T/tc.log" && ko "aucun filtre ingress" || ok "aucun filtre ingress"
 teardown
 
@@ -272,7 +272,7 @@ set_cfg ecn_ingress clear
 run start
 expect_rc 0 "start avec les deux sens a clear"
 expect_tc "filter add dev eth1 ingress prio 1 protocol ip u32" "filtre IPv4 ingress"
-expect_tc "filter add dev eth1 ingress prio 1 protocol ipv6 u32" "filtre IPv6 ingress"
+expect_tc "filter add dev eth1 ingress prio 1 protocol ipv6 matchall" "filtre IPv6 ingress"
 teardown
 
 echo "[ecn : valeur invalide refusee]"

@@ -295,8 +295,11 @@ ecn_add_filters() {
 			match u32 0 0 $ECN_IP4 2>&1); then
 		log "filtre ECN $dir IPv4 non pose, trafic IPv4 non modifie : $out"
 	fi
-	if ! out=$("$TC" filter add dev "$DEV" "$dir" prio 1 protocol ipv6 u32 \
-			match u32 0 0 $ECN_IP6 2>&1); then
+	# IPv6 : matchall, pas u32. Sur 6.18.56 la combinaison u32 + pedit est
+	# refusee par le noyau (EINVAL) alors que les deux pris separement
+	# fonctionnent ; matchall + pedit passe (verifie sur l'appareil).
+	if ! out=$("$TC" filter add dev "$DEV" "$dir" prio 1 protocol ipv6 matchall \
+			$ECN_IP6 2>&1); then
 		log "filtre ECN $dir IPv6 non pose, trafic IPv6 non modifie : $out"
 	fi
 }
@@ -391,11 +394,11 @@ do_check() {
 	done
 	if [ "$ECN_EG" = clear ]; then
 		echo "tc filter add dev $DEV egress prio 1 protocol ip u32 match u32 0 0 $ECN_IP4"
-		echo "tc filter add dev $DEV egress prio 1 protocol ipv6 u32 match u32 0 0 $ECN_IP6"
+		echo "tc filter add dev $DEV egress prio 1 protocol ipv6 matchall $ECN_IP6"
 	fi
 	if [ "$ECN_IG" = clear ]; then
 		echo "tc filter add dev $DEV ingress prio 1 protocol ip u32 match u32 0 0 $ECN_IP4"
-		echo "tc filter add dev $DEV ingress prio 1 protocol ipv6 u32 match u32 0 0 $ECN_IP6"
+		echo "tc filter add dev $DEV ingress prio 1 protocol ipv6 matchall $ECN_IP6"
 	fi
 	return 0
 }
