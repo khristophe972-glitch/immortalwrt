@@ -36,7 +36,8 @@ Gestion du qdisc racine `cake_mq` du port WAN du GL-MT6000 : un paquet backend
   du diviseur, et ce plafond ferme le produit `u32 x sync_time_ns` des deux autres u32
   (`active_hold`, `tin_hold`) sous 2^64.
 * ECN, par sens : `ecn_egress` et `ecn_ingress` valent `keep` (defaut) ou `clear`. `clear` pose
-  un qdisc `clsact` (qui ne remplace pas le qdisc racine) et deux filtres `pedit` a priorite 1,
+  un qdisc `clsact` (qui ne remplace pas le qdisc racine) et deux filtres `pedit` a des
+  priorites distinctes (1 IPv4, 2 IPv6 : a priorite egale le noyau refuse de melanger u32 et matchall),
   l'un IPv4 (`protocol ip` + `u32 match u32 0 0`, `clear retain 0x00030000` + `csum iph`),
   l'autre IPv6 (`protocol ipv6 matchall`, `clear retain 0x00300000`, sans csum : IPv6 n'a pas
   de checksum d'en-tete). Sous 6.18.56 la combinaison `u32` + `pedit` est refusee en IPv6
