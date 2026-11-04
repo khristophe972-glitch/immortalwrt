@@ -14,12 +14,20 @@ Set the used_keys bits where the keys are filled.
 Fixes: 3e1b0c168f6c ("netfilter: flowtable: add vlan match offload support")
 Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
 ---
- net/netfilter/nf_flow_table_offload.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/netfilter/nf_flow_table_offload.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 --- a/net/netfilter/nf_flow_table_offload.c
 +++ b/net/netfilter/nf_flow_table_offload.c
-@@ -135,12 +135,16 @@
+@@ -124,6 +124,7 @@
+ 		nf_flow_rule_vlan_match(&key->vlan, &mask->vlan,
+ 					tuple->encap[0].id,
+ 					tuple->encap[0].proto);
++		match->dissector.used_keys |= BIT_ULL(FLOW_DISSECTOR_KEY_VLAN);
+ 		vlan_encap = true;
+ 	}
+ 
+@@ -135,12 +136,16 @@
  			nf_flow_rule_vlan_match(&key->cvlan, &mask->cvlan,
  						tuple->encap[1].id,
  						tuple->encap[1].proto);
