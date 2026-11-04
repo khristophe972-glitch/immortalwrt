@@ -284,28 +284,25 @@ apply_knobs() {
 ECN_IP4="action pedit ex munge offset 0 u32 clear retain 0x00030000 pipe action csum iph"
 ECN_IP6="action pedit ex munge offset 0 u32 clear retain 0x00300000"
 
-# IPv4 et IPv6 vivent a des priorites distinctes : a une meme priorite le
-# noyau refuse de melanger les classifieurs (u32 pour IPv4, matchall pour
-# IPv6) et rend EINVAL.
-ECN_PRIO4=1
-ECN_PRIO6=2
-
+# IPv4 en priorite 1, IPv6 en 2 : a une meme priorite le noyau refuse de
+# melanger les classifieurs (u32 d'un cote, matchall de l'autre) et rend
+# EINVAL -- mesure sur le routeur.
 ecn_del_filters() {
-	"$TC" filter del dev "$DEV" "$1" prio "$ECN_PRIO4" 2> /dev/null
-	"$TC" filter del dev "$DEV" "$1" prio "$ECN_PRIO6" 2> /dev/null
+	"$TC" filter del dev "$DEV" "$1" prio 1 2> /dev/null
+	"$TC" filter del dev "$DEV" "$1" prio 2 2> /dev/null
 	return 0
 }
 
 ecn_add_filters() {
 	local dir=$1 out
-	if ! out=$("$TC" filter add dev "$DEV" "$dir" prio "$ECN_PRIO4" protocol ip u32 \
+	if ! out=$("$TC" filter add dev "$DEV" "$dir" prio 1 protocol ip u32 \
 			match u32 0 0 $ECN_IP4 2>&1); then
 		log "filtre ECN $dir IPv4 non pose, trafic IPv4 non modifie : $out"
 	fi
 	# IPv6 : matchall, pas u32. Sur 6.18.56 la combinaison u32 + pedit est
 	# refusee par le noyau (EINVAL) alors que les deux pris separement
 	# fonctionnent ; matchall + pedit passe (verifie sur l'appareil).
-	if ! out=$("$TC" filter add dev "$DEV" "$dir" prio "$ECN_PRIO6" protocol ipv6 matchall \
+	if ! out=$("$TC" filter add dev "$DEV" "$dir" prio 2 protocol ipv6 matchall \
 			$ECN_IP6 2>&1); then
 		log "filtre ECN $dir IPv6 non pose, trafic IPv6 non modifie : $out"
 	fi
@@ -400,12 +397,12 @@ do_check() {
 		break
 	done
 	if [ "$ECN_EG" = clear ]; then
-		echo "tc filter add dev $DEV egress prio $ECN_PRIO4 protocol ip u32 match u32 0 0 $ECN_IP4"
-		echo "tc filter add dev $DEV egress prio $ECN_PRIO6 protocol ipv6 matchall $ECN_IP6"
+		echo "tc filter add dev $DEV egress prio 1 protocol ip u32 match u32 0 0 $ECN_IP4"
+		echo "tc filter add dev $DEV egress prio 2 protocol ipv6 matchall $ECN_IP6"
 	fi
 	if [ "$ECN_IG" = clear ]; then
-		echo "tc filter add dev $DEV ingress prio $ECN_PRIO4 protocol ip u32 match u32 0 0 $ECN_IP4"
-		echo "tc filter add dev $DEV ingress prio $ECN_PRIO6 protocol ipv6 matchall $ECN_IP6"
+		echo "tc filter add dev $DEV ingress prio 1 protocol ip u32 match u32 0 0 $ECN_IP4"
+		echo "tc filter add dev $DEV ingress prio 2 protocol ipv6 matchall $ECN_IP6"
 	fi
 	return 0
 }
