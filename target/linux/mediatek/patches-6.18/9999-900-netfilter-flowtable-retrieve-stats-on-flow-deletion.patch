@@ -1,0 +1,116 @@
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 29 Oct 2026 12:27:48 +1100
+Subject: [PATCH nf-next,v4 1/2] netfilter: flowtable: retrieve stats on flow deletion
+
+Retrieve stats too when deleting a flow from hardware. Apparently, the
+existing approach is missing last stats sync with the conntrack entry.
+Pass the stats object to the driver so it has a chance to populate it
+at deletion time. Drivers need to be updated to use this new approach.
+
+Closes: https://patch.msgid.link/netfilter-devel/20261021175030.4800-1-dreyksmail@gmail.com/
+Reported-by: Valentin Berezhnoy <dreyksmail@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+[ported to 6.18.56: hunks renumbered on top of 709, 709-01 and
+999-dscp-02, which also touch nf_flow_table_offload.c]
+
+---
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -964,12 +964,33 @@
+ 	}
+ 	up_read(&flowtable->flow_block_lock);
+ 
+-	if (cmd == FLOW_CLS_STATS)
++	if (stats)
+ 		memcpy(stats, &cls_flow.stats, sizeof(*stats));
+ 
+ 	return i;
+ }
+ 
++static void flow_offload_update_stats(struct flow_offload_work *offload,
++				      struct flow_stats *stats)
++{
++	u64 lastused;
++
++	lastused = max_t(u64, stats[0].lastused, stats[1].lastused);
++	offload->flow->timeout = max_t(u64, offload->flow->timeout,
++				       lastused + flow_offload_get_timeout(offload->flow));
++
++	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
++		if (stats[0].pkts)
++			nf_ct_acct_add(offload->flow->ct,
++				       FLOW_OFFLOAD_DIR_ORIGINAL,
++				       stats[0].pkts, stats[0].bytes);
++		if (stats[1].pkts)
++			nf_ct_acct_add(offload->flow->ct,
++				       FLOW_OFFLOAD_DIR_REPLY,
++				       stats[1].pkts, stats[1].bytes);
++	}
++}
++
+ static int flow_offload_tuple_add(struct flow_offload_work *offload,
+ 				  struct nf_flow_rule *flow_rule,
+ 				  enum flow_offload_tuple_dir dir)
+@@ -982,11 +1003,12 @@
+ }
+ 
+ static void flow_offload_tuple_del(struct flow_offload_work *offload,
+-				   enum flow_offload_tuple_dir dir)
++				   enum flow_offload_tuple_dir dir,
++				   struct flow_stats *stats)
+ {
+ 	nf_flow_offload_tuple(offload->flowtable, offload->flow, NULL, dir,
+ 			      offload->flowtable->priority,
+-			      FLOW_CLS_DESTROY, NULL,
++			      FLOW_CLS_DESTROY, stats,
+ 			      &offload->flowtable->flow_block.cb_list);
+ }
+ 
+@@ -1027,10 +1049,15 @@
+ 
+ static void flow_offload_work_del(struct flow_offload_work *offload)
+ {
++	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] = {};
++
+ 	clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
+-	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
++	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0]);
+ 	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+-		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
++		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY, &stats[1]);
++
++	flow_offload_update_stats(offload, stats);
++
+ 	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
+ }
+ 
+@@ -1047,27 +1074,12 @@
+ static void flow_offload_work_stats(struct flow_offload_work *offload)
+ {
+ 	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] = {};
+-	u64 lastused;
+ 
+ 	flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0]);
+ 	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+ 		flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_REPLY,
+ 					 &stats[1]);
+-
+-	lastused = max_t(u64, stats[0].lastused, stats[1].lastused);
+-	offload->flow->timeout = max_t(u64, offload->flow->timeout,
+-				       lastused + flow_offload_get_timeout(offload->flow));
+-
+-	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
+-		if (stats[0].pkts)
+-			nf_ct_acct_add(offload->flow->ct,
+-				       FLOW_OFFLOAD_DIR_ORIGINAL,
+-				       stats[0].pkts, stats[0].bytes);
+-		if (stats[1].pkts)
+-			nf_ct_acct_add(offload->flow->ct,
+-				       FLOW_OFFLOAD_DIR_REPLY,
+-				       stats[1].pkts, stats[1].bytes);
+-	}
++	flow_offload_update_stats(offload, stats);
+ }
+ 
+ static void flow_offload_work_handler(struct work_struct *work)
