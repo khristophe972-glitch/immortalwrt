@@ -238,7 +238,15 @@ jobs:
             n=$(basename "$d")
             grep -q "^CONFIG_PACKAGE_$n=y$" .config || continue
             echo "=== prepare $d"
-            make -j$(nproc) V=s "$d/prepare"
+            if ! out=$(make -j$(nproc) V=s "$d/prepare" 2>&1); then
+              # Un dossier peut porter un nom different du paquet qu'il produit
+              # (ex. package/net/sqm-scripts) : absence de regle = rien a preparer.
+              case "$out" in
+                *"No rule to make target"*) echo "pas de cible prepare pour $d"; continue ;;
+              esac
+              printf '%s\n' "$out" | tail -40
+              exit 1
+            fi
           done
 
       - name: Build firmware
