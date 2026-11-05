@@ -15,7 +15,12 @@ jobs:
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          # Le build complet (CONFIG_ALL_KMODS + ALL_NONSHARED) pese 25-40 Go ;
+          # l'image du runner en occupe deja 39. Ces quatre repertoires ne servent
+          # a rien pour OpenWrt et rendent 10-20 Go.
+          sudo rm -rf /opt/hostedtoolcache /usr/local/share/boost /usr/share/swift /usr/local/.ghcup
           sudo apt-get clean
+          command -v docker > /dev/null && sudo docker system prune -af || true
           df -h
 
       - name: Install dependencies
@@ -251,11 +256,19 @@ jobs:
 
       - name: Build firmware
         env:
-          CCACHE_MAXSIZE: 4G
+          CCACHE_MAXSIZE: 2G
         run: |
           cd openwrt
+          df -h / | tail -1
           make -j$(nproc) V=s IGNORE_ERRORS=m
           ccache -s
+          df -h / | tail -1
+
+      # Sans ce releve, un "no space left on device" oblige a deduire ou le
+      # disque a fondu (cas du 05/11, golang1.27 hote).
+      - name: Disk usage after build
+        if: always()
+        run: df -h /
 
       - name: Upload firmware artifact
         if: always()
