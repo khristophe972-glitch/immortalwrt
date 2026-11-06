@@ -1,0 +1,116 @@
+================================================================================
+TESTS — « stats on flow deletion » (nf-next 9999-900/9999-901) : tracage du
+demontage PPE et comptabilite conntrack
+Date : 06/11/2026 — Routeur GL-MT6000, ImmortalWrt r43056-564a57f77f, noyau
+6.18.56, 744 patchs noyau.
+Document autonome (destine a un contexte Claude Desktop) : ne suppose ni acces
+au depot ni acces au routeur.
+================================================================================
+
+1. POINT DE DEPART
+--------------------------------------------------------------------------------
+Une premiere campagne a mesure, sur deux essais consecutifs, un deficit de
+-13,5 % et -15,7 % entre les octets recus par le PC et les octets releves au
+DESTROY conntrack, pour un flux IPv6 decharge en materiel (PPE MediaTek).
+
+Deux causes possibles, non discriminees :
+  a) le correctif 9999-900/9999-901 ne restitue pas les octets au demontage ;
+  b) le point d'observation (mort de l'entree conntrack) n'est pas le demontage
+     materiel.
+
+Rappel des deux patchs :
+  9999-900  net/netfilter/nf_flow_table_offload.c
+            `if (cmd == FLOW_CLS_STATS)` devient `if (stats)` -> les compteurs
+            materiels sont copies aussi sur FLOW_CLS_DESTROY.
+  9999-901  drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+            lit les compteurs PPE AVANT mtk_foe_entry_clear(), via notre cache
+            MIB (patch amont 736-04), et ajoute le delta.
+
+2. ETAPE 1 — TRACER LE DEMONTAGE : IMPOSSIBLE SANS REBUILD
+--------------------------------------------------------------------------------
+  debugfs monte (/sys/kernel/debug) .......... oui
+  tracefs monte .............................. NON ; monte a la main par
+      `mount -t tracefs nodev /sys/kernel/tracing` (temporaire, demonté apres)
+  /sys/kernel/tracing/kprobe_events .......... present apres montage
+  available_tracers .......................... `nop` SEUL (pas de function
+      tracer, donc pas d'available_filter_functions)
+  mtk_flow_offload_destroy dans kallsyms ..... ABSENT (noyau sans KALLSYMS_ALL)
+  kprobe sur mtk_flow_offload_destroy ........ REFUSEE
+  mtk_foe_entry_get_stats .................... presente (T, ffffffc0807a4d2c),
+      kprobe ACCEPTEE
+  mtk_flow_offload_stats ..................... absent de kallsyms
+  mtk_flow_offload_replace ................... present (chemin de CREATION)
+
+CONCLUSION : la fonction de destruction est `static` et non resoluble par nom ;
+la trace directe EXIGE UN REBUILD. Le repli (mtk_foe_entry_get_stats) existe
+mais est appele par les DEUX chemins (stats et destroy) -> ne distinguerait pas.
+
+3. ETAPE 2 — LA TABLE PPE COMME VERITE TERRAIN
+--------------------------------------------------------------------------------
+/sys/kernel/debug/mtk_ppe/entries expose chaque flux decharge avec son tuple et
+ses compteurs, par exemple :
+
+  01f00 BND IPv6 5T ppe=1 orig=2001:41d0:...:443->2a01:0e0a:...:45007
+        packets=354701 bytes=536696322
+
+Deux entrees par flux (aller ppe=0, retour ppe=1) ; la direction RETOUR porte
+les octets telecharges. C'est le compteur materiel lui-meme, pas une deduction.
+
+4. LES CINQ ESSAIS
+--------------------------------------------------------------------------------
+  Run   Protocole                          Recu        DESTROY      Ecart    debugfs
+  ----  ---------------------------------  ----------  -----------  -------  -------
+  A     500 Mo, attente du vieillissement  524288000   453578585    -13,49%  non
+  B     200 Mo, idem                       209715200   176878927    -15,65%  non
+  C     500 Mo + releve PPE toutes les 2s  524288000   543575307    + 3,68%  OUI
+  D1    500 Mo, sans instrumentation       524288000   545481513    + 4,04%  non
+  D2    500 Mo, sans instrumentation       524288000   569062098    + 8,54%  non
+
+DETAIL DU RUN C :
+  PPE (sens retour), dernier releve ....... 536 696 322 octets (+2,37 %)
+  conntrack au DESTROY .................... 543 575 307 octets (+3,68 %)
+  -> +2 a +4 % = l'overhead d'en-tetes IPv6/TCP attendu (comptes par le
+     materiel et par conntrack, pas par curl). AUCUN OCTET PERDU.
+
+5. CONCLUSION
+--------------------------------------------------------------------------------
+1) LE DEFICIT N'EST PAS SYSTEMATIQUE : il apparait dans 2 runs sur 5, et D1/D2
+   le refutent — sans aucune instrumentation, la comptabilite est complete.
+2) L'EFFET OBSERVATEUR EST ECARTE : c'etait le soupcon le plus serieux (la
+   lecture de la table PPE rafraichit les compteurs materiels et aurait pu
+   « faire marcher » le correctif). D1 et D2, non instrumentes, donnent le meme
+   resultat que C.
+3) LE CORRECTIF N'EST POURTANT PAS DEMONTRE : rien n'identifie ce qui distingue
+   A et B des trois autres — ni la taille (200 et 500 Mo sont tous deux
+   concernes), ni l'heure, ni le tag au DESTROY (tous `[ASSURED]` seul, sans
+   `OFFLOAD`).
+
+STATUT : NON MESURABLE SANS REBUILD. Non par manque d'essais — cinq runs, deux
+methodes, une tentative de trace et une lecture materielle — mais parce que la
+seule comparaison decisive est celle de DEUX IMAGES, avec et sans
+9999-900/9999-901, et que le defaut observe est INTERMITTENT.
+
+6. NON VERIFIE
+--------------------------------------------------------------------------------
+  - La cause des pertes de A et de B. Candidat le plus probable : le
+    RECYCLEMENT de l'entree PPE pendant le transfert, qui remet les compteurs a
+    zero et perd l'acquis. Non observe.
+  - Ce qui, dans les trois runs complets, a effectivement reverse les octets :
+    le correctif, ou la synchronisation periodique ordinaire.
+  - Les flux IPv4 : jamais testes.
+  - Un test A/B par rebuild, seul moyen de trancher.
+
+7. CONSEQUENCE PRATIQUE
+--------------------------------------------------------------------------------
+Le risque porte sur la COMPTABILITE (compteurs conntrack d'un flux decharge :
+statistiques, nlbwmon, quotas), pas sur le trafic : aucun paquet n'est perdu.
+Un flux peut afficher 13 a 16 % d'octets en moins dans les compteurs, de facon
+intermittente, sur des flux decharges en materiel.
+
+8. ETAT FINAL
+--------------------------------------------------------------------------------
+tracefs DEMONTE, aucune kprobe active, captures arretees, entrees de test
+disparues. Aucun commit, aucun push, aucun flash, aucun reglage persistant.
+Traces residuelles sur le routeur : /tmp/destroy.log, /tmp/ppe.log,
+/tmp/ev.log.
+================================================================================
