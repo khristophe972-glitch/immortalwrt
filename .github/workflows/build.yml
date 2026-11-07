@@ -239,9 +239,23 @@ jobs:
         run: |
           cd openwrt
           make -j$(nproc) V=s target/linux/prepare
-          for d in $(find package -maxdepth 3 -type d -name patches | sed 's#/patches$##' | sort); do
-            n=$(basename "$d")
-            grep -q "^CONFIG_PACKAGE_$n=y$" .config || continue
+          # Deux pieges mesures le 07/11, qui faisaient sauter des paquets EN SILENCE :
+          #  1) -maxdepth 3 ratait 40 dossiers, dont hostapd, dnsmasq, firewall4,
+          #     iptables, nftables et iproute2 (tous a package/<cat>/<sous-cat>/<nom>) ;
+          #  2) le nom kconfig n'est pas celui du dossier (iproute2 -> ip-tiny/ip-full/
+          #     tc-*...). On ne borne plus la profondeur et on lit le Makefile.
+          for d in $(find package -type d -name patches | sed 's#/patches$##' | sort); do
+            names="$(basename "$d")"
+            if [ -f "$d/Makefile" ]; then
+              names="$names $(sed -nE 's/^PKG_NAME:=[[:space:]]*//p' "$d/Makefile" | tr '\n' ' ')"
+              names="$names $(sed -nE 's/^define Package\/([A-Za-z0-9_.+-]+).*/\1/p' "$d/Makefile" | tr '\n' ' ')"
+              names="$names $(sed -nE 's/.*BuildPackage,([A-Za-z0-9_.+-]+)\).*/\1/p' "$d/Makefile" | tr '\n' ' ')"
+            fi
+            hit=0
+            for n in $names; do
+              if grep -q "^CONFIG_PACKAGE_$n=y$" .config; then hit=1; break; fi
+            done
+            [ "$hit" = 1 ] || continue
             echo "=== prepare $d"
             if ! out=$(make -j$(nproc) V=s "$d/prepare" 2>&1); then
               # Un dossier peut porter un nom different du paquet qu'il produit
