@@ -256,6 +256,14 @@ jobs:
               if grep -q "^CONFIG_PACKAGE_$n=y$" .config; then hit=1; break; fi
             done
             [ "$hit" = 1 ] || continue
+            # Les paquets qui incluent include/bpf.mk (xdp-tools, bridger, unetd,
+            # bpf-headers) exigent staging_dir/host/llvm-bpf, construit bien plus
+            # tard : leur prepare echoue TOUJOURS ici, et ce n'est pas une ancre
+            # perimee (mesure du 07/11, run 42409186278).
+            if [ -f "$d/Makefile" ] && grep -q 'include $(INCLUDE_DIR)/bpf.mk' "$d/Makefile"; then
+              echo "=== $d : saute (bpf.mk exige llvm-bpf, pas encore construit)"
+              continue
+            fi
             echo "=== prepare $d"
             if ! out=$(make -j$(nproc) V=s "$d/prepare" 2>&1); then
               # Un dossier peut porter un nom different du paquet qu'il produit
