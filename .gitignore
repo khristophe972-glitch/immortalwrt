@@ -40,3 +40,5 @@ git-src
 /.claude/docs/
 /.claude/agents/
 /contexte-projet-desktop.md
+CLAUDE.md
+resume_session_gl-mt6000.txt

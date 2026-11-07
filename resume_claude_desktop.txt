@@ -1,0 +1,882 @@
+================================================================
+RÉSUMÉ COMPLET — FORK IMMORTALWRT GL-MT6000
+Fichier de handoff destiné à un contexte Claude Desktop
+(autoportant : sans accès au repo ni au routeur)
+Date : 27/08/2026 — RÉVISÉ le 18/09/2026
+Utilisateur : Christophe (ingénieur réseau)
+================================================================
+
+Ce fichier résume l'état complet du projet. Les autorités de
+référence sont CLAUDE.md + resume_session_gl-mt6000.txt (racine du
+repo, jamais commités). Ce résumé et ces fichiers ne doivent JAMAIS
+être poussés/commités (aucune donnée personnelle dans le repo).
+
+⚠️ LECTURE : ce fichier a été écrit le 27/08 (firmware r40958, ère
+mqprio + qosify). Le §0 et le §4 décrivent l'état COURANT au
+18/09/2026 ; les §5 (DSCP streaming) et §6 (cake/qosify) sont
+désormais HISTORIQUES — ces chantiers ont été RETIRÉS du routeur les
+12/09 et 15/09/2026. Ne rien en réactiver.
+
+🔴 18/09/2026 : le shaper de référence est **SQM
+(`piece_of_cake.qos`)** — le script custom `cake-shaper` (15/09 →
+18/09) est **OBSOLÈTE** et à effacer ; la règle 10 a été **RÉÉCRITE**
+(l'ancien « JAMAIS SQM » est PÉRIMÉ). Détail au §0 et au §4.
+
+--------------------------------------------------------------
+0. CE QUI A CHANGÉ DEPUIS LE 27/08/2026 (à lire en premier)
+--------------------------------------------------------------
+Chronologie condensée — l'état courant est détaillé au §4 :
+
+- 09/09  : incident qdma_tx_rate ; leçon « node write-only ET
+           persistant » (lever les 16 caps après usage).
+- 12/09  : RETRAITS. `apk del qosify`, hotplug `13-mqprio`,
+           `cake-ctrl`, `qosify-dyn`, tout le marquage DSCP video,
+           les artefacts Option B, et le patch fw4 `003`
+           (Option B) SUPPRIMÉ DU REPO (`062a660b66`). Le commit
+           `ae6dece339` supprime le danger de flash : plus aucun
+           fichier de l'image ne fait `tc qdisc del dev eth1 root`.
+           ⇒ **mqprio, qosify, Option B et DSCP streaming sont MORTS.**
+- 12/09  : bascule QoS → **QosMate** (remplace la pile mqprio).
+- 14/09  : flash r41003-2cb9b122f9 (DSA flowtable roaming, PR#23123).
+- 15/09  : flash r41004-45fedb9c1b (`708-02` **v5**, PR#25174) ;
+           **QosMate DÉSINSTALLÉ par Christophe** le soir et remplacé
+           par un script custom **`/etc/init.d/cake-shaper`**
+           (egress `eth1` seul, `unlimited`, `ack-filter`).
+           L'AQM descente « (c) » (ifb) est **ABANDONNÉE sur mesure**
+           (−169 Mbps de download / −24 % pour +15 ms de latence
+           chargée) ⇒ **la descente n'est pas shappée**.
+- 16/09  : flash **r41005-20cb8de79f** (garde `thoff==0` du PR#24038
+           en `675-09`). Le soir : **retour au SFO** (l'option
+           `flow_offloading_hw` est RETIRÉE — la journée HFO du 15/09
+           est abandonnée, « meilleure config IPv6 trouvée
+           empiriquement ») ; **affinité IRQ manuelle abandonnée**
+           (`14-systune` supprimé → **`irqbalance`**) ; **IRQ 117
+           (WiFi mt7915e) bannie par son nom** (`--banmod=mt7915e`) et
+           **épinglée sur CPU0**, pin reposé à chaque boot par
+           `rc.local` (résolution du numéro PAR NOM) ; **Full Cone UDP
+           dynamique** pour tout le LAN (map `fc_map` dans
+           `/etc/firewall.user`).
+- 17/09  : **BBRv3** documenté (18 patches `010-bbr3-*` patchant
+           `tcp_bbr.c` in-place ⇒ `kmod-tcp-bbr` EST BBRv3 ; sentinelle
+           obligatoire `ss -ti` → `version:3` après chaque montée de
+           noyau) ; **les 3 sysctl de sockets locales essayés sont
+           TOUS revertés** le même jour (« revert tout ») puis
+           `/etc/sysctl.conf` remplacé par **la version de Christophe**
+           (`rp_filter=0` partout — son choix délibéré) ; et
+           **🔴 `packet_steering` a été DÉSACTIVÉ PAR CHRISTOPHE**
+           (motif verbatim : « ça fonctionne mieux avec SFO »).
+           ⛔ **PÉRIMÉ le lendemain** (cf. 18/09 : la clé est repassée
+           à `'2'`).
+- 18/09  : 🔴🔴 **REFONTE QoS — `SQM` (`piece_of_cake.qos`) DEVIENT LA
+           RÉFÉRENCE DE SHAPING ; `cake-shaper` est OBSOLÈTE et à
+           effacer.** Recette de datapath **validée post-reboot** par
+           Christophe : **GSO off sur TOUTES les interfaces + GRO on
+           `eth1` UNIQUEMENT + `packet_steering='2'` + SFO** ⇒ **WAN
+           > 1600 Mbps** et **IPv6 LAN OK**. Config SQM : `cake_mq`
+           root, `bandwidth 900Mbit`, `besteffort`, `triple-isolate`,
+           `nat`, `nowash`, **`no-ack-filter`**, `split-gso`,
+           `rtt 100ms`, `noatm`, `overhead 0`, `mpu 84`. Cela
+           **supplante** (a) le placement `GRO off` sur 5 interfaces du
+           17/09, (b) le `packet_steering` désactivé du 17/09 **et** le
+           garde-fou du 13/09 « ne pas le désactiver », (c) le
+           `ack-filter` du 15/09. ⚠️ **La règle 10 est RÉÉCRITE** :
+           l'ancien « JAMAIS SQM — décision définitive » est **PÉRIMÉ** ;
+           `qosify` / `mqprio` / `QosMate` = « **inutiles dans le
+           contexte actuel, pas interdits** ». ⚠️ La **liste
+           d'effacement** de `cake-shaper` (fichier + symlink
+           `/etc/rc.d`, `.bak-20260917-wifi`, entrée de
+           `/etc/sysupgrade.conf`, références dans
+           `99-reinstall-packages` et `rc.local`) est **consignée, pas
+           exécutée** : elle n'a pas été appliquée au routeur.
+           **Aucun SSH de ma part pour ce point** (règle 12).
+
+--------------------------------------------------------------
+1. CONTEXTE
+--------------------------------------------------------------
+- Fork ImmortalWrt (github.com/khristophe972-glitch/immortalwrt,
+  branche openwrt-6.18) pour routeur GL.iNet GL-MT6000 (MediaTek
+  MT7986A, Filogic 830, 4× Cortex-A53).
+- Repo local : ~/iwrt-2512/
+- Ligne : FTTH Free SAS, 5 Gbps down / 900 Mbps up.
+- Réseau : eth1 = WAN 2.5G ; br-lan = LAN 1G (192.168.8.x) ; 2e port
+  2.5G aussi en LAN. WAN local = 192.168.1.200.
+- Firmware actuel : **r41005-20cb8de79f** (FLASHÉ le 16/09/2026 par
+  Christophe, settings conservés, sysupgrade SANS -n), kernel 6.18.44.
+  ⚠️ Flash précédent : r41004-45fedb9c1b (15/09) ; r41003-2cb9b122f9
+  (14/09) ; cité plus bas dans l'historique : r40958 (26/08).
+- Branch tip : **20cb8de79f** — portage de la garde `thoff==0` du PR
+  openwrt#24038 en `675-09` (les suivants renumérotés → série de 14
+  patchs), **CI run 35027512595 VERTE**, POUSSÉ, FLASHÉ le 16/09.
+- IP publique : 82.65.116.152 (double NAT Freebox,
+  home9722.hd.free.fr).
+- Historique machine perdu en 2026-08 (réinstallation) — seuls
+  CLAUDE.md, resume_session_gl-mt6000.txt et ce fichier font foi.
+
+--------------------------------------------------------------
+2. ACCÈS
+--------------------------------------------------------------
+- Routeur SSH : root@192.168.8.1
+  IMPORTANT : ne JAMAIS utiliser 192.168.1.1 (no route).
+  🔴 **RÈGLE DU 12/09/2026 — TOUTE connexion SSH exige une autorisation
+  PRÉALABLE explicite de Christophe, MÊME EN LECTURE** (« tu me demandes
+  avant de te connecter au routeur »). Une fois l'action autorisée, c'est
+  l'agent qui l'exécute (« SSH direct ») — mais **jamais de connexion de
+  sa propre initiative pour « vérifier »** : si un fait live manque pour
+  écrire juste, le dire et demander.
+  Allow rules settings.local.json : Bash(sha256sum *), Bash(scp *),
+  Bash(ssh root@192.168.8.1 *). Identité git via `-c`
+  (user.name=khristophe972-glitch, user.email=khristophe972@gmail.com)
+  — jamais modifier git config.
+  ⚠️ Une allow-rule n'est PAS une autorisation : le push et la CI
+  restent interdits sans demande explicite (règle 3).
+- CI GitHub Actions : toujours via gh CLI avec
+  --repo khristophe972-glitch/immortalwrt, workflow_dispatch
+  uniquement (build ~4h15-4h25, workflow build.yml).
+- Sync upstream : workflow sync-upstream (réparé 23/08, permissions
+  actions+contents+issues en write).
+
+--------------------------------------------------------------
+3. RÈGLES DE TRAVAIL ABSOLUES (garde-fous, incidents passés)
+--------------------------------------------------------------
+1. DRY-RUN obligatoire avant toute compilation ou modification.
+2. Montrer le diff complet avant tout commit.
+3. Ne JAMAIS push/lancer CI sans demande explicite de l'utilisateur.
+4. Aucun test de charge (iperf3 pleine bande) sans accord préalable
+   (un test à 2.3 Gbps a rendu le routeur injoignable le 21/08 —
+   CPU0 100% softirq). Des tests encadrés ont ensuite été autorisés.
+5. Ne JAMAIS flasher avec sysupgrade -n (toujours garder les settings).
+6. Régime d'offload de référence = **SFO (SW offload)** — décision de
+   Christophe du 16/09/2026 au soir, qui ANNULE la bascule HW offload du
+   15/09. Après tout test touchant l'offload, revérifier avant de rendre
+   la main : `flow_offloading` = `'1'` **et** `flow_offloading_hw`
+   **ABSENTE ou `'0'`** (⚠️ le live porte l'option ABSENTE, pas `='0'` ;
+   c'est HFO qui se voit, par `flags offload` dans `nft list flowtables`).
+   Repasser en HW offload = décision explicite, jamais un effet de bord
+   d'un test.
+7. Ne télécharger AUCUNE source externe volumineuse (pas de clone, pas
+   de tarball kernel) — fichiers individuels uniquement
+   (raw.githubusercontent, API GitHub).
+8. Jamais d'apk upgrade global sur le routeur — apk add ciblés
+   uniquement (risque de perdre la clé de signature APK custom).
+9. JAMAIS de build de test firmware LOCAL — build UNIQUEMENT via CI
+   GitHub Actions (machine locale trop limitée, perte de temps).
+10. 🔴 **RÈGLE RÉÉCRITE LE 18/09/2026 — SQM (`piece_of_cake.qos`) EST LA
+    RÉFÉRENCE DE SHAPING.** L'ancienne forme ci-dessous est **PÉRIMÉE**
+    (elle interdisait ce qui est désormais l'état voulu), ne plus la citer :
+    ~~JAMAIS toucher/réactiver/proposer SQM (/etc/config/sqm) — décision
+    définitive et volontaire de l'utilisateur.~~
+    ⛔ **`cake-shaper` est OBSOLÈTE** — ✅ **traces EFFACÉES le 18/09/2026** (sur sa demande
+    explicite) ;
+    ⚠️ `qosify` / `mqprio` / `QosMate` = « **inutiles dans le contexte
+    actuel, pas interdits** ». Ne rien modifier de la config SQM sans
+    demande explicite de Christophe.
+11. Commandes données à l'utilisateur : une commande par ligne, à
+    coller en bloc dans un seul terminal — jamais de "&&", ";",
+    "echo ---" entre elles.
+12. Toute connexion au routeur (SSH) exige une autorisation PRÉALABLE
+    explicite de Christophe, MÊME EN LECTURE (12/09). Une fois autorisé,
+    c'est l'agent qui exécute (mode « SSH direct ») ; jamais de connexion
+    de sa propre initiative pour « vérifier ».
+13. CLAUDE.md, resume_session_gl-mt6000.txt, ce fichier : untracked,
+    JAMAIS commités.
+14. Méthode scientifique : toujours re-mesurer, confronter 2 mesures
+    indépendantes, documenter avant de conclure.
+15. Marqueur DSCP = additif pur, JAMAIS un allowlist/blocage.
+16. tc qdisc : utiliser `replace` (jamais `change`, qui échoue si la
+    file absente et peut réinitialiser silencieusement cake).
+17. En cas de symptôme réseau signalé = priorité + rollback sans
+    hésiter. Jamais laisser de mécanisme expérimental actif entre
+    sessions. Backup + rollback prêts avant tout test.
+18. Aucune opération DESTRUCTIVE ou IRRÉVERSIBLE sur une interface /
+    qdisc / device LIVE (ex. `ip link del`, `tc qdisc del`, déchargement
+    de module, restart de service non nécessaire) sans validation
+    explicite, présentée comme un RISQUE DE COUPURE réseau. Leçon du
+    11/09 : `ip link del ifb-eth1` a cassé le mirred ingress → download
+    tombé → reboot imposé.
+19. Aucun reboot ni interruption de service (coupure LAN/WAN, restart de
+    service critique, flash, changement d'offload) sans validation
+    explicite, À CHAQUE fois. Une autorisation « fais le » couvre l'action
+    demandée, jamais une coupure décidée à côté.
+20. Tout ajout de script / hotplug / édition de config sur le routeur DOIT
+    être suivi d'une sauvegarde documentaire (rôle, date, état, rollback)
+    ET d'un backup du fichier (`/etc/<fichier>.bak-<date>`).
+    ⚠️ Piège : `/sbin/hotplug-call` SOURCE tous les fichiers de
+    `/etc/hotplug.d/<subsys>/` ⇒ un `.bak` déposé là s'exécute aussi —
+    les backups vont HORS de ce répertoire.
+
+--------------------------------------------------------------
+4. ÉTAT COURANT AU 17/09/2026 (réécrit — l'état du 27/08 est au §4bis)
+--------------------------------------------------------------
+DATAPATH / OFFLOAD — **SFO (SW offload)**, régime de production depuis
+le 16/09/2026 au soir :
+- `firewall.@defaults[0].flow_offloading` = `'1'` et
+  **`flow_offloading_hw` ABSENTE** (pas `='0'`) ⇒ le forwardé repasse par
+  le fast path LOGICIEL ⇒ **`cake_mq` gouverne de nouveau le forwardé
+  WAN** et le CPU redevient dimensionnant sur ce chemin.
+- Flowtables : `ft` (table `inet fw4`, devices **br-lan + eth1**) et `fb`
+  (table `bridge fw4`, device **br-lan**), toutes deux `hook ingress
+  priority filter` — **aucun `flags offload`**.
+- C'est HFO qui se voit, par `flags offload` dans `nft list flowtables`.
+  Vérif : `uci show firewall | grep -i offload` doit rendre
+  `flow_offloading='1'` SEUL.
+- ⚠️ Ne PAS « remettre en conformité » : l'état est VOULU.
+
+SHAPER — 🔴 **SQM `piece_of_cake.qos`** (référence depuis le 18/09/2026 ;
+⛔ le script custom **`/etc/init.d/cake-shaper`** — propriétaire du root
+d'eth1 du 15/09 au 18/09 — est **OBSOLÈTE et à effacer**) :
+- **Config SQM active** : qdisc **`cake_mq` root**, **`bandwidth 900Mbit`**,
+  `besteffort`, `triple-isolate`, `nat`, `nowash`, **`no-ack-filter`**,
+  `split-gso`, **`rtt 100ms`**, `noatm`, `overhead 0`, `mpu 84`.
+- ⚠️ Deux écarts vs `cake-shaper` : **retour à `no-ack-filter`** (le
+  17/09 était passé à `ack-filter`) et **cap explicite `900Mbit`** au lieu
+  de `unlimited`.
+- **Ingress : AUCUNE AQM** — la descente est offloadée, non shappée.
+  L'AQM descente « (c) » (ifb) a été **ABANDONNÉE sur mesure** :
+  −169 Mbps de download (−24 %) pour +15 ms de latence chargée. Preuve
+  d'exclusion : un `TC_ACT_REDIRECT` de `sch_handle_ingress()` sort
+  AVANT `nf_ingress()` ⇒ AQM descente et offload descente sont
+  MUTUELLEMENT EXCLUSIFS.
+- ✅ `ifb0` et `ifb-eth1` **N'EXISTENT PLUS** (vérifié 16/09).
+- 🔴 **Effacement de `cake-shaper` — liste donnée par Christophe le
+  18/09/2026, CONSIGNÉE mais NON EXÉCUTÉE** (aucun SSH de ma part) :
+  `/etc/init.d/cake-shaper` + son symlink `/etc/rc.d`,
+  `/etc/init.d/cake-shaper.bak-20260917-wifi`, toute entrée
+  `cake-shaper` dans `/etc/sysupgrade.conf` et dans
+  `/etc/hotplug.d/iface/99-reinstall-packages`, toute référence dans
+  `rc.local`. ⇒ Si l'effacement est à faire, il doit être **demandé
+  explicitement** (règles 12/19/20).
+- ⛔ QosMate, mqprio, qosify : « **inutiles dans le contexte actuel, pas
+  interdits** » (ses mots, 18/09) — **ne rien installer de soi-même**.
+
+IRQ :
+- **`irqbalance`** (paquet DÉJÀ dans l'image ; `enabled`, tourne
+  `-f -c 2 -t 10`) gère les IRQ depuis le 16/09 ⇒ plus aucune affinité
+  IRQ manuelle (le hotplug `14-systune` a été SUPPRIMÉ du routeur et son
+  entrée retirée de `/etc/sysupgrade.conf`).
+- 🔴 **IRQ WiFi `mt7915e` (n° 117 au dernier relevé — le numéro N'EST PAS
+  stable) : bannie par son NOM** (`uci add_list
+  irqbalance.irqbalance.banmod='mt7915e'`) **et épinglée sur CPU0** — la
+  déplacer coûte 500+ Mbps de débit WiFi (mesuré). Le pin est reposé à
+  CHAQUE boot par `rc.local`, qui **résout le numéro par son nom** dans
+  `/proc/interrupts` (jamais en dur). Validé par reboot réel (16/09
+  23:30). ⚠️ Le script d'init d'`irqbalance` a dû être corrigé
+  (`--banmod=$1` en UN SEUL argv : `procd_append_param` ne découpe pas,
+  et `"-m mt7915e"` donnait un `optarg` à espace initial ⇒ ban
+  silencieusement inopérant) et ajouté à `/etc/sysupgrade.conf`.
+- ⚠️ Le placement des IRQ ethernet **N'EST PAS stable** (irqbalance
+  réattribue à chaque passe) — ne jamais conclure d'un relevé unique.
+
+🔴🔴 `packet_steering` (RPS) — **ÉTAT COURANT (18/09/2026) : `'2'`** — brique
+de la **recette validée post-reboot** (GSO off partout + GRO on `eth1`
+seul + `packet_steering='2'` + SFO ⇒ WAN > 1600 Mbps, IPv6 LAN OK) :
+- ⇒ `case '2'` du `.uc` : **`rps_cpus = f`** (les 4 CPUs) sur les files RX
+  d'eth1 (branche netdev, `cpu = -1` ⇒ `cpu_mask(-1)`).
+- ⚠️ Cela **renverse DEUX couches d'historique** — et **dément le brief de
+  la mission IRQ (e)** qui déclarait `'2'`/`rps_cpus=f` **INCOMPATIBLE avec
+  SFO** : (a) le **17/09 elle avait été DÉSACTIVÉE** par Christophe (motif
+  verbatim « ça fonctionne mieux avec SFO ») et (b) le **garde-fou du 13/09
+  « ne pas le désactiver »** (perte de débit majeure sans RPS eth1).
+  ⇒ **ne citer ni l'un ni l'autre** ; lire la date.
+- 🔎 Convergence : la mesure du **13/09** avait déjà trouvé
+  **SFO + `packet_steering='2'`** le meilleur download de la session
+  (~1800 Mbps, Grade A+).
+- ⚠️ **La forme exacte du « désactivé » du 17/09 n'a jamais été vérifiée**
+  (il a refusé de la préciser : « t'as rien a faire juste memorise
+  l'information ») — **sans objet depuis le 18/09**, la valeur live étant
+  `'2'`. ⚙️ Mécanique (`packet-steering.uc`) : seul `case '0'` pose
+  `disable = true` ⇒ `rps_cpus = 0` (et tous les CPU dans le taskset
+  NAPI) ⇒ **une clé simplement RETIRÉE ne désactive RIEN** (retour à
+  l'heuristique `rps_cpus = 1` sur eth1).
+- 📜 État d'AVANT (17/09) : « désactivé » par Christophe. Et avant lui
+  (16/09 → 17/09) : `'1'` (branche heuristique — `rps_cpus = 1` sur eth1,
+  `8` sur la WiFi, `0` sur `br-lan`, `rps_flow_cnt = 128`). Backup règle 20
+  : `/etc/config/network.bak-20260916-irq` (état `'2'`).
+
+AUTRES RÉGLAGES PERSISTANTS :
+- `rc.local` (dans `/etc/sysupgrade.conf`) : **`ethtool -L eth1 tx 16`**
+  (CRITIQUE), **BQL eth1 `limit_max 65536`**, **airtime fairness
+  `printf "3"`** sur `phy0`/`phy1`, et le **pin de l'IRQ WiFi par nom**.
+  Le détail (AQL/WMM, fq_codel eth0, `ecn_low`) : `systeme-routeur.md`.
+- 🔴 **RECETTE DATAPATH VALIDÉE POST-REBOOT (18/09/2026)** — c'est elle qui
+  a rendu SQM viable : **`GSO off` sur TOUTES les interfaces + `GRO on` sur
+  `eth1` UNIQUEMENT + `packet_steering='2'` + SFO** ⇒ **WAN > 1600 Mbps** et
+  **IPv6 LAN OK**. ⚠️ **SUPPLANTE le placement du 17/09** (`GRO off` sur
+  **5** interfaces : eth1, phy0-ap0, phy1-ap0, eth0, br-lan) — `eth1` est
+  repassée en **GRO ON**, la seule dans ce cas. 🔎 Cause de fond (fix
+  **trouvé par Christophe**, source **moeller0**, forum OpenWrt) : le GRO
+  agrège **en amont** d'`eth1` et le `split-gso` de cake ne défait pas ces
+  agrégats à lui seul ⇒ sans ce réglage, **débit IPv6 dégradé en SFO**.
+  ⇒ 🔴 **CELA RÉVISE « HFO est le seul moyen d'avoir un IPv6 décent » —
+  ne plus la reconduire.**
+- ⚠️ **LEÇON `/etc/rc.d` (toujours valable)** : `/etc/rc.d` n'est dans
+  **AUCUNE** liste de sauvegarde du `sysupgrade` ⇒ tout service **custom**
+  (script déposé à la main, possédé par aucun paquet apk) **perd son
+  symlink d'activation à chaque flash** (le fichier revient, l'`enable`
+  non). C'est ce qui est arrivé à `cake-shaper` au flash r41005. ⇒ Le vrai
+  état à sauver est le **couple (fichier + symlink)**, pas le fichier seul.
+- **AQL live = 7500 / 15000 / 12000** (choix VOLONTAIRE de Christophe,
+  relevé 16/09) — les valeurs plus basses citées ailleurs sont PÉRIMÉES.
+- **BBRv3** : un seul arbre noyau, patché in-place avant compilation
+  (`pending-6.18/010-bbr3-0001..0018`) ⇒ `kmod-tcp-bbr` **EST** BBRv3,
+  aucun module vanilla séparé. 🔴 **SENTINELLE OBLIGATOIRE après CHAQUE
+  montée de noyau** : `ss -ti` doit porter `version:3` + `bw_hi` +
+  `extra_acked` + `mode` + `phase`. ⛔ À **6.19+**, `pending-6.18` n'est
+  plus lu ⇒ BBRv3 disparaît SANS erreur (le sysctl dit toujours `bbr`) :
+  la sentinelle est le SEUL détecteur.
+- **WED** : la variante **MAINLINE** est ACTIVE en production
+  (`CONFIG_NET_MEDIATEK_SOC_WED=y`, `mtk_wed_add_hw`). L'overlay WED
+  non-mainline est ABANDONNÉ DÉFINITIVEMENT — ne plus retenter.
+  ⚠️ Le §4bis ci-dessous dit « WED abandonné » : c'était vrai du
+  *overlay*, pas du WED mainline.
+- **Sockets locales du routeur** : **RIEN n'est posé** — les 3 clés
+  essayées le 17/09 (`tcp_slow_start_after_idle`, `tcp_notsent_lowat`,
+  `tcp_mtu_probing`) ont été TOUTES revertées le même jour. Le
+  `/etc/sysctl.conf` live est **la version de Christophe** (42 l.,
+  `rp_filter=0` sur toutes les interfaces = son choix délibéré, à ne pas
+  « corriger »). Domicile durable d'un tel réglage = le
+  `/etc/sysctl.conf` LIVE (jamais l'homonyme du repo, écrasé au flash) ;
+  ⚠️ `sysctl -p` ne ramène PAS une clé retirée à son défaut ⇒
+  `sysctl -w` explicite. ⛔ `tcp_adv_win_scale` est OBSOLETE en 6.18.
+- **Full Cone UDP dynamique** (16/09, durable) : map `fc_map` dans
+  `/etc/firewall.user` (`type inet_service : ipv4_addr`, timeout 5m),
+  alimentée par toutes les sorties LAN et résolue à l'entrant — plus une
+  ligne `ct status dnat ... accept` (le DNAT et l'accept sont une PAIRE).
+  ⚠️ Limites : la clé est le PORT SEUL ; l'accept ne couvre que UDP.
+- **WiFi** : `interworking=1` + `qos_map_set` (UCI) ; radio1 **HE160**
+  (canal 128, DFS) — ne jamais repasser en HE80.
+- **Instruments durables** : hairpin + hairpin-route, dispatcher XDP sur
+  br-lan. ⛔ `cake-ctrl` et `qosify-dyn` ne sont PLUS des instruments
+  (retirés le 12/09). ⛔ **L'observatoire rtt-obs est HORS SERVICE et ne
+  sera PAS réparé** (décision 12/09) ; son log était en UTC (+2 h).
+- **DNS** (inchangé depuis le 27/08, détail conservé au §4bis) : dnsproxy
+  DoQ upstream QUAD9 (`quic://9.9.9.10:853`) ; split-DNS Freebox
+  `address=/home9722.hd.free.fr/192.168.8.1` + cname UCI ; PTR local
+  IPv6 WAN ; PTR IPv4 natif côté Free.
+
+CI : `build.yml`, **workflow_dispatch uniquement** (build complet
+ALL_KMODS + ALL_NONSHARED + DEBUG_INFO/BTF volontairement conservé —
+allègement EXPLICITEMENT REFUSÉ, ne plus reproposer). Aucune donnée
+personnelle dans les fichiers versionnés (audit 22/08).
+Patches : catalogue complet → `CLAUDE.md` (index) et
+`.claude/docs/patches-fork.md`.
+
+--------------------------------------------------------------
+4bis. HISTORIQUE — état du 26-27/08/2026 (r40957/r40958)
+--------------------------------------------------------------
+⛔ PÉRIMÉ : mqprio, qosify, Option B et le marquage DSCP streaming ont
+été RETIRÉS du routeur les 12/09 et 15/09/2026 (cf. §0). Conservé
+comme trace. Les blocs PATCHES CUSTOM, PATCH FIREWALL4, WED et FIXES
+SYSTÈME ci-dessous décrivent cette époque ; le DNS, l'infrastructure XDP
+et la CI y sont en revanche encore valables (repris au §4).
+PATCHES CUSTOM (ordre chronologique) :
+- 999-9920/9921/9922 (anciens) : RX performance (page pool XDP,
+  prefetch, glo_cfg).
+- 6 patches mt76 pesa1234 (lot initial) : 0007 DFS, 0013 tokens TX
+  DMA, 0020 RSSI DBDC, 0027 ADIE XO_08, 2016 fix UAF clé BIP, 9001
+  txq 32MiB.
+- RSS actif (patch 999-2711).
+- 4 nouveaux patches pesa1234 (portés 22-23/08, PUSHÉS, CI SUCCESS,
+  flashés) :
+  * 9999-17 : fix stranded frames TX scheduler (déjà mergé upstream).
+  * 999-9923 : fix spurious MDIO timeout.
+  * 999-9924 : per-MAC SGMII syscfg0 mask (GL-MT6000 = 2 MACs en
+    2500base-x : gmac0→MT7531, gmac1→RTL8221B).
+  * 9999-18 : fix kernel panic TX scheduling dual-band Wi-Fi 6
+    (ORPHELIN upstream, jamais mergé mt76 master — porté après
+    protocole de vigilance renforcée V1-V4). Bug confirmé sur notre
+    pin mt7915/MT7986A (dual-band non-MLO, 2 ieee80211_hw séparés).
+
+PATCH FIREWALL4 — OPTION B EXCLUSION FLOWTABLE (26/08, commit 6a8cf6a5ed) :
+- Patch 003-qosify-video-flow-exclusion.patch + service procd
+  qosify-flow-exclude (sync live 60s du set vidéo via `ubus call qosify
+  dump | jsonfilter -e '@.entries[@.dscp="video"].addr'`).
+- Principe : les flux vidéo (IP apprises par qosify, sets
+  qosify_video_v4/v6) restent en chemin LOGICIEL (marquage + CAKE) au
+  lieu d'être offloadés PPE → 4 règles accept (saddr/daddr × v4/v6)
+  AVANT `flow add @ft` dans la chaîne forward.
+- VALIDÉ POST-FLASH À L'ÉCHELLE (26/08, r40957) : map vidéo 86 IPs, sets
+  27 v4 + 30 v6, les 4 compteurs > 0 (v6 download 78 490 pkt / 703,7 MB
+  en chemin logiciel), flow_offloading_hw = 1 intact. Rien à corriger.
+- RE-VALIDÉ APRÈS FLASH r40958 (26/08 soir) : chaîne re-testée de bout
+  en bout (qosify-dyn + qosify-flow-exclude running, add_dns_host test →
+  video ✓, 32 patterns dns, sets repeuplés, 3.173.21.63 CloudFront appris
+  par trafic réel), flow_offloading_hw = 1. Le log "1 v6" de la sync était
+  un artefact `wc -l` sur map v6 vide (0 IP réelle) — pas un bug.
+
+WED : ABANDONNÉ DÉFINITIVEMENT (casse flow_offloading_hw=1, layout
+tokens WED différent entre upstream 4096/4096 et firmware WO MediaTek
+MT7986 8192HW/1024SW) — ne plus retenter, ne plus proposer.
+
+FIXES SYSTÈME CRITIQUES (persistants via /etc/rc.local) :
+⛔ PÉRIMÉ — cet état est celui du 26-27/08. Depuis : l'affinité IRQ
+manuelle (119-123 + XPS) a été ABANDONNÉE au profit d'`irqbalance` +
+le pin de l'IRQ WiFi par nom (16/09) ; `cake_mq` est posé par **SQM
+(`piece_of_cake.qos`, depuis le 18/09/2026 — `bandwidth 900Mbit`,
+`no-ack-filter`, `rtt 100ms`)** et non par `rc.local` ; les valeurs AQL
+sont 7500/15000/12000. État courant : §4.
+- IRQ spread : 119→CPU1, 120/121→CPU2, 122/123→CPU3 (fix bottleneck
+  CPU, incident critique du 21/08 : routeur injoignable sous iperf3).
+- XPS eth0 = f.
+- fq_codel sur eth0 (trafic clients câblés).
+- Tuning AQL WiFi (23/08) : aql_txq_limit_l/h=750 (4 AC, phy0+phy1),
+  aql_threshold=2500, fq_quantum=150 — gains upload latence/jitter,
+  léger compromis download (-7%).
+- cake_mq eth1 : bandwidth UNLIMITED, triple-isolate, ack-filter
+  (état définitif validé 25/08 — voir section 6).
+- qosify.br_lan désactivé (cake unlimited inutile sur br-lan).
+- dhcp.@dnsmasq[0].domain supprimé (fix "Android sans internet" sur
+  5GHz).
+- wireless.radio1.htmode = HE160 (canal 128, DFS — ne jamais repasser
+  à HE80 par erreur lors de changements de canal).
+- Fix hotplug 99-reinstall-packages (23/08, RE-COMMITÉ 26/08, FLASHÉ
+  r40958) : ajout de "sh /etc/rc.local" en fin de script — corrige
+  hostapd_cli "not found" + ré-applique les fixes d'rc.local (IRQ, AQL,
+  fq_codel, cake) à CHAQUE flash (le hotplug s'exécute après le rc.local
+  du boot).
+  ⚠️ FINDING 26/08 : ce fix (package-owned) avait été REVERTÉ par le
+  flash r40957 → re-commité `96c386f252` + POUSSÉ par l'agent (26/08,
+  auth git réparée au passage via `gh auth setup-git` — ~/.gitconfig
+  recréé avec credential helper gh) + CI run #32960497040 SUCCÈS.
+  ✅ VALIDÉ À L'ÉCHELLE par le flash r40958 (26/08 ~17:02) : 31 paquets
+  réinstallés (hostapd_utils etc.), puis re-run rc.local → cake
+  unlimited, IRQ spread, AQL 750, fq_codel, hostapd_cli set, qosify
+  restart — TOUS appliqués post-boot. Le fix est DURABLE.
+- hostapd_cli RÉPARÉ (26/08) : `hostapd-utils` apk-addé + ajouté à
+  /etc/persistent-packages.list (réinstallé à chaque flash). Tweaks TX
+  data2 (aifs 1 / cwmin 7 / cwmax 15 / burst 0, phy0+phy1) ré-appliqués
+  post-flash r40958 par le re-run rc.local du hotplug (set OK via
+  hostapd_cli — ce build ne supporte pas `get`, vérif par set OK
+  uniquement).
+- PERSISTANCE qosify-dyn CORRIGÉE (26/08 soir, flash r40958) :
+  ⚠️ FINDING : le backup /etc/qosify-dyn-backup/ (répertoire custom
+  NON-package) NE SURVIT PAS au flash — sysupgrade ne restaure que les
+  conffiles de packages + le contenu de /etc/sysupgrade.conf. La
+  simulation (masquage fichiers) était TROMPEUSE.
+  → CORRECTION : `/etc/qosify-dyn-backup/` AJOUTÉ à /etc/sysupgrade.conf
+  (mécanisme officiel) + restauration manuelle ce flash (backup local
+  /tmp/recover-qosify-dyn/ → scp → 3 fichiers installés : qosify-dyn.sh,
+  init qosify-dyn, 20-streaming.conf + enable + start). Le bloc rc.local
+  (lignes 26-34, idempotent) restaurera qosify-dyn AUTO au prochain
+  flash une fois le backup restauré par sysupgrade. Nota : 20-streaming.conf
+  restauré APRÈS le qosify restart du rc.local → qosify redémarré à la
+  main pour charger les 16 domaines (testé : add_dns_host googlevideo →
+  video ✓).
+
+DNS :
+- dnsproxy DoQ upstream : QUAD9 — quic://9.9.9.10:853 (unfiltered) +
+  quic://149.112.112.10:853 (IP directe). Sauvegardes :
+  /etc/config/dnsproxy.bak.20260823 et ...-quad9ip.
+- Split-DNS Freebox : address=/home9722.hd.free.fr/192.168.8.1 dans
+  /etc/dnsmasq.conf + cname UCI home9722.hd.free.fr→immortalwrt.home
+  (répond en A ET AAAA).
+- PTR local IPv6 WAN (22/08) : ptr-record → "immortalwrt.wan6.lan"
+  (nom local uniquement, PAS de délégation publique possible chez Free
+  pour ce préfixe dynamique). Nécessite restart complet dnsmasq (pas
+  juste reload/HUP).
+- PTR IPv4 (82.65.116.152 → home9722.hd.free.fr) : natif côté Free,
+  chaîne de délégation saine et vérifiée.
+
+INFRASTRUCTURE XDP (dispatcher libxdp sur br-lan) :
+- Slot 40 : xdp_hairpin_nat (hairpin custom, XDP_PASS).
+- Slot 50 : xdp_fwd_flow_full (xdp-forward mode flowtable, XDP_PASS).
+- Daemon hairpin-route (Rust, extrait de einat-ebpf) actif en procd :
+  --wan eth1 --lan br-lan --table 100 --protocols tcp,udp
+  --gateway-mac <MAC Freebox>.
+
+CI GitHub Actions (build.yml, workflow_dispatch uniquement) :
+- Build complet volontairement conservé (ALL_KMODS + ALL_NONSHARED +
+  DEBUG_INFO/BTF) — allègement proposé puis EXPLICITEMENT REFUSÉ, ne
+  plus reproposer. BTF/pahole actif, ccache fonctionnel.
+- RUN #32960497040 (26/08) : SUCCÈS (10:53Z→14:22Z) — firmware = patch
+  003 + fix hotplug, FLASHÉ en r40958 (26/08 ~17:02). Retour à
+  workflow_dispatch uniquement.
+- Sécurité : audit complet 22/08 (git grep + git log --all -p) —
+  AUCUNE donnée personnelle dans les fichiers versionnés. Repo sain.
+
+--------------------------------------------------------------
+5. HISTORIQUE — CHANTIER DSCP STREAMING (validé 25/08 → RETIRÉ)
+--------------------------------------------------------------
+⛔ **CE CHANTIER N'EXISTE PLUS.** Décision du 12/09/2026 : `apk del
+qosify`, retrait du hotplug `13-mqprio`, de `cake-ctrl`, de `qosify-dyn`
+et de TOUT le marquage DSCP video ; artefacts Option B supprimés ; et le
+**patch fw4 `003` (Option B) retiré du repo** (`062a660b66`). Vérifié
+dans r41003 : le paquet `qosify` n'est plus dans l'image et les 5
+fichiers destructeurs sont tous absents.
+⛔ **Ne rien réactiver, ne rien reproposer.** Le texte ci-dessous est
+conservé comme trace technique (il explique pourquoi le marquage DSCP
+n'a jamais été fiable sur ce datapath : le PPE rend le bulk en DMA et la
+FOE n'a aucun champ DSCP).
+OBJECTIF (décision Christophe 25/08, élargi 26/08) : prioriser en QoS
+le trafic de 16 domaines streaming (googlevideo, youtube, netflix,
+nflxvideo, disneyplus, bamgrid, primevideo, hbomax, max.com,
+paramountplus, mycanal.fr, canal-plus.com, canalplus-cdn.net,
+dssedge.com, paramountplus.map.fastly.net, cloudfront.net).
+Marquage DSCP AF41 (0x22, classe qosify "video"). Marqueur additif pur
+— JAMAIS un allowlist ; le reste du trafic fonctionne exactement comme
+avant. Ne pas élargir le périmètre sans décision explicite.
+
+MÉCANISME :
+- Classification 100% eBPF (qosify, libbpf) + tc/cake (libnl-tiny).
+  qosify n'utilise AUCUN libmnl/libnftables/nft CLI → immunité totale
+  à la fuite mémoire dnsmasq/nftset (voir incidents).
+- Patterns DNS → capture des réponses → IP apprises dans map BPF
+  kernel (timeout=TTL, rafraîchies par trafic actif via
+  qosify_map_entry_refresh_timeout) → eBPF classify réécrit le champ
+  DS (ingress: saddr=download, egress: daddr=upload).
+- Format patterns : `dns:<pattern>` ; fnmatch ; `*.googlevideo.com` NE
+  matche PAS l'apex → prévoir les 2 lignes (c'est fait : 24 lignes
+  `dns:<domaine>` + `dns:*.<domaine>` dans
+  /etc/qosify/20-streaming.conf). 10-test.conf SUPPRIMÉ.
+
+DÉPLOIEMENT PROD (25/08, 06:18) — ACTIF :
+- /etc/qosify/20-streaming.conf : 12 domaines (apex + sous-domaines)
+  → video.
+- /etc/dnsmasq.conf : la ligne
+  server=/googlevideo.com/.../canal-plus.com/9.9.9.10 a été
+  SUPPRIMÉE le 26/08 → les 12 domaines repassent en DoQ dnsproxy
+  (127.0.0.1#5335, vie privée restaurée, vérifié : `forwarded
+  www.primevideo.com to 127.0.0.1#5335`).
+- Miroir DNS : le filtre tc eth1 sport-53 → ifb-dns (u32,
+  + VLAN/IPv6) reste EN PLACE mais est INACTIF (l'apprentissage ne
+  passe plus par lui). Ne plus compter dessus pour la couverture —
+  il n'apprend pas les IP dont le nom ne matche aucun pattern dns:
+  (limite structurelle, vérifiée 26/08 avec cdn.perf1.com).
+- cake eth1 : mode diffserv8 (rtt 20ms ack-filter triple-isolate),
+  bandwidth unlimited (voir section 6).
+- qosify-dyn (REFONDU le 26/08) : daemon procd (1 instance reader,
+  respawn) qui lit logread -f -e dnsmasq (log-queries=extra, déjà
+  actif) et pousse chaque réponse dont le nom matche DOMAINS via
+  `ubus call qosify add_dns_host {name,type,address,ttl}` (A/AAAA
+  inférés ; lignes `reply` ET `cached` prises en compte — cached =
+  re-rafraîchit le TTL). Plus de 30-dynamic.conf, plus de STATE, plus
+  de reload → les compteurs de la map ne se réinitialisent plus.
+  Entrées = user:true, TTL 7200 décompté 1:1 par qosify, expirent à 0
+  (rafraîchies par re-résolution + trafic actif). Les patterns dns:
+  de 20-streaming.conf sont le gate autoritaire (un nom sans pattern
+  = ignoré silencieusement). Vérifié end-to-end : IP www.primevideo.com
+  18.245.177.154 apprise en video, TTL 7198 → cache-hit → 7198.
+  Fichiers : /usr/sbin/qosify-dyn.sh (reader uniquement, DOMAINS+TTL
+  en tête), /etc/init.d/qosify-dyn (1 instance). Backups : .bak.20260826
+  sur les 2 fichiers. /etc/qosify/30-dynamic.conf et
+  /var/run/qosify-dyn.state SUPPRIMÉS (plus utilisés).
+  ⚠️ PERDU AU FLASH r40957 (26/08, fichiers package-owned) → RÉCUPÉRÉ
+  depuis le transcript + RÉINSTALLÉ (~12:32) + PERSISTANCE durable :
+  /etc/qosify-dyn-backup/ + bloc rc.local (lignes 26-34). Après le flash
+  la map vidéo était VIDE → repeuplée à 86 IPs (nslookups forcés +
+  trafic réel Fire TV).
+  ⚠️ PERDU À NOUVEAU AU FLASH r40958 (26/08 soir) : le backup /etc custom
+  ne survit pas au flash réel (simulation trompeuse) → restauré
+  manuellement + PERSISTANCE VRAIMENT CORRIGÉE via /etc/sysupgrade.conf.
+  Chaîne re-validée post-flash r40958 (voir section 4).
+
+⚠️ ARTEFACT CRITIQUE DE MESURE (découvert par re-mesure 25/08) :
+tcpdump -i eth1 montre les paquets INGRESS AVANT le hook tc ingress
+(pré-tc, dscp 0x00) mais les paquets EGRESS APRÈS tc egress (post-tc).
+Preuve : download forwardé 152.89.172.56 → client, capture eth1 (0x0)
+vs br-lan (0x88). RÈGLE DE MESURE : téléchargements = capturer sur
+br-lan (egress vers clients, post-tc) ; uploads = eth1 egress
+(post-tc). Ne JAMAIS conclure d'un tos observé sur eth1 ingress.
+Mécanisme probable : chemin RX mtk_eth_soc (page pool/XDP) délivrant
+au packet socket avant le stack/tc. Attention aussi : le dispatcher
+XDP sur br-lan (xdp_fwd_flow_full) bypass la capture br-lan → seuls
+les premiers paquets de chaque flux y sont visibles (le bulk est
+marqué aussi).
+
+VALIDATION (25/08) :
+- Re-mesure corrigée (08:15) : COUVERTURE 100% sur IP présentes dans
+  la map (br-lan : 6 IP CDN toutes tos 0x88). La "couverture partielle
+  ~25%" du 06:45 était un artefact (eth1 ingress pré-tc), FAUSSE.
+- CONFIRMATION SESSION YOUTUBE RÉELLE (08:20, appareil
+  192.168.8.148, captures simultanées eth1+br-lan 2×240 s) : uploads
+  591 paquets AF41 (dscp 0x22) vers les 3 IP Google de ipv6_map ;
+  downloads br-lan 49/49 marqués = 100% (IPv6 10/10 + IPv4 39/39
+  depuis 142.251.x.4). class_map classe vidéo (key 2) = 13325
+  paquets/7 Mo. Non marqués = IP absentes de la map à l'instant T
+  (best-effort connu — map-expiry, PAS une régression).
+- La vraie limite restante = map-expiry (une IP expirée du timeout
+  actif n'est pas remarquée au retour) — c'est ce que qosify-dyn
+  corrige réellement (TTL 7200 sur les entrées apprises, rafraîchies
+  par re-résolution + trafic actif).
+
+DÉCOUVERTE STRUCTURELLE (26/08) — CDN TIERS (le verrou = PÉRIMÈTRE) :
+- log-queries=extra : pour une chaîne CNAME, dnsmasq logue l'alias en
+  `reply <alias> is <cible>` (littéral) ET les A records de la cible
+  en lignes séparées : `reply/cached cdn.perf1.com is 152.89.172.56`.
+- Le miroir tc N'apprend PAS les IP de cibles CDN tierces (testé :
+  cdn.perf1.com jamais appris malgré DNS clair + miroir actif — le
+  parseur qosify exige que le nom de la réponse matche un pattern
+  dns:). → Le levier de couverture = la liste DOMAINS + les patterns
+  dns:, PAS le mécanisme.
+- Étude des 12 services : seuls YouTube (googlevideo.com) et Netflix
+  (nflxvideo.net) servent la vidéo depuis leurs propres CDN (couverts).
+  Canal+ (akamaized.net confirmé pour la vidéo + cdn.perf1.com pour
+  www), Paramount+ (akamaized + cbsivideo.com), Disney+ (dssott.com),
+  Prime (hypothèse aiv-cdn.net — INFIRMÉE 26/08 : la vidéo passe en fait
+  par CloudFront via chaîne amazonvideo.com, cf. bloc ci-dessous)
+  passent par des CDN tiers hors des 12 domaines
+  → TROUS de couverture connus, non mesurés.
+- ÉLARGISSEMENT CANAL+ FAIT (26/08, décision Christophe) : `canalplus-cdn.net`
+  ajouté à DOMAINS + patterns (apex + `*.canalplus-cdn.net`) → 13 domaines
+  (périmètre porté à 14 le même jour par dssedge.com, ci-dessous).
+  Backups .bak.20260826. Vérifs session réelle 26/08 (Fire TV 192.168.8.148) :
+  - Gate validé end-to-end (IP edge apprise video, timeout 7200).
+  - MARQUAGE AU FIL PROUVÉ (capture br-lan -v) : les SYN-ACK des edges
+    apprises :43 et :36 arrivent au client avec `class 0x88` = AF41 →
+    download Canal+ marqué. Dump : 6 IP apprises (2a05:bd40:d13:1e02:...:26,
+    :27, 1e03:...:33, :36, :42, :43) = le reader pousse bien les
+    résolutions réelles. Uploads non marqués sur br-lan = pré-egress eth1
+    (attendu, règle de mesure).
+  - TROU AKADNS OBSERVÉ MAIS NON PORTEUR (constat :44) : le player s'est
+    connecté à 2a05:bd40:d13:1e03:185:86:252:44 (forme akadns,
+    `...canalplus-cdn.net.akadns.net` → IP 185.86.252.28/.44/.60/.12),
+    IP REFUSÉE par le gate fnmatch `*.canalplus-cdn.net` (nom finit par
+    .akadns.net) → non apprise. MAIS conntrack à l'instant T : UN SEUL
+    flux actif → :33 (edge p-cdnlive apprise, ~62 Mo download,
+    HW_OFFLOAD) = la vidéo bulk passe par les edges apprises. :44 absente
+    de conntrack = connexion de contrôle éphémère, AUCUN volume vidéo →
+    le pattern minimal suffit, PAS d'élargissement maintenant.
+  - SURVEILLANCE : si un jour la vidéo passe par la forme akadns (IP
+    non apprises + volume réel observé), élargir à `dns:*canalplus-cdn.net*`
+    (fnmatch « contient », couvre les 2 formes sans toucher aux autres
+    domaines Akamai). Décision akamaized = séparée (cf. ci-dessous).
+- ÉLARGISSEMENT DISNEY+ FAIT (26/08, décision Christophe) : session
+  réelle Fire TV (00:51-00:52) → hostnames vidéo `vod-*.media.dssott.com`
+  CNAME vers 2 CDN : `*.dssedge.com` (Akamai, domaine DÉDIÉ Disney
+  Streaming Services) + `dss.map.fastly.net` (Fastly). Conntrack : vidéo
+  ~284 Mo download via `2a0e:bbc0:8007:4:8000::11` (varnish08 dssedge),
+  Fastly résolu mais NON porteur pour Disney. → `dssedge.com` ajouté à
+  DOMAINS + patterns (apex + `*.dssedge.com`) → 14 domaines. Backups
+  .bak.20260826-dssedge. Gate validé (add_dns_host `varnish08-...dssedge.com`
+  → IP apprise).
+- ÉLARGISSEMENT PARAMOUNT+ FAIT (26/08, décision Christophe) : session
+  réelle Fire TV (00:59-01:01) → `sparrow.intl.paramountplus.com` → CNAME →
+  `paramountplus.map.fastly.net` (Fastly, sous-domaine `map.fastly.net`
+  DÉDIÉ à Paramount) → 199.232.169.91 / 2a04:4e42:6a::347. Conntrack :
+  vidéo massive via Fastly v6 (`2a04:4e42:6a::444` ~22 Go + `::347` ~345 Mo
+  download) → trou CONFIRMÉ (Fastly = CDN PRINCIPAL de Paramount, contraire
+  à Disney). `saa.paramountplus.com` → adobedc.net = Adobe Analytics, pas
+  la vidéo. → `paramountplus.map.fastly.net` ajouté à DOMAINS + patterns
+  (apex + `*.paramountplus.map.fastly.net`) → 15 domaines. Backups
+  .bak.20260826-pplus. Gate validé (add_dns_host → IP `2a04:4e42:6a::347`
+  apprise). Scoped Paramount (PAS « tout Fastly » : le pattern ne matche
+  que paramountplus.map.fastly.net, pas les autres clients fastly.net).
+  Décision « tout fastly.net » = séparée, à Christophe.
+- ÉLARGISSEMENT PRIME/CLOUDFRONT FAIT (26/08, décision Christophe) :
+  session réelle Fire TV (01:04-01:06) → chaîne CNAME de lecture
+  `avpk-*.zaz.api.amazonvideo.com` → `d001.zaz.prod.t300.ter.int.amazonvideo.com`
+  → `t300-weighted.c001.cfzaz.prod.t300.ter.int.amazonvideo.com` →
+  `d1b402l3mw86j5.cloudfront.net` (CloudFront, AAAA 2600:9000:273b:...).
+  PARTICULARITÉ : le nom final est un hostname CloudFront HASHÉ (par
+  distribution), PAS un sous-domaine Amazon-scoped → aucun nom scoped
+  possible (`dns:amazonvideo.com` ne matche pas : le gate porte sur le
+  nom du CNAME final). Seule option = catch-all GLOBAL `dns:cloudfront.net`
+  (apex + `*.cloudfront.net`) → 16 domaines. DÉCISION GLOBALE assumée
+  (Christophe 26/08) : marque TOUT le trafic CloudFront de tous les
+  appareils comme vidéo (amazon.com, S3/downloads, assets web inclus) —
+  contraire aux 3 élargissements scoped précédents. Backups
+  .bak.20260826-cloudfront. Gate validé (add_dns_host
+  `d1b402l3mw86j5.cloudfront.net` → IP apprise dscp=video, user=true).
+  ⚠️ PREUVE DE VOLUME CONNTRACK NON CAPTURÉE (flux 1 min expiré avant le
+  dump) : la structure DNS + le gate suffisent pour le mécanisme, mais la
+  CONFIRMATION SESSION RÉELLE Prime (IP apprises au fil + marquage AF41)
+  reste À FAIRE au prochain playback. Non-vidéo observé (NE PAS ajouter) :
+  m.media-amazon.com / media.amazon.map.fastly.net (images),
+  avsxappcaptiveportal.com (captive portal), telemetry.insights.video.a2z.com
+  / unagi-* / vidaahub (télémétrie), unruly.co (pub).
+- CONFIRMATION SESSION YOUTUBE RÉELLE (26/08, ~01:37, Fire TV
+  192.168.8.148) → MARQUAGE AU FIL CONFIRMÉ (br-lan 45s, filtre
+  `ether host cc:12:28:9d:d6:dd`) : `tos 0x88` (AF41) sur download du CDN
+  vidéo actif 142.251.151.4 (QUIC UDP length 26 = contrôle, 3 paquets) +
+  1 paquet TCP IPv6 2001:4860:482b:400:: → FireTV (class 0x88). Les 123
+  non-marqués = contrôle/LAN/multicast/upload-pré-egress (LAN .229, SSDP,
+  mDNS, routeur, 43.157.x) → AUCUN paquet vidéo download classifié non
+  marqué. IP 74.125.105.200/173.194.3.10 de la session précédente : 0
+  occurrence = nodes au repos (map toujours OK, pas un bug).
+  ⚠️ LIMITE STRUCTURELLE NOUVELLE (26/08, source-vérifiée) : les flux
+  vidéo bulk étaient [HW_OFFLOAD] (PPE) → invisibles sur br-lan ET non
+  marqués. mtk_eth_soc upstream : la FOE normale n'a AUCUN champ DSCP
+  (le seul `u8 dscp` = mtk_foe_ipv6_6rd tunnels 6rd, jamais écrit ;
+  `MTK_FOE_IB2_DSCP` jamais utilisé dans mtk_ppe.c/offload.c) → le PPE
+  forwarde en dur avec le TOS d'origine (0x0 côté CDN). La session 25/08
+  (100%, bulk length 1250 tos 0x88 capturé) passait par le chemin
+  logiciel/flowtable XDP (post-marquage eth1 ingress) ; le 26/08 le PPE a
+  pris les flux → seuls les starts de flux (4 connexions) restent
+  marqués + visibles. Marquage effectif = dépend de la voie (logiciel vs
+  PPE), variable par flux/session. Aucune modif config (flow_offloading_hw
+  inchangé = 1). Option technique si un jour voulu (NON proposée) :
+  câbler FOE ib2 dscp dans mtk_eth_soc (build CI + flash).
+- CONFIRMATION SESSION RÉELLE PRIME (26/08, ~01:50-01:52, Fire TV
+  192.168.8.148) → À FAIRE "IP apprises au fil + marquage AF41" CLOS.
+  Capture br-lan 180s (filtre MAC FireTV) + logread pendant playback Prime
+  (player au menu/chargement : résolutions + SYN-ACK périodiques, pas de
+  bulk actif dans la fenêtre). DNS : résolutions répétées de
+  `d1b402l3mw86j5.cloudfront.net` → edges v6 2600:9000:2035:... (dans la
+  map) + v4 3.165.190.{46,79,100,117}. → 4 SYN-ACK de connexions vidéo
+  Prime (2600:9000:2035:5600/ea00/6400) arrivent au client `class 0x88`
+  (AF41) + 2 paquets YouTube résiduels → download CloudFront MARQUÉ au
+  fil. Exclusions correctes (résolues NON apprises) : telemetry.insights.
+  video.a2z.com, avsxappcaptiveportal.com. Trou vod-dash (pv-cdn.net) NON
+  manifesté cette session (0 résolution *.main.amazon.pv-cdn.net — chemin
+  cloudfront.net pris). ET : 18.244.28.{9,50,104,117} (edges v4 vod-dash,
+  plage CloudFront 18.244.0.0/18) SONT dans la map — apprises via une
+  résolution à nom cloudfront.net (impossible via nom pv-cdn, gate fnmatch)
+  → catch-all CloudFront couvre déjà le v4 vod-dash. v6 2600:9000:262b
+  absent mais non utilisé. → DÉCISION pv-cdn.net : NE PAS ajouter pour
+  l'instant (surveillance : bulk sur 262b non marqué lors d'un playback →
+  ajouter pv-cdn.net). Conntrack IPv6 FireTV vide après session + logread
+  vide pour 18.244.28|262b (événement hors ring buffer, entrées maintenues
+  par trafic actif) — non probants, les SYN-ACK marqués suffisent.
+- CONFIRMATION SESSION RÉELLE PRIME BULK (27/08, ~03:58-04:02, Fire TV
+  192.168.8.148) → marquage au fil PROUVÉ sur download réel : 52 paquets
+  AF41 capturés sur br-lan (post-tc) vers la Fire TV, depuis les edges
+  DANS le set — v6 2600:9000:2035:d400/ee00/7400/8000 (45 pkt class
+  0x68) + 2 pkt Google 2001:4860:4827 + v4 18.245.175.43 edge
+  CloudFront/vod-dash (7 pkt tos 0x88). Flux actifs en chemin logiciel
+  (compteurs accept croissent), edges appris en direct (map 178→231 IPs).
+  → DÉCISION pv-cdn.net DÉFINITIVE : NE PAS ajouter (0 résolution
+  *.pv-cdn.net, chemin cloudfront.net pris, ranges vod-dash v4 18.244.28.x
+  + v6 262b déjà dans le set via catch-all).
+  ⚠️ LIMITE STRUCTURELLE CONFIRMÉE EN RÉEL : un flux v6
+  2600:9000:203b:...:93a1 → Fire TV (27→110 Mo PPE, en décroissance) est
+  OFFLOADÉ PPE — cet edge jamais appris dans la map (connexion longue
+  durée hors fenêtre de résolution) → pas dans le set → pas exclu → non
+  marqué. PAS une régression (limite connue apprentissage DNS +
+  map-expiry) ; aucun pattern de plus ne corrige (nom non vu par le
+  reader). Vigilance : si le bulk PRINCIPAL d'un playback passe un jour
+  par un edge jamais appris, le marquage échouera pour la session.
+  Effets de bord catch-all : AUCUN (backlog 0, +2 drops sur la fenêtre,
+  pas d'engorgement de classe). flow_offloading_hw=1 revérifié.
+- AUTRES SERVICES : toujours en observation (option 3). Pendant les
+  sessions réelles, lire logread (tout y passe) pour lister les VRAIS
+  domaines CDN → décider l'élargissement avec preuves. NE PAS élargir
+  unilatéralement. Décision akamaized (marquer tout Akamai) = séparée,
+  au choix de Christophe.
+
+- OPTION B FLOWTABLE (26/08, conséquence du chantier) : face au constat
+  « bulk offloadé PPE non marqué » (FOE sans champ DSCP), la solution
+  retenue = garder les flux vidéo en chemin logiciel par exclusion
+  (patch 003 firewall4 + service qosify-flow-exclude, set IP saddr/daddr
+  v4/v6 avant `flow add @ft`). VALIDÉ post-flash à l'échelle (voir
+  section 4). flow_offloading_hw inchangé = 1.
+
+INCIDENTS PASSÉS (à connaître pour ne pas les refaire) :
+- Incident 1 (22/08) — connmark-allowlist dnsmasq ÉCARTÉ
+  DÉFINITIVEMENT : mécanisme allowlist STRICT (domaine non matché =
+  REFUSED), a bloqué TOUT internet.
+- Incident 2 (24/08) — nftset dynamique dnsmasq RETIRÉ DÉFINITIVEMENT
+  (fuite mémoire CONFIRMÉE 25/08 : VmRSS 1,2→132 Mo en <1 min sur
+  instance isolée, contrôles plats ; signature : allocation unique
+  ~128-132 Mo dans le heap, jamais libérée). qosify immunisé (pas de
+  libnftables). dnsmasq fork = 2.93 = dernière version, pas de fix
+  disponible.
+
+VERIFICATIONS ÉTAT ACTIF (après tout changement) :
+⛔ PÉRIMÉ — cette liste est celle du 27/08. Elle est FAUSSE aujourd'hui :
+`flow_offloading_hw` doit être **ABSENTE** (SFO), il n'y a plus ni
+`qosify-flow-exclude`, ni `qosify`, ni `qosify-dyn`, ni sets
+`qosify_video_*`, ni maps BPF de classification. Les vérifications
+valides sont au §4 (SFO + flowtables sans `flags offload`, **SQM
+`piece_of_cake.qos` actif**, `irqbalance` + pin IRQ 117, sentinelle BBRv3
+`ss -ti`).
+
+--------------------------------------------------------------
+6. HISTORIQUE — ÉTAT CAKE/QOSIFY du 25/08 (⚰️ qosify RETIRÉ le 12/09)
+--------------------------------------------------------------
+⛔ **PLUS D'ACTUALITÉ.** `qosify` et QosMate ont été désinstallés (12/09
+et 15/09/2026) ; le shaper de référence est **SQM `piece_of_cake.qos`**
+depuis le **18/09/2026** (le script intermédiaire `cake-shaper`,
+15/09 → 18/09, est **OBSOLÈTE**) — voir le §4.
+⚠️ CE QUI RESTE VRAI et mérite d'être connu :
+- ⚠️ **MAJ 18/09/2026 : `bandwidth unlimited` n'est PLUS l'état courant** —
+  le root d'eth1 porte désormais un **cap explicite `bandwidth 900Mbit`**
+  (SQM). Le point ci-dessous ne vaut que pour l'ère qosify/QosMate/
+  `cake-shaper` : **à cette époque**, `unlimited` était l'état VOULU
+  (décision Christophe 25/08, entérinée) — ne PAS le flaguer comme un
+  écart, ne pas proposer de workaround `tc 880mbit`, ne pas « corriger ».
+- `RTT` est une valeur **numérique SANS unité** dans les configs de type
+  QosMate (`'7'` ⇒ `rtt 7ms` ; `'7ms'` ⇒ `rtt 7msms` ⇒ cake refuse).
+- Un `tc qdisc replace` SANS attribut `bandwidth` **ne retire pas** un
+  rate déjà posé (`cake_config_change()` ne réécrit `rate_bps` que si
+  l'attribut est présent) : seuls un `del`+`add` ou un reboot l'enlèvent.
+- cake eth1 = bandwidth UNLIMITED : état de production ACCEPTÉ et
+  définitif (décision Christophe 25/08). C'est un état voulu.
+- Le paramètre bandwidth_up est IGNORÉ silencieusement par le daemon
+  qosify (version 2026.06.22) : `option bandwidth_up '880mbit'` est
+  BIEN PRÉSENT dans /etc/config/qosify (config device eth1) mais n'est
+  pas appliqué — le cake runtime reste unlimited. Bug connu, accepté.
+- NE PAS réappliquer de workaround tc 880mbit. Ne pas proposer de le
+  "corriger". Ne pas flaguer unlimited comme un écart.
+- /etc/rc.local impose la valeur au boot (après restart qosify) :
+    tc qdisc replace dev eth1 root cake_mq bandwidth unlimited
+    diffserv8 triple-isolate nonat nowash ack-filter split-gso rtt
+    20ms raw overhead 0 memlimit 32Mb
+  (backup : /etc/rc.local.bak.20260825 ; utiliser `replace` jamais
+  `change`).
+- Le hotplug /etc/hotplug.d/iface/12-cake-bw n'existe plus (vérifié
+  25/08). La persistance passe uniquement par rc.local + hotplug
+  99-reinstall-packages.
+- Historique (pour contexte) : l'ancien workaround 880mbit exigeait
+  de TOUJOURS spécifier toutes les options — un change partiel
+  réinitialisait cake en diffserv3/rtt100ms silencieusement.
+- État après reboot attendu (à l'époque) : cake unlimited appliqué par
+  rc.local. ⛔ **PÉRIMÉ au 18/09/2026** : le root d'eth1 est posé par
+  **SQM** (`bandwidth 900Mbit`) et `rc.local` **ne pose plus de qdisc
+  root** depuis le 10/09.
+
+--------------------------------------------------------------
+7. NOTES DIVERSES / ÉTAT BÉNIN CONNU
+--------------------------------------------------------------
+- qosify-dyn (26/08) : 1 instance procd reader + son sous-shell
+  `logread | while read` = 2 PIDs, normal (vérifié via ubus call
+  service list). L'ancien orphelin (PPid=1) a été tué.
+- Fichiers perdus lors de la réinstallation système 2026-08 (ne pas
+  supposer leur présence) : ~/iwrt-2512/wed-diag.sh,
+  ~/iwrt-2512/bbrinfo_test, ~/xdp-hairpin/. À re-créer sur demande.
+- PROCHAINE ÉTAPE (mise à jour au 18/09/2026) : il n'y a **aucun point
+  QoS ouvert**. ⚠️ Points de vigilance en suspens, à ne PAS rouvrir de
+  soi-même :
+  * ⛔ **la liste d'effacement de `cake-shaper`** (donnée par Christophe le
+    18/09) : **consignée, PAS exécutée** — aucun SSH de ma part. Si elle
+    est à faire, elle doit être **demandée explicitement** (règles
+    12/19/20) ;
+  * la **sentinelle BBRv3** (`ss -ti` → `version:3`) à rejouer après
+    CHAQUE montée de noyau ;
+  * la question ouverte du diag « débit LAN faible » du 17/09 : **pourquoi
+    le lien WiFi réordonne** (6,5-7,4 % d'OOO) — cause non tranchée,
+    aucun correctif appliqué ;
+  * la **recette du 18/09** (GSO off partout + GRO on eth1 seul) : fix
+    **trouvé et validé par Christophe** — **ne rien lui demander de plus**
+    (réserves documentaires seulement, cf. §4).
+
+--------------------------------------------------------------
+8. CE QU'IL NE FAUT JAMAIS FAIRE (récapitulatif)
+--------------------------------------------------------------
+- Overlay WED non-mainline : jamais (abandonné définitivement). ⚠️ Le
+  WED **mainline**, lui, est ACTIF en production — ne pas confondre.
+- Réactiver mqprio / qosify / QosMate / Option B / le marquage DSCP
+  streaming : jamais (tous RETIRÉS les 12/09 et 15/09/2026). ⚠️ 18/09 :
+  ils sont « **inutiles dans le contexte actuel, pas interdits** » — donc
+  **ne rien installer de soi-même**, mais plus d'interdiction de principe.
+- 🔴 **SQM (`piece_of_cake.qos`) est LA référence depuis le 18/09/2026** :
+  ne rien y modifier sans demande explicite. L'ancien « SQM : jamais
+  (interdit) » est **PÉRIMÉ** — ⛔ ne plus le citer.
+- ⛔ `cake-shaper` est **OBSOLÈTE** et **EFFACÉ du routeur le 18/09/2026** (2 fichiers `rm`,
+  `sysupgrade.conf` 42→41, retiré du loop `svc` de `99-reinstall-packages`) : ne pas le
+  réactiver, ne pas le « réparer », ne pas toucher à son `enable` — **il n'existe plus**.
+- Se connecter au routeur en SSH sans autorisation préalable, même en
+  lecture : jamais.
+- **Négocier avec un choix délibéré de Christophe** : jamais — un geste
+  délibéré (p. ex. le `packet_steering='2'` du 18/09, ou le « désactivé »
+  du 17/09 avant lui) n'est pas une anomalie à corriger.
+- Workaround cake 880mbit : jamais.
+- Build firmware local : jamais (CI uniquement).
+- sysupgrade -n : jamais (garder les settings).
+- apk upgrade global : jamais (ciblé seulement).
+- push / CI / test de charge sans accord explicite : jamais.
+- allowlist / blocage pour le marquage streaming : jamais.
+- Conclure d'un tos mesuré sur eth1 ingress : jamais.
+- Flash en passant radio1 en HE80 : jamais (HE160, canal 128).
+- Reboot ou coupure de service sans validation explicite à CHAQUE fois :
+  jamais.
+- `echo` sur `/proc` ou debugfs : jamais (`printf` — `echo` rend EINVAL).
+================================================================

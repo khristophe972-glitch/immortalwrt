@@ -18,13 +18,9 @@ gtests/net/tcp/bbr/nsperf/0001-ss-output-TCP-BBRv3-diag-information.patch.
 Applies cleanly against iproute2-6.18.0 (line-offset only, no content
 changes needed).
 ---
- include/uapi/linux/inet_diag.h | 23 +++++++++++++++++++
- misc/ss.c                      | 68 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 90 insertions(+), 1 deletion(-)
-
 --- a/include/uapi/linux/inet_diag.h
 +++ b/include/uapi/linux/inet_diag.h
-@@ -229,6 +229,29 @@
+@@ -238,6 +238,29 @@
  	__u32	bbr_min_rtt;		/* min-filtered RTT in uSec */
  	__u32	bbr_pacing_gain;	/* pacing gain shifted left 8 bits */
  	__u32	bbr_cwnd_gain;		/* cwnd gain shifted left 8 bits */
@@ -56,7 +52,7 @@ changes needed).
  union tcp_cc_info {
 --- a/misc/ss.c
 +++ b/misc/ss.c
-@@ -895,6 +895,7 @@
+@@ -889,6 +889,7 @@
  	bool		    app_limited;
  	struct dctcpstat    *dctcp;
  	struct tcp_bbr_info *bbr_info;
@@ -64,7 +60,7 @@ changes needed).
  };
  
  /* SCTP assocs share the same inode number with their parent endpoint. So if we
-@@ -2597,6 +2598,29 @@
+@@ -2603,6 +2604,29 @@
  		out(" fraginl:%d", s->sctpi_s_frag_interleave);
  }
  
@@ -94,7 +90,7 @@ changes needed).
  static void tcp_stats_print(struct tcpstat *s)
  {
  	char b1[64];
-@@ -2672,7 +2696,14 @@
+@@ -2678,7 +2702,14 @@
  	}
  
  	if (s->bbr_info) {
@@ -110,7 +106,7 @@ changes needed).
  
  		bw = s->bbr_info->bbr_bw_hi;
  		bw <<= 32;
-@@ -2687,6 +2718,38 @@
+@@ -2693,6 +2724,38 @@
  		if (s->bbr_info->bbr_cwnd_gain)
  			out(",cwnd_gain:%g",
  			    (double)s->bbr_info->bbr_cwnd_gain / 256.0);
@@ -149,7 +145,7 @@ changes needed).
  		out(")");
  	}
  
-@@ -3174,6 +3237,7 @@
+@@ -3182,6 +3245,7 @@
  			s.bbr_info = calloc(1, sizeof(*s.bbr_info));
  			if (s.bbr_info && bbr_info)
  				memcpy(s.bbr_info, bbr_info, len);
@@ -157,6 +153,3 @@ changes needed).
  		}
  
  		if (rtt > 0 && info->tcpi_snd_mss && info->tcpi_snd_cwnd) {
-
--- 
-2.41.0

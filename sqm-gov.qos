@@ -1,0 +1,20 @@
+#!/bin/sh
+# sqm-gov.qos — overlay de gouvernance SQM (GL-MT6000, mission 28/08)
+#
+# qosify est le PROPRIÉTAIRE du cake eth1 (source de vérité : qosify.wan).
+# Ce script n'est PAS un qdisc setup sqm-scripts : il délègue à sqm-gov
+# (/usr/sbin/sqm-gov), qui compare le runtime à qosify.wan et répare via
+# `tc qdisc replace` (règle projet : jamais change). SQM (uci
+# /etc/config/sqm) reste disabled — garde-fou. egress()/ingress() ne sont
+# invoqués que si sqm-scripts démarrait (à tort) ; ils appliquent la config
+# qosify de façon idempotente (no-op si conforme).
+
+SUPPORT_MQ=0
+
+egress() {
+    /usr/sbin/sqm-gov apply >/dev/null 2>&1
+}
+
+ingress() {
+    /usr/sbin/sqm-gov apply --fix-ingress >/dev/null 2>&1
+}

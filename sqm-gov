@@ -1,0 +1,692 @@
+#!/bin/sh
+# ============================================================================
+# sqm-gov — overlay de gouvernance SQM pour GL-MT6000 (ImmortalWrt)
+#
+# RÔLE : qosify reste PROPRIÉTAIRE du qdisc cake eth1. sqm-gov est un overlay
+#        de gouvernance : il lit la config qosify (section `interface wan`)
+#        comme SOURCE DE VÉRITÉ (aucune valeur dupliquée), détecte la dérive
+#        entre l'attendu et le runtime, et répare via `tc qdisc replace`
+#        (règle projet : JAMAIS `change`, qui reset silencieusement cake en
+#        diffserv3/rtt100ms).
+#
+# NE TOUCHE JAMAIS : flow_offloading_hw, /etc/config/qosify, le clsact DSCP
+#        (BPF qosify), le patch 003 (exclusion vidéo PPE), dnsproxy,
+#        qosify-dyn. Il les LIT seulement (rapport status).
+#
+# Sous-commandes : status | dry-run | apply [--fix-ingress] | rollback | help
+#
+# Exit codes :
+#   status/dry-run : 0 conform / 2 drift / 3 cake absent
+#   apply          : 0 ok-noop / 1 erreur / 4 dérive résiduelle
+#   rollback       : 0 restauré / 1 erreur / 2 pas de snapshot
+#
+# Champs de comparaison (fingerprint) :
+#   kind bw mode flow nat rtt memlimit ackfilter overhead mpu noatm
+#   (bw normalisé en Mbit — 2.5gbit = 2500Mbit)
+#   — ignorés : egress/ingress (direction, non imprimée), dual-srchost/dsthost
+#     (écrasés par triple-isolate), nowash/split-gso (défauts cake non
+#     configurables via qosify), handle/refcnt/root (auto-assignés).
+# ============================================================================
+
+DEV=eth1
+IFB=ifb-eth1
+STATE=/var/run/sqm-gov
+SNAP=$STATE/snap
+LOCK=/var/run/sqm-gov.lock
+TC=tc
+IP=ip
+UCI="uci -q"
+
+# --- source de vérité : qosify.wan ---------------------------------------
+read_truth() {
+    NAME=$($UCI get qosify.wan.name)
+    [ -n "$NAME" ] || { echo "refus : qosify.wan.name absent" >&2; return 1; }
+
+    IFDEV=$($UCI get network.$NAME.device)
+    [ -n "$IFDEV" ] || IFDEV=$($UCI get network.$NAME.ifname)
+    [ "$IFDEV" = "$DEV" ] || {
+        echo "refus : le device WAN ($NAME) n'est pas $DEV mais '$IFDEV'" >&2
+        return 1
+    }
+
+    DISABLED=$($UCI get qosify.wan.disabled)
+    [ "$DISABLED" = "1" ] && { echo "refus : qosify.wan disabled=1" >&2; return 1; }
+
+    INGRESS=$($UCI get qosify.wan.ingress)
+    EGRESS=$($UCI get qosify.wan.egress)
+    MODE=$($UCI get qosify.wan.mode)
+    NAT=$($UCI get qosify.wan.nat)
+    HOST_ISOLATE=$($UCI get qosify.wan.host_isolate)
+    MULTIQUEUE=$($UCI get qosify.wan.multiqueue)
+    BW_UP=$($UCI get qosify.wan.bandwidth_up)
+    BW_DOWN=$($UCI get qosify.wan.bandwidth_down)
+    EOPTS=$($UCI get qosify.wan.egress_options)
+    IOPTS=$($UCI get qosify.wan.ingress_options)
+    OPTS=$($UCI get qosify.wan.options)
+    OTYPE=$($UCI get qosify.wan.overhead_type)
+    OVERHEAD=$($UCI get qosify.wan.overhead)
+    ENCAP=$($UCI get qosify.wan.overhead_encap)
+    MPU2=$($UCI get qosify.wan.overhead_mpu)
+
+    NAT=${NAT:-0}
+    HOST_ISOLATE=${HOST_ISOLATE:-0}
+    MULTIQUEUE=${MULTIQUEUE:-0}
+    return 0
+}
+
+# --- fingerprint attendu --------------------------------------------------
+fp_kind() {
+    [ "$MULTIQUEUE" = 1 ] && echo cake_mq || echo cake
+}
+
+# Normalise un débit en Mbit (entier) : 2.5gbit = 2500Mbit = 2500.
+bw_mbit() {
+    echo $(( $(bw_bits "$1") / 1000000 ))
+}
+bw_bits() {
+    local s mult int frac len fracbits
+    s=$(echo "$1" | tr A-Z a-z)
+    case "$s" in
+        *gbit) mult=1000000000; s=${s%gbit} ;;
+        *mbit) mult=1000000;   s=${s%mbit} ;;
+        *kbit) mult=1000;      s=${s%kbit} ;;
+        *) echo 0; return ;;
+    esac
+    int=${s%%.*}
+    frac=${s#*.}
+    if [ "$frac" = "$s" ]; then
+        echo $((int * mult))
+    else
+        len=${#frac}
+        case $len in
+            1) fracbits=$((frac * mult / 10)) ;;
+            2) fracbits=$((frac * mult / 100)) ;;
+            3) fracbits=$((frac * mult / 1000)) ;;
+            *) fracbits=0 ;;
+        esac
+        echo $((int * mult + fracbits))
+    fi
+}
+
+# $1 = options de direction (EOPTS ou IOPTS) ; $2 = dual-srchost|dual-dsthost
+fp_flow() {
+    case " $1 " in
+        *" triple-isolate "*) echo triple-isolate ;;
+        *" dual-srchost "*)   echo dual-srchost ;;
+        *" dual-dsthost "*)   echo dual-dsthost ;;
+        *) [ "$HOST_ISOLATE" = 1 ] && echo "$2" || echo flows ;;
+    esac
+}
+
+fp_egress() {
+    local fp
+    fp="kind=$(fp_kind)"
+    [ -n "$BW_UP" ] && fp="$fp bw=$(bw_mbit "$BW_UP")mbit"
+    [ -n "$MODE" ] && fp="$fp mode=diffserv${MODE#diffserv}"
+    fp="$fp flow=$(fp_flow "$EOPTS" dual-srchost) nat=$([ "$NAT" = 1 ] && echo yes || echo no)"
+    case " $EOPTS " in
+        *" rtt "*)         fp="$fp rtt=$(echo "$EOPTS" | sed -n 's/.*rtt \([^ ]*\).*/\1/p')" ;;
+    esac
+    case " $OPTS $EOPTS " in
+        *" memlimit "*)    fp="$fp memlimit=$(echo "$OPTS $EOPTS" | sed -n 's/.*memlimit \([^ ]*\).*/\1/p' | tr A-Z a-z)" ;;
+    esac
+    case " $EOPTS " in
+        *" ack-filter "*)  fp="$fp ackfilter=yes" ;;
+    esac
+    case "$OTYPE" in
+        ethernet) fp="$fp overhead=38 mpu=84 noatm=yes" ;;
+        none|"")  fp="$fp overhead=0" ;;
+        manual)   fp="$fp overhead=${OVERHEAD:-0}"; [ -n "$MPU2" ] && fp="$fp mpu=$MPU2" ;;
+        *)        fp="$fp overhead=0" ;;
+    esac
+    echo "$fp"
+}
+
+fp_ingress() {
+    local fp
+    fp="kind=cake"
+    [ -n "$BW_DOWN" ] && fp="$fp bw=$(bw_mbit "$BW_DOWN")mbit"
+    [ -n "$MODE" ] && fp="$fp mode=diffserv${MODE#diffserv}"
+    fp="$fp flow=$(fp_flow "$IOPTS" dual-dsthost) nat=$([ "$NAT" = 1 ] && echo yes || echo no)"
+    case " $IOPTS " in
+        *" rtt "*)         fp="$fp rtt=$(echo "$IOPTS" | sed -n 's/.*rtt \([^ ]*\).*/\1/p')" ;;
+    esac
+    case " $OPTS $IOPTS " in
+        *" memlimit "*)    fp="$fp memlimit=$(echo "$OPTS $IOPTS" | sed -n 's/.*memlimit \([^ ]*\).*/\1/p' | tr A-Z a-z)" ;;
+    esac
+    case " $IOPTS " in
+        *" ack-filter "*)  fp="$fp ackfilter=yes" ;;
+    esac
+    case "$OTYPE" in
+        ethernet) fp="$fp overhead=38 mpu=84 noatm=yes" ;;
+        none|"")  fp="$fp overhead=0" ;;
+        *)        fp="$fp overhead=0" ;;
+    esac
+    echo "$fp"
+}
+
+# --- commande egress (build + exécution sans eval) -----------------------
+egress_parts() {
+    KIND=$(fp_kind)
+    if [ -n "$BW_UP" ]; then BWPART="bandwidth $BW_UP"; else BWPART=""; fi
+    case "$MODE" in
+        "")          MODEPART="" ;;
+        diffserv*)   MODEPART=$MODE ;;
+        *)           MODEPART="diffserv$MODE" ;;
+    esac
+    if [ "$NAT" = 1 ]; then
+        [ "$HOST_ISOLATE" = 1 ] && NATPART="nat dual-srchost" || NATPART="nat flows"
+    else
+        NATPART="nonat"
+    fi
+    case "$OTYPE" in
+        none|"")  OTYPEPART="" ;;
+        manual)   OTYPEPART="overhead ${OVERHEAD:-0} $ENCAP" ;;
+        *)        OTYPEPART=$OTYPE ;;
+    esac
+}
+
+build_egress_cmd() {
+    egress_parts
+    echo "$TC qdisc replace dev $DEV root $KIND $BWPART $MODEPART egress $NATPART $OTYPEPART $OPTS $EOPTS"
+}
+
+run_egress() {
+    egress_parts
+    $TC qdisc replace dev $DEV root $KIND $BWPART $MODEPART egress $NATPART $OTYPEPART $OPTS $EOPTS
+}
+
+# --- commande ingress (ifb-eth1) -----------------------------------------
+# Le root de ifb est INDÉLÉTABLE via `del` (RTNETLINK ENOENT) → la réparation
+# doit passer par `tc qdisc replace` complet (règle 14), jamais del + re-add.
+ingress_parts() {
+    if [ -n "$BW_DOWN" ]; then BWPART="bandwidth $BW_DOWN"; else BWPART=""; fi
+    case "$MODE" in
+        "")          MODEPART="" ;;
+        diffserv*)   MODEPART=$MODE ;;
+        *)           MODEPART="diffserv$MODE" ;;
+    esac
+    if [ "$NAT" = 1 ]; then
+        [ "$HOST_ISOLATE" = 1 ] && NATPART="nat dual-dsthost" || NATPART="nat flows"
+    else
+        NATPART="nonat"
+    fi
+    case "$OTYPE" in
+        none|"")  OTYPEPART="" ;;
+        manual)   OTYPEPART="overhead ${OVERHEAD:-0} $ENCAP" ;;
+        *)        OTYPEPART=$OTYPE ;;
+    esac
+}
+
+build_ingress_cmd() {
+    ingress_parts
+    echo "$TC qdisc replace dev $IFB root cake $BWPART $MODEPART ingress $NATPART $OTYPEPART $OPTS $IOPTS"
+}
+
+run_ingress() {
+    ingress_parts
+    $TC qdisc replace dev $IFB root cake $BWPART $MODEPART ingress $NATPART $OTYPEPART $OPTS $IOPTS
+}
+
+# --- parsing runtime ------------------------------------------------------
+# Imprime la 1re ligne qdisc non-clsact du device $1.
+root_line() {
+    $TC qdisc show dev "$1" 2>/dev/null | while read -r line; do
+        case "$line" in
+            qdisc\ clsact*) continue ;;
+            qdisc\ *) echo "$line"; return 0 ;;
+        esac
+    done
+    return 1
+}
+
+# $1 = ligne qdisc ; imprime les paires k=v connues.
+parse_line() {
+    local out
+    set -- $1
+    [ "$1" = qdisc ] || return 1
+    out="kind=$2"
+    shift 2
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            refcnt)   shift 2 ;;
+            bandwidth) out="$out bw=$(bw_mbit "$2")mbit"; shift 2 ;;
+            diffserv*) out="$out mode=$1"; shift ;;
+            triple-isolate|dual-srchost|dual-dsthost|flows) out="$out flow=$1"; shift ;;
+            nat)      out="$out nat=yes"; shift ;;
+            nonat)    out="$out nat=no"; shift ;;
+            rtt)      out="$out rtt=$2"; shift 2 ;;
+            memlimit) out="$out memlimit=$(echo "$2" | tr A-Z a-z)"; shift 2 ;;
+            ack-filter) out="$out ackfilter=yes"; shift ;;
+            overhead) out="$out overhead=$2"; shift 2 ;;
+            mpu)      out="$out mpu=$2"; shift 2 ;;
+            noatm)    out="$out noatm=yes"; shift ;;
+            raw)      out="$out noatm=no"; shift ;;
+            nowash|split-gso|egress|ingress|root) shift ;;
+            *)        shift ;;
+        esac
+    done
+    echo "$out"
+}
+
+# --- comparaison ----------------------------------------------------------
+# $1 = attendu, $2 = réel ; imprime les paires attendues absentes du réel.
+field_diffs() {
+    local kv out
+    for kv in $1; do
+        case " $2 " in *" $kv "*) ;;
+        *) out="$out $kv" ;;
+        esac
+    done
+    echo "$out"
+}
+
+# Rapport champ-par-champ ; retourne 0 si conforme.
+report_fields() {
+    local label=$1 want=$2 got=$3 kv k v rv rkv ok
+    ok=yes
+    for kv in $want; do
+        k=${kv%%=*}
+        v=${kv#*=}
+        rv=
+        for rkv in $got; do
+            case "$rkv" in "$k="*) rv=${rkv#*=}; break ;; esac
+        done
+        rv=${rv:-absent}
+        if [ "$rv" = "$v" ]; then
+            printf "  %-11s attendu=%-11s réel=%-11s OK\n" "$k" "$v" "$rv"
+        else
+            printf "  %-11s attendu=%-11s réel=%-11s DRIFT\n" "$k" "$v" "$rv"
+            ok=no
+        fi
+    done
+    [ "$ok" = yes ]
+}
+
+# --- garde-fous : lock ----------------------------------------------------
+take_lock() {
+    local hp
+    if mkdir "$LOCK" 2>/dev/null; then
+        echo $$ > "$LOCK/pid"
+        return 0
+    fi
+    hp=$(cat "$LOCK/pid" 2>/dev/null)
+    if [ -n "$hp" ] && ! kill -0 "$hp" 2>/dev/null; then
+        # lock stale : le titulaire est mort
+        rm -rf "$LOCK"
+        if mkdir "$LOCK" 2>/dev/null; then
+            echo $$ > "$LOCK/pid"
+            return 0
+        fi
+    fi
+    echo "lock $LOCK déjà tenu par ${hp:-?}" >&2
+    return 1
+}
+release_lock() {
+    rmdir "$LOCK" 2>/dev/null
+}
+
+# --- snapshot / rollback --------------------------------------------------
+snapshot() {
+    local prior fp k ifprior ifp ifk
+    mkdir -p "$SNAP"
+    $TC qdisc show dev "$DEV" > "$SNAP/qdisc-before.txt" 2>&1
+    $TC -j qdisc show dev "$DEV" > "$SNAP/qdisc-before.json" 2>&1
+    $TC qdisc show dev "$IFB" > "$SNAP/qdisc-ifb-before.txt" 2>&1
+    $IP link show "$DEV" > "$SNAP/links.txt" 2>&1
+    $IP link show "$IFB" >> "$SNAP/links.txt" 2>&1
+    uci export qosify > "$SNAP/config.txt" 2>&1
+    echo "$(build_egress_cmd)" > "$SNAP/expected.txt"
+    echo "ts=$(date '+%F %T') kernel=$(uname -r)" > "$SNAP/meta.txt"
+
+    prior=$(root_line "$DEV")
+    if [ -z "$prior" ]; then
+        echo "#!/bin/sh" > "$SNAP/restore.sh"
+        echo "# état antérieur : aucun root qdisc sur $DEV" >> "$SNAP/restore.sh"
+        echo "$TC qdisc del dev $DEV root 2>/dev/null; ubus call qosify check_devices" >> "$SNAP/restore.sh"
+    else
+        fp=$(parse_line "$prior")
+        k=$(echo "$fp" | sed -n 's/.*kind=\([^ ]*\).*/\1/p')
+        case "$k" in
+            cake|cake_mq)
+                echo "#!/bin/sh" > "$SNAP/restore.sh"
+                echo "# restauration du cake antérieur (reconstruit depuis $DEV : $fp)" >> "$SNAP/restore.sh"
+                echo "$(rebuild_cmd "$fp")" >> "$SNAP/restore.sh"
+                ;;
+            *)
+                echo "#!/bin/sh" > "$SNAP/restore.sh"
+                echo "# état antérieur : root qdisc non-cake ($k) sur $DEV — restore fq par défaut (del + check_devices ré-appliquerait cake, pas l'état antérieur)" >> "$SNAP/restore.sh"
+                echo "$TC qdisc replace dev $DEV root fq" >> "$SNAP/restore.sh"
+                ;;
+        esac
+    fi
+    ifprior=$(root_line "$IFB")
+    if [ -n "$ifprior" ]; then
+        ifp=$(parse_line "$ifprior")
+        ifk=$(echo "$ifp" | sed -n 's/.*kind=\([^ ]*\).*/\1/p')
+        if [ "$ifk" = cake ]; then
+            echo "# ifb antérieur : cake (reconstruit)" >> "$SNAP/restore.sh"
+            echo "$(rebuild_cmd "$ifp" "$IFB" ingress)" >> "$SNAP/restore.sh"
+        else
+            echo "# ifb antérieur : non-cake ($ifk) — del ifb impossible, restore fq par défaut" >> "$SNAP/restore.sh"
+            echo "$TC qdisc replace dev $IFB root fq" >> "$SNAP/restore.sh"
+        fi
+    fi
+    chmod +x "$SNAP/restore.sh"
+}
+
+# Reconstruit une commande cake depuis un fingerprint (rollback, jamais le handle).
+# $1 = fingerprint ; $2 = device (défaut DEV) ; $3 = direction egress|ingress.
+rebuild_cmd() {
+    local fp=$1 dev=${2:-$DEV} dir=${3:-egress} kind bw mode flow natv extras cmd
+    kind=$(echo "$fp" | sed -n 's/.*kind=\([^ ]*\).*/\1/p')
+    bw=$(echo "$fp"   | sed -n 's/.*bw=\([^ ]*\).*/\1/p')
+    mode=$(echo "$fp" | sed -n 's/.*mode=\([^ ]*\).*/\1/p')
+    flow=$(echo "$fp" | sed -n 's/.*flow=\([^ ]*\).*/\1/p')
+    natv=$(echo "$fp" | sed -n 's/.*nat=\([^ ]*\).*/\1/p')
+    if [ "$natv" = yes ]; then NATCMD=nat; else NATCMD=nonat; fi
+    extras=""
+    if echo "$fp" | grep -q ' rtt='; then extras="$extras rtt $(echo "$fp" | sed -n 's/.*rtt=\([^ ]*\).*/\1/p')"; fi
+    if echo "$fp" | grep -q ' memlimit='; then extras="$extras memlimit $(echo "$fp" | sed -n 's/.*memlimit=\([^ ]*\).*/\1/p')"; fi
+    if echo "$fp" | grep -q ' ackfilter=yes'; then extras="$extras ack-filter"; fi
+    if echo "$fp" | grep -q ' overhead='; then extras="$extras overhead $(echo "$fp" | sed -n 's/.*overhead=\([^ ]*\).*/\1/p')"; fi
+    if echo "$fp" | grep -q ' mpu='; then extras="$extras mpu $(echo "$fp" | sed -n 's/.*mpu=\([^ ]*\).*/\1/p')"; fi
+    if echo "$fp" | grep -q ' noatm=yes'; then extras="$extras noatm"; fi
+    cmd="$TC qdisc replace dev $dev root $kind"
+    [ -n "$bw" ] && cmd="$cmd bandwidth $bw"
+    cmd="$cmd $mode $dir $NATCMD $flow$extras"
+    echo "$cmd"
+}
+
+# --- rapport guards (lecture seule) --------------------------------------
+diag_qosify() {
+    local p
+    p=$(pidof qosify)
+    if [ -n "$p" ]; then
+        echo "  qosify running (pid $p) mais aucun cake sur $DEV — réparation : apply ou /etc/init.d/qosify restart"
+    else
+        echo "  qosify NON lancé — démarrer : /etc/init.d/qosify start"
+    fi
+}
+
+svc_report() {  # $1 = motif pgrep -f, $2 = label
+    local p
+    p=$(pgrep -f "$1" 2>/dev/null | tr '\n' ' ')
+    if [ -n "$p" ]; then
+        printf "  %-23s = running (pid %s)\n" "$2" "$p"
+    else
+        printf "  %-23s = stopped\n" "$2"
+    fi
+}
+
+guard_report() {
+    local fw
+    fw=$($UCI get firewall.@defaults[0].flow_offloading_hw)
+    echo "--- guards (lecture seule) ---"
+    echo "  flow_offloading_hw      = ${fw:-<vide>}    (requis : 1)"
+    if $TC qdisc show dev "$DEV" 2>/dev/null | grep -q clsact; then
+        echo "  clsact $DEV              = présent (marquage DSCP BPF)"
+    else
+        echo "  clsact $DEV              = ABSENT"
+    fi
+    svc_report '^/usr/sbin/qosify$' "qosify"
+    svc_report 'qosify-dyn\.sh' "qosify-dyn"
+    svc_report 'qosify-flow-exclude-run' "qosify-flow-exclude"
+    svc_report '^/usr/bin/dnsproxy' "dnsproxy"
+    if nft list sets inet fw4 2>/dev/null | grep -q qosify_video; then
+        echo "  sets qosify_video_v4/v6  = présents"
+    else
+        echo "  sets qosify_video_v4/v6  = absents"
+    fi
+}
+
+precedence_note() {
+    local n d
+    n=$($UCI get qosify.eth1.name)
+    if [ "$n" = "$DEV" ]; then
+        d=$($UCI get qosify.eth1.disabled)
+        echo "  note : device qosify.eth1 présent (disabled=${d:-0}) ; l'interface wan prime (ordre add qosify : devices puis interfaces)"
+    fi
+}
+
+# --- sous-commandes -------------------------------------------------------
+cmd_status() {
+    local rc line fpe fpr fpi fpri
+    read_truth || exit 1
+    echo "=== sqm-gov status — source de vérité : qosify.wan (device $IFDEV) ==="
+    precedence_note
+    rc=0
+    if [ "$EGRESS" = 1 ]; then
+        echo "--- egress $DEV ---"
+        fpe=$(fp_egress)
+        line=$(root_line "$DEV")
+        if [ -z "$line" ]; then
+            echo "  CAKE ABSENT sur $DEV"
+            echo "  attendu : $fpe"
+            diag_qosify
+            rc=3
+        else
+            fpr=$(parse_line "$line")
+            echo "  attendu : $fpe"
+            echo "  réel    : $fpr"
+            report_fields egress "$fpe" "$fpr" || rc=2
+        fi
+    fi
+    if [ "$INGRESS" = 1 ]; then
+        echo "--- ingress $IFB ---"
+        fpi=$(fp_ingress)
+        line=$(root_line "$IFB")
+        if [ -z "$line" ]; then
+            echo "  pas de root qdisc sur $IFB (attendu cake)"
+            echo "  attendu : $fpi"
+            [ "$rc" = 0 ] && rc=2
+        else
+            fpri=$(parse_line "$line")
+            echo "  attendu : $fpi"
+            echo "  réel    : $fpri"
+            if report_fields ingress "$fpi" "$fpri"; then :; else [ "$rc" = 0 ] && rc=2; fi
+        fi
+    fi
+    guard_report
+    case $rc in
+        0) echo "RESULT: CONFORM" ;;
+        2) echo "RESULT: DRIFT" ;;
+        3) echo "RESULT: CAKE ABSENT" ;;
+    esac
+    exit $rc
+}
+
+cmd_dryrun() {
+    local rc line d fpe fpr fpi fpri
+    read_truth || exit 1
+    rc=0
+    echo "=== sqm-gov dry-run (aucune action) ==="
+    if [ "$EGRESS" = 1 ]; then
+        fpe=$(fp_egress)
+        line=$(root_line "$DEV")
+        echo "--- egress $DEV ---"
+        if [ -z "$line" ]; then
+            echo "  CAKE ABSENT — apply exécuterait :"
+            echo "  $(build_egress_cmd)"
+            rc=3
+        else
+            fpr=$(parse_line "$line")
+            d=$(field_diffs "$fpe" "$fpr")
+            if [ -z "$d" ]; then
+                echo "  conforme — apply = no-op"
+            else
+                echo "  écart : $d"
+                echo "  apply exécuterait :"
+                echo "  $(build_egress_cmd)"
+                rc=2
+            fi
+        fi
+    fi
+    if [ "$INGRESS" = 1 ]; then
+        fpi=$(fp_ingress)
+        line=$(root_line "$IFB")
+        echo "--- ingress $IFB ---"
+        if [ -z "$line" ]; then
+            echo "  pas de root qdisc — apply --fix-ingress : $(build_ingress_cmd)"
+            [ "$rc" = 0 ] && rc=2
+        else
+            fpri=$(parse_line "$line")
+            d=$(field_diffs "$fpi" "$fpri")
+            if [ -z "$d" ]; then
+                echo "  conforme — apply = no-op"
+            else
+                echo "  écart : $d"
+                echo "  apply --fix-ingress : $(build_ingress_cmd)"
+                [ "$rc" = 0 ] && rc=2
+            fi
+        fi
+    fi
+    case $rc in
+        0) echo "RESULT: NOOP" ;;
+        2) echo "RESULT: WOULD_APPLY" ;;
+        3) echo "RESULT: CAKE_ABSENT" ;;
+    esac
+    exit $rc
+}
+
+cmd_apply() {
+    local fix d rc line fpe fpr fpi fpri
+    fix=no
+    [ "$1" = "--fix-ingress" ] && fix=yes
+    take_lock || exit 1
+    trap release_lock 0
+    read_truth || exit 1
+    echo "=== sqm-gov apply ==="
+    if [ "$EGRESS" = 1 ]; then
+        fpe=$(fp_egress)
+        line=$(root_line "$DEV")
+        if [ -n "$line" ]; then
+            fpr=$(parse_line "$line")
+            d=$(field_diffs "$fpe" "$fpr")
+            if [ -z "$d" ]; then
+                echo "egress $DEV : déjà conforme (no-op)"
+            else
+                echo "egress $DEV : écart $d → snapshot + replace"
+                snapshot
+                echo "> $(build_egress_cmd)"
+                run_egress || { echo "  replace a échoué (rc=$?)" >&2
+                                echo "  rollback disponible : sqm-gov rollback" >&2
+                                exit 1; }
+                echo "  replace OK"
+            fi
+        else
+            echo "egress $DEV : cake absent → snapshot + replace (création)"
+            snapshot
+            echo "> $(build_egress_cmd)"
+            run_egress || { echo "  replace a échoué (rc=$?)" >&2
+                            echo "  rollback disponible : sqm-gov rollback" >&2
+                            exit 1; }
+            echo "  replace OK"
+        fi
+    fi
+    if [ "$fix" = yes ] && [ "$INGRESS" = 1 ]; then
+        fpi=$(fp_ingress)
+        line=$(root_line "$IFB")
+        if [ -n "$line" ]; then
+            fpri=$(parse_line "$line")
+            d=$(field_diffs "$fpi" "$fpri")
+            if [ -z "$d" ]; then
+                echo "ingress $IFB : déjà conforme (no-op)"
+            else
+                [ -d "$SNAP" ] || snapshot
+                echo "> $(build_ingress_cmd)"
+                run_ingress || { echo "  replace ingress a échoué (rc=$?)" >&2
+                                 echo "  rollback disponible : sqm-gov rollback" >&2
+                                 exit 1; }
+                echo "  replace OK ($IFB en cake)"
+            fi
+        else
+            [ -d "$SNAP" ] || snapshot
+            echo "> $(build_ingress_cmd)"
+            run_ingress || { echo "  replace ingress a échoué (rc=$?)" >&2
+                             echo "  rollback disponible : sqm-gov rollback" >&2
+                             exit 1; }
+            echo "  replace OK ($IFB en cake)"
+        fi
+    fi
+    # re-vérification egress
+    if [ "$EGRESS" = 1 ]; then
+        fpr=$(parse_line "$(root_line "$DEV")")
+        d=$(field_diffs "$fpe" "$fpr")
+        if [ -z "$d" ]; then
+            echo "egress $DEV : CONFORM après apply"
+        else
+            echo "egress $DEV : dérive résiduelle : $d" >&2
+            echo "  rollback disponible : sqm-gov rollback" >&2
+            exit 4
+        fi
+    fi
+    # re-vérification ingress (si --fix-ingress)
+    if [ "$fix" = yes ] && [ "$INGRESS" = 1 ]; then
+        fpri=$(parse_line "$(root_line "$IFB")")
+        d=$(field_diffs "$fpi" "$fpri")
+        if [ -z "$d" ]; then
+            echo "ingress $IFB : CONFORM après apply"
+        else
+            echo "ingress $IFB : dérive résiduelle : $d" >&2
+            echo "  rollback disponible : sqm-gov rollback" >&2
+            exit 4
+        fi
+    fi
+    exit 0
+}
+
+cmd_rollback() {
+    local rc
+    take_lock || exit 1
+    trap release_lock 0
+    [ -d "$SNAP" ] || { echo "pas de snapshot — rien à restaurer" >&2; exit 2; }
+    [ -f "$SNAP/restore.sh" ] || { echo "restore.sh absent dans $SNAP" >&2; exit 1; }
+    echo "=== sqm-gov rollback ==="
+    echo "avant : $(root_line "$DEV")"
+    echo "> sh $SNAP/restore.sh"
+    sh "$SNAP/restore.sh"
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        echo "après : $(root_line "$DEV")"
+        echo "rollback OK — snapshot supprimé"
+        rm -rf "$SNAP"
+        exit 0
+    else
+        echo "rollback a échoué (rc=$rc) — snapshot conservé" >&2
+        exit 1
+    fi
+}
+
+cmd_help() {
+    cat <<'EOF'
+sqm-gov — overlay de gouvernance SQM (qosify = propriétaire du cake eth1)
+
+usage : sqm-gov {status|dry-run|apply [--fix-ingress]|rollback|help}
+
+  status        rapport lecture seule : conformité egress/ingress vs qosify.wan
+                + guards (flow_offloading_hw, clsact, services, sets patch 003)
+                exit : 0 conform / 2 drift / 3 cake absent
+  dry-run       affiche les commandes qu'apply exécuterait, sans rien faire
+                exit : 0 no-op / 2 would-apply / 3 cake absent
+  apply         répare eth1 via 'tc qdisc replace' (règle : jamais change).
+                --fix-ingress : répare ifb-eth1 via replace (le root ifb est
+                indélétable — del renvoie ENOENT).
+                Snapshot avant ; rollback disponible. exit : 0 / 1 / 4
+  rollback      restaure l'état précédent (re-application de la commande
+                antérieure, jamais du handle). exit : 0 / 1 / 2 (pas de snapshot)
+  help          ce texte
+
+Le script ne modifie JAMAIS : flow_offloading_hw, /etc/config/qosify,
+le clsact DSCP (BPF qosify), le patch 003, dnsproxy, qosify-dyn.
+EOF
+}
+
+case "${1:-}" in
+    ""|status)   cmd_status ;;
+    dry-run|dryrun) cmd_dryrun ;;
+    apply)       cmd_apply "$2" ;;
+    rollback)    cmd_rollback ;;
+    help|-h|--help) cmd_help ;;
+    *)           echo "usage inconnu : $1 (help)" >&2; exit 1 ;;
+esac

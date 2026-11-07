@@ -1,0 +1,159 @@
+================================================================================
+RÉSUMÉ SESSION 23/09/2026 — GL-MT6000 ImmortalWrt fork khristophe972-glitch
+VERSION CORRIGÉE le 23/09/2026
+Sources : relevé SSH du 23/09 (lecture seule) + fichiers d'état du repo local.
+Le disque local (/home/khris972/iwrt-2512/) fait foi.
+================================================================================
+
+FIRMWARE EN PRODUCTION
+  r41029-55825c2e3b — CI 35721554181 — kernel 6.18.52 — keep-settings.
+
+ÉTAT REPO (tip local 55825c2e3b)
+  Rien n'est "au-dessus" du tip. Tous les commits ci-dessous sont des ANCÊTRES
+  du tip => ils sont DANS l'image flashée
+  (vérifié : git merge-base --is-ancestor <sha> 55825c2e3b).
+  - 296f707623 : 999-713 hystérésis cake_mq           (flashé)
+  - a840618462 : fix packet_steering unset (pesa1234)  (flashé)
+  - 9f25b5d044 : ci: distfeeds layout gh-pages         (flashé)
+  - 419f45f59a : ci: unlock CONFIG_VERSION_REPO        (flashé)
+  - 9dd2c42a75 : ci: guillemets CONFIG_VERSION_REPO    (flashé)
+  - 18311edeed : customfeeds.list routing/telephony    (flashé)
+  - 3f48de1434 : build.yml CONFIG_PACKAGE_luci=y       (flashé)
+  - 777a8f6b83 : 999-9931 threaded NAPI (tip PRÉCÉDENT r41023 ; ancêtre du tip)
+  /!\ La version d'origine titrait ce bloc "commits au-dessus ... NON FLASHÉS" :
+      c'était FAUX et inversait complètement la lecture.
+
+CONFIG PRODUCTION ACTUELLE (relevé SSH du 23/09/2026)
+  Shaping    : root d'eth1 = cake_mq posé par rc.local (SEUL écrivain du root) —
+               "tc qdisc replace dev eth1 root cake_mq bandwidth 900Mbit besteffort
+               triple-isolate nat nowash no-ack-filter split-gso rtt 100ms
+               noatm overhead 38 mpu 84". Le service SQM n'est PAS enable.
+               Aucun ifb : la descente n'est pas shappée (elle est offloadée).
+  Offload    : flow_offloading='1' et flow_offloading_hw ABSENTE
+               => le chemin ROUTÉ (flowtable ft) est en SFO, sans flags offload.
+               Bridge : bridge_flow_offloading='1' + bridge_flow_offloading_hw='1'
+               (choix de Christophe, confirmé le 23/09) => la flowtable fb porte
+               "flags offload" = HFO sur le BRIDGE SEUL.
+  NAT        : NAT global désactivé (choix) + règle SNAT scopée UDP ;
+               full cone UDP dynamique par map fc_map pour tout le LAN.
+               ("Double NAT" désigne la Freebox en amont, pas le routeur.)
+  bridger    : installé et actif. Hors image : réinstallé après chaque flash par
+               le hotplug 99-reinstall-packages depuis persistent-packages.list.
+  packet_steering=2
+  IRQ affinity : WiFi mt7915e -> CPU3 (mask 8), IRQ 119 et 137 -> CPU1+2 (mask 6).
+                 Posé par le bloc rc.local "IRQ affinity réseau (modèle EXREYFOX,
+                 20/09/2026)" — choix de Christophe. irqbalance NE TOURNE PAS
+                 (disabled) : rc.local est seul écrivain des masques.
+  RPS        : live = f sur eth1 / eth0 / phy0-ap0 / phy1-ap0, 0 sur br-lan.
+               10-fix-clsact écrit e/0 mais ses écritures SONT ÉCRASÉES par
+               packet_steering='2' ; son utilité réelle est le "del clsact"
+               (qui déclenche la recharge de rtt-obs).
+  Threaded NAPI : 5 x napi/mtk_eth-0 actifs (patch 999-9931).
+  BBRv3      : sentinelle PASSÉE — ss -ti porte version:3 + bw_hi + extra_acked
+               + mode + phase.
+  rtt-obs    : VIVANT ET ARMÉ (hotplug 12-rtt-obs, load.sh appelé par rc.local ;
+               filtres tc rtt_egress id 24 / rtt_ingress id 30, jited).
+  rc.local   : toutes les lignes ethtool sont COMMENTÉES, ainsi que BQL et
+               airtime_flags (décision du 22/09 : le threaded NAPI les rend sans
+               objet). Actif : packet_steering, AQL 4500/12000 (seuil 12000),
+               modprobe tcp_bbr, cake_mq root, ecn_low, sync_time_ns, load.sh, IRQ.
+
+PATCHES FORK (série 999-*) — ÉTAT 23/09
+  999-711 : flashé — cake_mq shared state
+  999-712 : flashé — activity window shaper (1ms)
+  999-713 : flashé — hystérésis backlog (296f707623 est un ancêtre du tip)
+  999-9915: mentionné par le résumé d'origine — NON re-vérifié dans nos relevés
+  999-9931: flashé, validé — threaded NAPI mtk_eth_soc
+  003-harden-bridge-offload-lifecycle.patch (firewall4) : flashé, validé
+
+MESURES (22/09/2026) — NON REPRISES
+  "Grade A+ bufferbloat (+0ms/+0ms)", "Ookla 2319 Mbps down / 826 Mbps up",
+  "LibreSpeed WiFi IPv6 1037 Mbps" : citées sans date précise ni bras témoin
+  => non adoptées (règle 17 : re-mesurer, ≥2 mesures indépendantes avant de
+  conclure). Le ressenti compte autant qu'un chiffre, mais un chiffre sans
+  témoin n'en est pas un.
+  apk list -u : mesuré le 23/09 (uptime 9:20, même boot) = 3 paquets upgradables —
+  ca-bundle-20260816-r1, libncurses6-6.6.20260801-r1, terminfo-6.6.20260801-r1
+  (tous du feed de base du fork). Le "0" d'origine était FAUX.
+  ⛔ Aucun apk upgrade (règle 8 : apk add ciblés uniquement).
+
+CHANTIERS SESSION 23/09
+
+1. THREADED NAPI (999-9931) — résolu et flashé
+   Cause : 999-2711 (RSS) supprimait les 2 lignes de 702 (threaded=1 + strcpy
+   "mtk_eth"). Fix : 999-9931 les réinsère. Confirmé live : 5 x napi/mtk_eth-0.
+
+2. IRQ AFFINITIES — modèle EXREYFOX appliqué
+   WiFi mt7915e -> CPU3 (mask 8) ; IRQ 119 -> CPU1+2 (mask 6) ; IRQ 137 -> CPU1+2.
+   printf obligatoire pour smp_affinity (echo -> EINVAL BusyBox).
+   Persistance dans rc.local. irqbalance non démarré : rien n'écrase les masques.
+
+3. RPS / BRIDGER
+   10-fix-clsact écrit RPS=e sur eth1 et 0 ailleurs, mais le LIVE porte f partout :
+   packet_steering='2' est seul maître des rps_cpus (confirmé voulu le 23/09).
+   bridger actif. Son gain annoncé (+57 Mbps WiFi download) n'a pas de bras
+   témoin dans nos relevés => non repris.
+
+4. DISTFEEDS — résolu (CI 9dd2c42a75 / 419f45f59a)
+   Double bug silencieux : IMAGEOPT/VERSIONOPT invisibles + guillemets manquants
+   sur VERSION_REPO. NB : apk list -u n'est PAS à 0 après flash (3 paquets, cf.
+   MESURES) — ce sont des mises à jour du feed de base, pas un défaut de distfeeds.
+   ⛔ Rendre un paquet amont installable se fait par le DÉPÔT (customfeeds.list),
+   jamais par une ligne CONFIG_PACKAGE_x dans build.yml.
+
+5. PORTAGE 6daa7bbe (firewall4 bridge offload lifecycle)
+   fb passe de devices={br-lan} aux ports membres {lan1..5, phy0-ap0, phy1-ap0}.
+   bridge_flow_offloading='1' et bridge_flow_offloading_hw='1' posés
+   explicitement (le résumé d'origine indiquait hw='0' : FAUX).
+   Patch 003-harden-bridge-offload-lifecycle.patch dans firewall4/patches/.
+
+6. luci-app-traffic-chart (m0g13r) — installé puis retiré (HISTORIQUE)
+   netifyd + trafficchart opérationnels ; compteurs TC à zéro car le trafic du
+   bridge est bypassé par l'offload. Retiré : apk del luci-app-traffic-chart
+   netifyd socat.
+
+FEED ROUTING/TELEPHONY
+   Ajoutés dans customfeeds.list (amont ImmortalWrt).
+   CONFIG_PACKAGE_luci=y ajouté dans build.yml.
+   Route B retenue (pas CONFIG_ALL=y — build > 6h, timeout GitHub).
+
+INVARIANTS ABSOLUS (inchangés)
+  ❌ WED overlay non-mainline
+  ❌ Mettre SQM en poseur du root d'eth1 (le root appartient à rc.local)
+  ❌ XDP sur eth1 (packet loss)
+  ❌ apk upgrade global
+  ❌ sysupgrade -n
+  ❌ tc qdisc change (toujours replace)
+  ❌ git push / CI sans accord explicite
+  ✅ printf obligatoire pour smp_affinity
+  ✅ scp -O (à revérifier : openssh-sftp-server a été installé à une session
+     antérieure — si sftp-server est présent, la contrainte peut être tombée)
+
+POLITIQUE DU FORK (directive 21/09/2026)
+  Les mesures sont un outil de diagnostic, pas une politique de validation.
+  Le ressenti utilisateur est une information valide.
+  Go sur commit dès que le code est sain.
+  Les mesures fines se font en production, sur la durée.
+
+PIÈGES TECHNIQUES
+  tc qdisc : toujours replace, jamais change
+  printf obligatoire pour smp_affinity (echo -> EINVAL)
+  CONFIG_VERSION_REPO : guillemets obligatoires dans .config
+  Deux runs CI concurrents -> le dernier gagne le force-push gh-pages
+  CONFIG_ALL_NONSHARED=y != CONFIG_ALL=y (ne compile PAS les feeds luci/packages)
+
+--------------------------------------------------------------------------------
+CORRECTIONS APPORTÉES À LA VERSION D'ORIGINE (8)
+  1. r41024-55825c2e3b                       -> r41029-55825c2e3b
+  2. "commits au-dessus du tip, non flashés" -> tous ANCÊTRES, donc dans l'image
+  3. 999-713 "non flashé"                    -> flashé (ancêtre du tip)
+  4. "SQM actif enabled=1, rc.local désactivé, ifb4eth1" -> root = cake_mq par
+     rc.local, service SQM non enable, aucun ifb
+  5. bridge_flow_offloading_hw='0'           -> '1' (fb porte flags offload)
+  6. "RPS WiFi = 0"                          -> live = f (packet_steering='2')
+  7. "apk list -u -> 0"                      -> 3 paquets
+  8. mesures Grade A+ / 2319 Mbps            -> marquées non reprises (règle 17)
+  Ajouts : sentinelle BBRv3, état rtt-obs, état irqbalance, rôle réel de
+  10-fix-clsact, contenu actif de rc.local.
+  Note : la version d'origine se contredisait (bloc 3 : SQM enabled ; invariants :
+  "SQM service enable" interdit) — contradiction levée.

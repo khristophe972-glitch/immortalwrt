@@ -23,10 +23,6 @@ manually rebased onto iproute2-6.18.0:
 
 Signed-off-by: Neal Cardwell <ncardwell@google.com>
 ---
- include/uapi/linux/tcp.h | 1 +
- misc/ss.c                | 4 ++++
- 2 files changed, 5 insertions(+)
-
 --- a/include/uapi/linux/tcp.h
 +++ b/include/uapi/linux/tcp.h
 @@ -185,6 +185,7 @@
@@ -39,7 +35,7 @@ Signed-off-by: Neal Cardwell <ncardwell@google.com>
   * Sender's congestion state indicating normal or abnormal situations
 --- a/misc/ss.c
 +++ b/misc/ss.c
-@@ -890,6 +890,7 @@
+@@ -884,6 +884,7 @@
  	bool		    has_sack_opt;
  	bool		    has_ecn_opt;
  	bool		    has_ecnseen_opt;
@@ -47,7 +43,7 @@ Signed-off-by: Neal Cardwell <ncardwell@google.com>
  	bool		    has_fastopen_opt;
  	bool		    has_wscale_opt;
  	bool		    app_limited;
-@@ -2635,6 +2636,8 @@
+@@ -2617,6 +2618,8 @@
  		out(" ecn");
  	if (s->has_ecnseen_opt)
  		out(" ecnseen");
@@ -56,7 +52,7 @@ Signed-off-by: Neal Cardwell <ncardwell@google.com>
  	if (s->has_fastopen_opt)
  		out(" fastopen");
  	if (s->cong_alg[0])
-@@ -3161,6 +3164,7 @@
+@@ -3106,6 +3109,7 @@
  			s.has_sack_opt	   = TCPI_HAS_OPT(info, TCPI_OPT_SACK);
  			s.has_ecn_opt	   = TCPI_HAS_OPT(info, TCPI_OPT_ECN);
  			s.has_ecnseen_opt  = TCPI_HAS_OPT(info, TCPI_OPT_ECN_SEEN);
@@ -64,6 +60,3 @@ Signed-off-by: Neal Cardwell <ncardwell@google.com>
  			s.has_fastopen_opt = TCPI_HAS_OPT(info, TCPI_OPT_SYN_DATA);
  		}
  
-
--- 
-2.41.0

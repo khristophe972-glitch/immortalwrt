@@ -1,0 +1,219 @@
+================================================================================
+BUMP NOYAU 6.18.55 -> 6.18.56 -- CORRECTIF CVE-2026-98432
+Etat au 03/11/2026 -- depot : ~/iwrt-2512, branche openwrt-6.18
+FLASHE ET VERIFIE : r43046-4c9088f14c, noyau 6.18.56
+================================================================================
+
+1. LA FAILLE
+--------------------------------------------------------------------------------
+CVE-2026-98432 : use-after-free dans la mise en place des connexions TCP IPv4
+entrantes (handshake). tcp_v4_syn_recv_sock() transfere la propriete de
+ireq->ireq_opt a la socket fille SANS la copier ; un autre CPU peut traiter un
+SYN retransmis et envoyer un SYNACK depuis tcp_check_req(). tcp_v4_send_synack()
+et inet_csk_route_req() lisent ireq->ireq_opt sous rcu_read_lock() seul, puis
+ip_build_and_send_pkt() / ip_options_build() lisent opt->optlen deux fois.
+=> l'objet est libere alors qu'un autre CPU peut encore le lire.
+
+Correctif amont : e3f33b0a1d89d738e2b913dab519226eaf76e15b
+  « ipv4: free inet_opt and ireq_opt after an RCU grace period » (Eric Dumazet).
+Dans l'arbre STABLE 6.18, le meme changement porte l'identifiant
+  a47406c769f72c070386985488f1c4d057df86b2  (« commit e3f33b0a1d89... upstream. »)
+Present dans ChangeLog-6.18.56 (cdn.kernel.org), en tete de liste.
+ABSENT de 6.18.55.
+
+PROVENANCE : 6.18.56 est une release STABLE de kernel.org -- le fork l'a
+DECLAREE lui-meme. ImmortalWrt amont reste en 6.18.55 (upstream/master ET
+origin/merge-upstream-20261027 = .55) ; le fork est donc DEVANT l'amont, ce qui
+est legitime : include/kernel-version.mk telecharge l'arbre depuis cdn.kernel.org
+et le verifie par son hash, sans dependre d'ImmortalWrt.
+
+2. VERSION ET HASH
+--------------------------------------------------------------------------------
+Fichier : target/linux/generic/kernel-6.18   (2 lignes, tout le contenu)
+
+  AVANT : LINUX_VERSION-6.18 = .55
+          LINUX_KERNEL_HASH-6.18.55 = f410638061a165c12f42ab871d2f3fcd525515359b5faeee80969cff84524df9
+  APRES : LINUX_VERSION-6.18 = .56
+          LINUX_KERNEL_HASH-6.18.56 = 4633bbda2ab95eaf2a7af4041236451d6759c72e6946265531af4b3aacefbf89
+
+Hash officiel : sha256sums.asc (cdn.kernel.org), identique au caractere a celui
+du tarball telecharge (154 807 564 o) -- verifie DEUX fois (02/11 et 03/11).
+Controle croise : le hash officiel 6.18.55 = f4106380... est identique a celui
+que declarait deja le fork => la chaine hash -> fork est fiable.
+
+Mecanique (include/kernel-version.mk) : la cle de version ne porte que le
+SUFFIXE (.55/.56), la serie 6.18 vient de KERNEL_PATCHVER (l.36) ; la cle de
+hash porte la version COMPLETE (l.49) => les deux doivent etre renommees
+ensemble, sinon LINUX_KERNEL_HASH se resout vide.
+
+3. DOUBLONS DANS LE FORK
+--------------------------------------------------------------------------------
+Aucun patch du fork ne touche inet_sock_destruct, tcp_v4_reqsk_destructor,
+tcp_v4_syn_recv_sock ni ireq_opt => le fork n'a jamais porte ce correctif :
+rien a retirer de ce cote.
+
+4. DRY-RUN SEQUENTIEL (copie jetable, tarball verifie)
+--------------------------------------------------------------------------------
+Ordre d'application (include/quilt.mk l.102-105) :
+  backport-6.18 (203) -> pending-6.18 (272) -> hack-6.18 (80)
+  -> mediatek/patches-6.18 (191)      = 746 patchs
+Application : patch -f -p1, releve par patch (rc, hunks en echec, offset, fuzz).
+
+VERDICT FINAL : 746 -> 742 patchs, 742/742 propres, 0 echec, 0 offset, 0 fuzz.
+
+ATTENTION METHODE : les premieres verifications ont ete faites sur l'arbre
+PATCHE du dry-run au lieu de la source 6.18.56 vierge, ce qui a fait conclure a
+tort que 999-9910/999-9931/999-2711 etaient absorbes par l'amont. Tout a ete
+refait sur le tarball intact (tar -xOf).
+
+5. CE QUI A CHANGE (commits e406ee4a5e3 puis 4c9088f14c)
+--------------------------------------------------------------------------------
+a) SUPPRESSIONS (4) -- e406ee4a5e3
+   438-v7.3-mtd-spinand-Do-not-update-the-QE-bit...  ABSORBE : la garde
+     if (SPINAND_HAS_QE_BIT) { ... spinand_init_quad_enable ... } existe deja
+     dans 6.18.56 (drivers/mtd/nand/spi/core.c:1509-1517).
+   782-v7.3-USB-serial-option-add-Quectel-EG060W     ABSORBE : EG060W present
+     2x dans drivers/usb/serial/option.c.
+   787-v7.3-net-usb-qmi_wwan-add-Quectel-EG120K-EA   ABSORBE : la ligne QMI
+     0x030b est deja dans drivers/net/usb/qmi_wwan.c.
+   863-arm64-dts-mt7986-add-sound-wm8960             OBSOLETE : sa cible
+     arch/arm64/boot/dts/mediatek/mt7986a-rfb-spim-nand.dts n'existe plus en
+     amont ; carte RFB MediaTek, pas le MT6000. DECISION signalee, reversible.
+   NB : deux 782-* existent dans backport-6.18 ; seul le 782-v7.3 USB est parti.
+
+b) RE-ANCRAGES SEMANTIQUES (3)
+   304-LoongArch-vdso-keep-the-prefix-map-flags : contexte complete (ligne
+     amont $(CONFIG_CC_OPT_INLINE_MEMSET)).
+   999-2711-...-add-rss-support : blocs dummy_dev et IRQ INVERSES dans 6.18.56
+     => patch REGENERE depuis l'etat reel (79 hunks).
+   999-9910-...-fix-napi-enable-order : boucle register_netdev dupliquee
+     deplacee => patch REGENERE (5 hunks).
+
+c) RE-ANCRAGES COSMETIQUES (36) : offset/fuzz non nuls, reecrits depuis leur
+   etat reel. NEUTRALITE PROUVEE par comparaison de DEUX ARBRES COMPLETS
+   (serie d'origine vs serie regeneree) : diff -r => aucune difference.
+
+d) CORRECTIF DE COMPILATION -- 4c9088f14c (apres echec CI, cf. section 6)
+   999-9910 : le bloc de nettoyage NEUF de 6.18.56 dans mtk_probe
+   (err_deinit_ppe) passe par le helper mtk_napi_del(eth) au lieu de
+   netif_napi_del(&eth->tx_napi) + netif_napi_del(&eth->rx_napi) ; l'ajout
+   redondant a err_unreg_netdev est abandonne (l'amont libere deja la).
+
+6. BUILD CI
+--------------------------------------------------------------------------------
+Run 41538731880 (e406ee4a5e3) : ECHEC apres 3 h 05.
+  drivers/net/ethernet/mediatek/mtk_eth_soc.c:6863, mtk_probe :
+    netif_napi_del(&eth->rx_napi) -> passe struct mtk_napi (*)[4]
+    (attendu struct napi_struct *)
+  CAUSE : site NEUF de 6.18.56. L'amont a ajoute dans mtk_probe/err_deinit_ppe
+  un bloc cancel_work_sync + netif_napi_del + free_netdev qui n'existait pas en
+  .55. 999-2711 convertit rx_napi en tableau mtk_napi[] et TOUTES les
+  references de .55 -- mais pas celle-ci.
+  AUCUN dry-run ne peut le voir : patch applique par contexte, pas par type.
+
+Run 41562522529 (4c9088f14c) : SUCCESS, 4 h 21 (01:52 -> 06:13 UTC).
+
+7. FLASH ET VERIFICATIONS POST-FLASH (r43046-4c9088f14c)
+--------------------------------------------------------------------------------
+  uname -r ...................... 6.18.56 ................................... OK
+  /etc/openwrt_release .......... r43046-4c9088f14c ........................ OK
+  Sentinelle BBRv3 (ss -ti) ..... version:3 + bw_hi + extra_acked + mode +
+                                  phase sur 3 sockets (phases vues STARTUP,
+                                  PROBE_BW_CRUISE) .......................... OK
+  apk list -u ................... 0 ......................................... OK
+  smartdns ...................... demon actif (/var/etc/smartdns/...) ........ OK
+  dnsmasq ....................... port = 0, DHCP actif ...................... OK
+  dhcp.lan ...................... pas d'ignore (defaut 0) ................... OK
+  /etc/smartdns/bootstrap.conf .. present (60 o) ............................ OK
+  root eth1 ..................... cake_mq 8001: 850Mbit diffserv3 dual-srchost
+                                  rtt 10ms memlimit 64Mb
+                                  overhead 14 mpu 84 ........................ OK
+
+  Note : l'« overhead 0 » du releve du 30/10 est PERIME -- la valeur live est
+  overhead 14 mpu 84, posee par qos-mt6000 au boot. Ce n'est pas une regression
+  du bump.
+
+7bis. CONTROLE BINAIRE DU CORRECTIF (03/11) -- la CVE est-elle DANS le binaire ?
+--------------------------------------------------------------------------------
+Chaine verifiee de bout en bout : ChangeLog -> source -> hash -> build -> BINAIRE.
+
+SOURCE (diff .55/.56, le correctif complet tient en 2 lignes) :
+  net/ipv4/tcp_ipv4.c   tcp_v4_reqsk_destructor : kfree -> kfree_rcu
+  net/ipv4/af_inet.c    inet_sock_destruct      : kfree -> kfree_rcu
+  include/net/inet_sock.h INCHANGE (ip_options_rcu portait deja son rcu_head)
+  => il n'y a pas de 3e site a controler.
+
+BINAIRE (image sysupgrade r43046-4c9088f14c, celle qui a ete flashee) :
+  - FIT @0x800 -> noeud kernel-1, compression=lzma -> Image aarch64 (22 161 416 o)
+  - mapping VA -> offset fichier calibre sur linux_banner (0xae0098) et sur
+    _etext - _stext = 0xAD0000  =>  _stext est a l'offset 0x10000 du fichier
+  - desassemblage des deux fonctions (adresses prises dans /proc/kallsyms) :
+
+      inet_sock_destruct  @0x964808 (prologue stp x29,x30,[sp,#-32]!)
+        +0x114  bl 0xffffffc08024338c   <-- kvfree_call_rcu
+        +0x11c  bl 0xffffffc08086c210   <-- dst_release
+        +0x124  bl 0xffffffc08086c210   <-- dst_release
+
+      tcp_v4_reqsk_destructor @0x940060
+        f9407801  ldr x1,[x0,#0xf0]     ; inet_rsk(req)->ireq_opt
+        b40000e1  cbz x1,+0x1c          ; garde NULL de la macro kfree_rcu
+        +0x014    bl 0xffffffc08024338c <-- kvfree_call_rcu
+
+  => AUCUN appel a kfree (0xffffffc0802869a8) dans ces deux fonctions.
+
+TROIS PREUVES CROISEES :
+  1. la sequence (kfree_rcu puis 2x dst_release) correspond EXACTEMENT au source ;
+  2. la garde NULL (cbz) est celle de kfree_rcu, absente d'un kfree direct ;
+  3. c'est kvfree_call_rcu qui est appele, pas kfree.
+
+PIEGES RENCONTRES (un faux negatif au premier passage) :
+  - /proc/kcore N'EXISTE PAS sur OpenWrt => la memoire noyau n'est pas lisible ;
+    il faut passer par l'image de firmware ;
+  - awk compare les adresses en FLOTTANT (strtonum) : au-dela de 2^53 la
+    comparaison est FAUSSE => resoudre les symboles par comparaison de CHAINES
+    (les adresses kallsyms sont des hexa de largeur fixe) ;
+  - _stext n'est PAS a l'offset 0 du fichier mais a 0x10000 (TEXT_OFFSET) ;
+    ancre : linux_banner juste apres _etext.
+
+LIMITE : ce n'est pas un test d'exploitation (personne n'a declenche la course).
+C'est la preuve que le mecanisme de correction est celui du binaire execute.
+
+8. DOCUMENTATION MISE A JOUR (03/11)
+--------------------------------------------------------------------------------
+  CLAUDE.md ..................... noyau 6.18.56, flashe r43046, etat QoS
+                                  (overhead 14 mpu 84), regle dry-run completee
+                                  (<< ni un site neuf de l'amont >>). 29 963 c.
+  .claude/docs/chantiers-clos.md  nouvelle section §03/11 (CVE, commits,
+                                  incident de regeneration, echec CI + cause,
+                                  correctif, CI vert, releves post-flash).
+  Memoire ....................... project_gl-mt6000_status.md (§03/11 en tete),
+                                  feedback_dryrun_ne_prouve_pas_compilation.md
+                                  (cas << site neuf >>), MEMORY.md (ligne d'etat).
+
+9. LEÇONS
+--------------------------------------------------------------------------------
+  - Un bump amont peut introduire des SITES NEUFS que les patches ne
+    connaissent pas. Un patch qui change un TYPE doit etre relu contre la
+    source de la version VISEE, pas seulement contre celle quittee.
+  - Une regeneration de masse se prouve par COMPARAISON D'ARBRES, jamais par
+    relecture des diffs. C'est cette comparaison qui avait detecte une premiere
+    regeneration qui AMPUTAIT les patchs creant un fichier (650 : 852 -> 95
+    lignes), cause d'un parseur ignorant les sections --- /dev/null.
+  - Un << Changelog annonce X >> n'est pas << X est dans le binaire >>. Pour une
+    CVE sans sentinelle visible, la preuve se fait en desassemblant l'image :
+    extraire le kernel du FIT, calibrer VA->fichier sur un symbole de donnees,
+    decoder les bl. Deux pieges y menent : awk/strtonum perd la precision
+    au-dela de 2^53 (comparer des CHAINES d'hexa), et _stext n'est pas a
+    l'offset 0 du fichier (TEXT_OFFSET).
+  - Mesures post-bump : 2 essais de download bornes (20 s), 951 et 1 235 Mbit/s
+    en WiFi, softirq <= 1,5 % (le mode d'echec du 21/08 n'est pas apparu). Le
+    debit FILAIRE 2,5 G n'a PAS ete mesure (le poste n'a que le WiFi).
+
+10. ROLLBACK
+--------------------------------------------------------------------------------
+  - Arbre : git checkout / git restore sur les fichiers ; les 4 suppressions
+    sont des git rm (git checkout HEAD -- <chemin> pour restaurer).
+  - Retour au noyau precedent : revenir a un firmware anterieur (r43041, 6.18.55)
+    -- les settings survivent au flash (regle : jamais sysupgrade -n).
+  - Le tarball 6.18.56 reste dans ~/dl-kernel/ (148 Mo) pour rejouer un dry-run.
+================================================================================

@@ -1,0 +1,5963 @@
+{
+  "schemaVersion": 1,
+  "client": {
+    "type": "web",
+    "appVersion": "ui2",
+    "browser": "Chromium"
+  },
+  "sessionId": "273dd2a0-56b7-40c5-81a3-6296881f34f9",
+  "startedAt": 1787870191316,
+  "durationMs": 339238,
+  "summary": {
+    "totalGrade": "B",
+    "downloadGrade": "B",
+    "uploadGrade": "A",
+    "bidirectionalGrade": "B",
+    "downloadBloat": 32.52500000074506,
+    "uploadBloat": 14.685000000707806,
+    "bidirectionalBloat": 38.450000000186265,
+    "baselineRtt": 4.84499999973923,
+    "downloadThroughputMbps": 1143.6048645208343,
+    "uploadThroughputMbps": 288.68166332090624,
+    "bidirectionalThroughputMbps": null,
+    "location": "Paris, FR",
+    "edgeLocation": "Paris, FR",
+    "appVersion": "ui2",
+    "standardInsights": {
+      "observedSamples": 166,
+      "okSamples": 166,
+      "directionalSamples": 166,
+      "directionalCoveragePct": 100,
+      "bucketStats": [
+        {
+          "sizeBytes": 64,
+          "sent": 27,
+          "ok": 27,
+          "lossPct": 0,
+          "minMs": 5.050000000745058,
+          "p10Ms": 5.279999999329448,
+          "p50Ms": 17.100000001490116,
+          "p95Ms": 43.81500000208615
+        },
+        {
+          "sizeBytes": 128,
+          "sent": 28,
+          "ok": 28,
+          "lossPct": 0,
+          "minMs": 4.899999998509884,
+          "p10Ms": 5.185000000894069,
+          "p50Ms": 15.724999998696148,
+          "p95Ms": 34.87749999864026
+        },
+        {
+          "sizeBytes": 256,
+          "sent": 28,
+          "ok": 28,
+          "lossPct": 0,
+          "minMs": 4.849999999627471,
+          "p10Ms": 5.4549999998882415,
+          "p50Ms": 12.975000000558794,
+          "p95Ms": 35.84000000022351
+        },
+        {
+          "sizeBytes": 512,
+          "sent": 27,
+          "ok": 27,
+          "lossPct": 0,
+          "minMs": 4.800000000745058,
+          "p10Ms": 5.389999999850988,
+          "p50Ms": 18.09999999962747,
+          "p95Ms": 34.469999998062846
+        },
+        {
+          "sizeBytes": 1024,
+          "sent": 28,
+          "ok": 28,
+          "lossPct": 0,
+          "minMs": 4.75,
+          "p10Ms": 5.234999998472631,
+          "p50Ms": 13.674999999813735,
+          "p95Ms": 37.62499999953434
+        },
+        {
+          "sizeBytes": 1444,
+          "sent": 28,
+          "ok": 28,
+          "lossPct": 0,
+          "minMs": 5,
+          "p10Ms": 5.220000000111758,
+          "p50Ms": 18.875,
+          "p95Ms": 49.04249999970196
+        }
+      ],
+      "checks": {
+        "sizeSpreadOk": true,
+        "ratioOk": true,
+        "minSizesOk": true,
+        "equalized": true
+      },
+      "confidence": {
+        "level": "usable",
+        "label": "Usable",
+        "score": 6,
+        "reasons": [
+          "Sample volume usable (166).",
+          "Packet-size spread meets DeltaQ/BBF targets (64-1444 B, ratio 22.56).",
+          "Per-size probe counts are balanced.",
+          "Directional timing coverage strong (100%).",
+          "G/S/V estimate limited: weak fit (R2 0.10)"
+        ]
+      },
+      "samplingConfidence": {
+        "level": "usable",
+        "label": "Usable",
+        "score": 6,
+        "summary": "166 samples (usable), 100% directional coverage"
+      },
+      "modelFitConfidence": {
+        "level": "low",
+        "label": "Limited (Standard mode)",
+        "summary": "weak fit (R2 0.10)"
+      },
+      "packetSizeIssue": {
+        "suspected": false,
+        "confidence": "low",
+        "reasons": []
+      },
+      "evidence": {
+        "sizesObserved": [
+          64,
+          128,
+          256,
+          512,
+          1024,
+          1444
+        ],
+        "minSize": 64,
+        "maxSize": 1444,
+        "sizeRatio": 22.5625,
+        "sampleVolumeTargets": {
+          "usable": 100,
+          "usableStrong": 120,
+          "high": 180
+        }
+      },
+      "gsv": {
+        "available": false,
+        "reason": "weak fit (R2 0.10)"
+      }
+    },
+    "dq": {
+      "enabled": false
+    },
+    "qoo": {
+      "scores": {
+        "web": 100,
+        "streaming": 100,
+        "calls": 100,
+        "audio": 100,
+        "backup": 100,
+        "gaming": 99.99999999999999
+      },
+      "breakdown": {
+        "web": {
+          "phase": "baseline",
+          "components": {
+            "latency": 100,
+            "loss": 100,
+            "throughput": 100
+          },
+          "weights": {
+            "latency": 0.55,
+            "loss": 0.2,
+            "throughput": 0.25
+          },
+          "baseScore": 100,
+          "finalScore": 100,
+          "throughputFloorRatio": 1,
+          "throughputFloorFactor": 1,
+          "downMbps": 1263.5266832140082,
+          "upMbps": 795.2574468616908
+        },
+        "streaming": {
+          "phase": "download",
+          "components": {
+            "latency": 100,
+            "loss": 100,
+            "throughput": 100
+          },
+          "weights": {
+            "latency": 0.15,
+            "loss": 0.1,
+            "throughput": 0.75
+          },
+          "baseScore": 100,
+          "finalScore": 100,
+          "throughputFloorRatio": 1,
+          "throughputFloorFactor": 1,
+          "downMbps": 1263.5266832140082,
+          "upMbps": 795.2574468616908
+        },
+        "calls": {
+          "phase": "bidirectional",
+          "components": {
+            "latency": 100,
+            "loss": 100,
+            "throughput": 100
+          },
+          "weights": {
+            "latency": 0.45,
+            "loss": 0.35,
+            "throughput": 0.2
+          },
+          "baseScore": 100,
+          "finalScore": 100,
+          "throughputFloorRatio": 1,
+          "throughputFloorFactor": 1,
+          "downMbps": 1263.5266832140082,
+          "upMbps": 795.2574468616908
+        },
+        "audio": {
+          "phase": "bidirectional",
+          "components": {
+            "latency": 100,
+            "loss": 100,
+            "throughput": 100
+          },
+          "weights": {
+            "latency": 0.5,
+            "loss": 0.35,
+            "throughput": 0.15
+          },
+          "baseScore": 100,
+          "finalScore": 100,
+          "throughputFloorRatio": 1,
+          "throughputFloorFactor": 1,
+          "downMbps": 1263.5266832140082,
+          "upMbps": 795.2574468616908
+        },
+        "backup": {
+          "phase": "upload",
+          "components": {
+            "latency": 100,
+            "loss": 100,
+            "throughput": 100
+          },
+          "weights": {
+            "latency": 0.1,
+            "loss": 0.1,
+            "throughput": 0.8
+          },
+          "baseScore": 100,
+          "finalScore": 100,
+          "throughputFloorRatio": 1,
+          "throughputFloorFactor": 1,
+          "downMbps": 1263.5266832140082,
+          "upMbps": 795.2574468616908
+        },
+        "gaming": {
+          "phase": "bidirectional",
+          "components": {
+            "latency": 100,
+            "loss": 100,
+            "throughput": 100
+          },
+          "weights": {
+            "latency": 0.6000000000000001,
+            "loss": 0.30000000000000004,
+            "throughput": 0.10000000000000002
+          },
+          "baseScore": 99.99999999999999,
+          "finalScore": 99.99999999999999,
+          "throughputFloorRatio": 1,
+          "throughputFloorFactor": 1,
+          "downMbps": 1263.5266832140082,
+          "upMbps": 795.2574468616908
+        }
+      },
+      "inputs": {
+        "profiles": {
+          "web": {
+            "label": "Web browsing",
+            "phase": "baseline",
+            "minDownMbps": 2,
+            "highDownMbps": 20,
+            "minUpMbps": 0.5,
+            "highUpMbps": 3,
+            "nrp": {
+              "latencyMs": {
+                "p95": 60
+              },
+              "lossPct": 0.5
+            },
+            "nrpou": {
+              "latencyMs": {
+                "p95": 180
+              },
+              "lossPct": 2.5
+            },
+            "weights": {
+              "latency": 0.55,
+              "loss": 0.2,
+              "throughput": 0.25
+            },
+            "throughputFloorInfluence": 0.2,
+            "rationale": "Web is latency-sensitive but should not collapse to zero from moderate throughput dips."
+          },
+          "streaming": {
+            "label": "Video streaming",
+            "phase": "download",
+            "minDownMbps": 5,
+            "highDownMbps": 25,
+            "minUpMbps": 0.3,
+            "highUpMbps": 1.5,
+            "nrp": {
+              "latencyMs": {
+                "p95": 90
+              },
+              "lossPct": 1
+            },
+            "nrpou": {
+              "latencyMs": {
+                "p95": 260
+              },
+              "lossPct": 4
+            },
+            "weights": {
+              "latency": 0.15,
+              "loss": 0.1,
+              "throughput": 0.75
+            },
+            "throughputFloorInfluence": 0.15,
+            "rationale": "Streaming is throughput-dominant; latency/loss still matter but should not dominate."
+          },
+          "calls": {
+            "label": "Video conferencing",
+            "phase": "bidirectional",
+            "minDownMbps": 1.5,
+            "highDownMbps": 4,
+            "minUpMbps": 1.5,
+            "highUpMbps": 4,
+            "nrp": {
+              "latencyMs": {
+                "p95": 70
+              },
+              "lossPct": 0.8
+            },
+            "nrpou": {
+              "latencyMs": {
+                "p95": 200
+              },
+              "lossPct": 3
+            },
+            "weights": {
+              "latency": 0.45,
+              "loss": 0.35,
+              "throughput": 0.2
+            },
+            "throughputFloorInfluence": 0.35,
+            "rationale": "Calls are interaction-heavy; latency and loss lead, throughput is a secondary gate."
+          },
+          "audio": {
+            "label": "Audio calls",
+            "phase": "bidirectional",
+            "minDownMbps": 0.1,
+            "highDownMbps": 0.5,
+            "minUpMbps": 0.1,
+            "highUpMbps": 0.5,
+            "nrp": {
+              "latencyMs": {
+                "p95": 90
+              },
+              "lossPct": 1
+            },
+            "nrpou": {
+              "latencyMs": {
+                "p95": 250
+              },
+              "lossPct": 4
+            },
+            "weights": {
+              "latency": 0.5,
+              "loss": 0.35,
+              "throughput": 0.15
+            },
+            "throughputFloorInfluence": 0.25,
+            "rationale": "Audio calls tolerate lower bitrate but remain sensitive to latency/loss spikes."
+          },
+          "backup": {
+            "label": "Online backup",
+            "phase": "upload",
+            "minDownMbps": 0.5,
+            "highDownMbps": 2,
+            "minUpMbps": 2,
+            "highUpMbps": 15,
+            "nrp": {
+              "latencyMs": {
+                "p95": 180
+              },
+              "lossPct": 2
+            },
+            "nrpou": {
+              "latencyMs": {
+                "p95": 400
+              },
+              "lossPct": 6
+            },
+            "weights": {
+              "latency": 0.1,
+              "loss": 0.1,
+              "throughput": 0.8
+            },
+            "throughputFloorInfluence": 0.2,
+            "rationale": "Backup is throughput-heavy; poor latency should not force near-zero QoO."
+          },
+          "gaming": {
+            "label": "Real-time gaming",
+            "phase": "bidirectional",
+            "minDownMbps": 1.5,
+            "highDownMbps": 8,
+            "minUpMbps": 0.5,
+            "highUpMbps": 3,
+            "nrp": {
+              "latencyMs": {
+                "p95": 55
+              },
+              "lossPct": 0.5
+            },
+            "nrpou": {
+              "latencyMs": {
+                "p95": 140
+              },
+              "lossPct": 2
+            },
+            "weights": {
+              "latency": 0.6,
+              "loss": 0.3,
+              "throughput": 0.1
+            },
+            "throughputFloorInfluence": 0.35,
+            "rationale": "Gaming remains latency/loss first, but modest throughput shortfalls should not auto-zero."
+          }
+        },
+        "latencyByPhase": {
+          "baseline": {
+            "p95": 6.1749999986961495
+          },
+          "download": {
+            "p95": 40.10749999880791
+          },
+          "upload": {
+            "p95": 22.499999999627466
+          },
+          "bidirectional": {
+            "p95": 54.81250000046564
+          }
+        },
+        "lossPctByPhase": {
+          "baseline": 0,
+          "download": 0,
+          "upload": 0,
+          "bidirectional": 0
+        },
+        "throughput": {
+          "downloadMbps": 1263.5266832140082,
+          "uploadMbps": 795.2574468616908
+        }
+      }
+    }
+  },
+  "phases": [
+    {
+      "name": "baseline",
+      "startMs": 1090,
+      "endMs": 9116
+    },
+    {
+      "name": "downloadWarmup",
+      "startMs": 9118,
+      "endMs": 17447
+    },
+    {
+      "name": "download",
+      "startMs": 17449,
+      "endMs": 27502
+    },
+    {
+      "name": "uploadWarmup",
+      "startMs": 27504,
+      "endMs": 36417
+    },
+    {
+      "name": "upload",
+      "startMs": 36419,
+      "endMs": 46880
+    },
+    {
+      "name": "bidirectional",
+      "startMs": 46882,
+      "endMs": 57105
+    },
+    {
+      "name": "recovery",
+      "startMs": 57107,
+      "endMs": 60114
+    }
+  ],
+  "latencySamples": [
+    {
+      "elapsedMs": 1395,
+      "phase": "baseline",
+      "rttMs": 17.100000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 1574,
+      "phase": "baseline",
+      "rttMs": 6.149999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 1753,
+      "phase": "baseline",
+      "rttMs": 6.400000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 1953,
+      "phase": "baseline",
+      "rttMs": 5.599999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 2149,
+      "phase": "baseline",
+      "rttMs": 5.000000001862645,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 2360,
+      "phase": "baseline",
+      "rttMs": 5.299999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 2550,
+      "phase": "baseline",
+      "rttMs": 5.299999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 2750,
+      "phase": "baseline",
+      "rttMs": 5.200000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 2949,
+      "phase": "baseline",
+      "rttMs": 5.550000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 3149,
+      "phase": "baseline",
+      "rttMs": 5.300000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 3350,
+      "phase": "baseline",
+      "rttMs": 5.699999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 3549,
+      "phase": "baseline",
+      "rttMs": 5.25,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 3749,
+      "phase": "baseline",
+      "rttMs": 5.050000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 3949,
+      "phase": "baseline",
+      "rttMs": 5.500000001862645,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 4150,
+      "phase": "baseline",
+      "rttMs": 5.349999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 4348,
+      "phase": "baseline",
+      "rttMs": 4.800000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 4549,
+      "phase": "baseline",
+      "rttMs": 5.300000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 4748,
+      "phase": "baseline",
+      "rttMs": 5,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 4948,
+      "phase": "baseline",
+      "rttMs": 5.100000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 5148,
+      "phase": "baseline",
+      "rttMs": 4.899999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 5348,
+      "phase": "baseline",
+      "rttMs": 4.849999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 5549,
+      "phase": "baseline",
+      "rttMs": 5.449999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 5749,
+      "phase": "baseline",
+      "rttMs": 5.249999998137355,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 5950,
+      "phase": "baseline",
+      "rttMs": 5.25,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 6148,
+      "phase": "baseline",
+      "rttMs": 5.25,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 6348,
+      "phase": "baseline",
+      "rttMs": 5.050000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 6549,
+      "phase": "baseline",
+      "rttMs": 5,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 6749,
+      "phase": "baseline",
+      "rttMs": 5.450000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 6948,
+      "phase": "baseline",
+      "rttMs": 5.299999997019768,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 7149,
+      "phase": "baseline",
+      "rttMs": 5.050000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 7348,
+      "phase": "baseline",
+      "rttMs": 5.400000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 7549,
+      "phase": "baseline",
+      "rttMs": 5.150000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 7749,
+      "phase": "baseline",
+      "rttMs": 5.5,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 7948,
+      "phase": "baseline",
+      "rttMs": 5.099999997764826,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 8148,
+      "phase": "baseline",
+      "rttMs": 4.75,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 8348,
+      "phase": "baseline",
+      "rttMs": 5.25,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 8548,
+      "phase": "baseline",
+      "rttMs": 5.400000002235174,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 8748,
+      "phase": "baseline",
+      "rttMs": 5.299999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 8949,
+      "phase": "baseline",
+      "rttMs": 5.799999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 9118,
+      "phase": "baseline",
+      "rttMs": 5.799999998882413,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 9118,
+      "phase": "downloadWarmup",
+      "rttMs": 5.799999998882413,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 9170,
+      "phase": "downloadWarmup",
+      "rttMs": 5.500000001862645,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 9424,
+      "phase": "downloadWarmup",
+      "rttMs": 17.449999999254942,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 9721,
+      "phase": "downloadWarmup",
+      "rttMs": 27.049999998882413,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 9973,
+      "phase": "downloadWarmup",
+      "rttMs": 23,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 10164,
+      "phase": "downloadWarmup",
+      "rttMs": 19.699999999254942,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 10385,
+      "phase": "downloadWarmup",
+      "rttMs": 22.90000000037253,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 10558,
+      "phase": "downloadWarmup",
+      "rttMs": 15.650000000372529,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 10765,
+      "phase": "downloadWarmup",
+      "rttMs": 16.000000001862645,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 10959,
+      "phase": "downloadWarmup",
+      "rttMs": 17.850000001490116,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 11165,
+      "phase": "downloadWarmup",
+      "rttMs": 29.199999999254942,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 11376,
+      "phase": "downloadWarmup",
+      "rttMs": 23.34999999962747,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 11554,
+      "phase": "downloadWarmup",
+      "rttMs": 9.699999999254942,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 11770,
+      "phase": "downloadWarmup",
+      "rttMs": 24.399999998509884,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 11967,
+      "phase": "downloadWarmup",
+      "rttMs": 32.95000000111759,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 12314,
+      "phase": "downloadWarmup",
+      "rttMs": 34.69999999925494,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 12572,
+      "phase": "downloadWarmup",
+      "rttMs": 13.199999999254942,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 12764,
+      "phase": "downloadWarmup",
+      "rttMs": 13.149999998509884,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 12997,
+      "phase": "downloadWarmup",
+      "rttMs": 17.09999999962747,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 13368,
+      "phase": "downloadWarmup",
+      "rttMs": 314.4000000022352,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 13611,
+      "phase": "downloadWarmup",
+      "rttMs": 37.44999999925494,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 13879,
+      "phase": "downloadWarmup",
+      "rttMs": 14.549999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 14065,
+      "phase": "downloadWarmup",
+      "rttMs": 27.599999997764826,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 14298,
+      "phase": "downloadWarmup",
+      "rttMs": 40.19999999925494,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 14573,
+      "phase": "downloadWarmup",
+      "rttMs": 27.100000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 14784,
+      "phase": "downloadWarmup",
+      "rttMs": 32.40000000037253,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 14973,
+      "phase": "downloadWarmup",
+      "rttMs": 11.799999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 15172,
+      "phase": "downloadWarmup",
+      "rttMs": 19.200000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 15399,
+      "phase": "downloadWarmup",
+      "rttMs": 35.400000002235174,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 15668,
+      "phase": "downloadWarmup",
+      "rttMs": 20.899999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 15894,
+      "phase": "downloadWarmup",
+      "rttMs": 14.949999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 16066,
+      "phase": "downloadWarmup",
+      "rttMs": 10.849999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 16271,
+      "phase": "downloadWarmup",
+      "rttMs": 16.850000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 16511,
+      "phase": "downloadWarmup",
+      "rttMs": 30.700000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 16789,
+      "phase": "downloadWarmup",
+      "rttMs": 29.90000000037253,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 16982,
+      "phase": "downloadWarmup",
+      "rttMs": 32.100000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 17169,
+      "phase": "downloadWarmup",
+      "rttMs": 27.049999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 17384,
+      "phase": "downloadWarmup",
+      "rttMs": 6.200000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 17450,
+      "phase": "downloadWarmup",
+      "rttMs": 6.200000001117587,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 17450,
+      "phase": "download",
+      "rttMs": 6.200000001117587,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 17588,
+      "phase": "download",
+      "rttMs": 11.099999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 17855,
+      "phase": "download",
+      "rttMs": 57.69999999925494,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 18169,
+      "phase": "download",
+      "rttMs": 26.950000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 18381,
+      "phase": "download",
+      "rttMs": 28.400000002235174,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 18587,
+      "phase": "download",
+      "rttMs": 27.40000000037253,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 18778,
+      "phase": "download",
+      "rttMs": 26.600000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 18985,
+      "phase": "download",
+      "rttMs": 18.249999998137355,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 19166,
+      "phase": "download",
+      "rttMs": 21.199999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 19423,
+      "phase": "download",
+      "rttMs": 45.750000001862645,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 19763,
+      "phase": "download",
+      "rttMs": 32.04999999888241,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 19968,
+      "phase": "download",
+      "rttMs": 17.300000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 20168,
+      "phase": "download",
+      "rttMs": 21.59999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 20394,
+      "phase": "download",
+      "rttMs": 37.30000000074506,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 20587,
+      "phase": "download",
+      "rttMs": 40.249999998137355,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 20777,
+      "phase": "download",
+      "rttMs": 28.649999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 20980,
+      "phase": "download",
+      "rttMs": 28.450000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 21172,
+      "phase": "download",
+      "rttMs": 25.09999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 21412,
+      "phase": "download",
+      "rttMs": 23.800000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 21673,
+      "phase": "download",
+      "rttMs": 32.44999999925494,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 21879,
+      "phase": "download",
+      "rttMs": 25.299999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 22163,
+      "phase": "download",
+      "rttMs": 39.3000000026077,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 22426,
+      "phase": "download",
+      "rttMs": 25.600000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 22662,
+      "phase": "download",
+      "rttMs": 11.650000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 22854,
+      "phase": "download",
+      "rttMs": 11.5,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 23061,
+      "phase": "download",
+      "rttMs": 14,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 23296,
+      "phase": "download",
+      "rttMs": 29.049999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 23502,
+      "phase": "download",
+      "rttMs": 21.049999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 23787,
+      "phase": "download",
+      "rttMs": 24.999999998137355,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 24065,
+      "phase": "download",
+      "rttMs": 26.65000000037253,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 24271,
+      "phase": "download",
+      "rttMs": 21,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 24470,
+      "phase": "download",
+      "rttMs": 21.100000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 24681,
+      "phase": "download",
+      "rttMs": 20.25,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 24894,
+      "phase": "download",
+      "rttMs": 37.40000000037253,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 25111,
+      "phase": "download",
+      "rttMs": 24.600000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 25368,
+      "phase": "download",
+      "rttMs": 26.549999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 25590,
+      "phase": "download",
+      "rttMs": 14.650000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 25785,
+      "phase": "download",
+      "rttMs": 21.84999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 25994,
+      "phase": "download",
+      "rttMs": 26.950000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 26178,
+      "phase": "download",
+      "rttMs": 22.25,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 26377,
+      "phase": "download",
+      "rttMs": 17.09999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 26587,
+      "phase": "download",
+      "rttMs": 20.949999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 26807,
+      "phase": "download",
+      "rttMs": 24.75,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 27102,
+      "phase": "download",
+      "rttMs": 19.950000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 27381,
+      "phase": "download",
+      "rttMs": 11.75,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 27505,
+      "phase": "download",
+      "rttMs": 11.75,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 27505,
+      "phase": "uploadWarmup",
+      "rttMs": 11.75,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 27553,
+      "phase": "uploadWarmup",
+      "rttMs": 8.200000001117587,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 27763,
+      "phase": "uploadWarmup",
+      "rttMs": 7.699999999254942,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 27969,
+      "phase": "uploadWarmup",
+      "rttMs": 8.899999998509884,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 28150,
+      "phase": "uploadWarmup",
+      "rttMs": 6.149999998509884,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 28444,
+      "phase": "uploadWarmup",
+      "rttMs": 39.399999998509884,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 28652,
+      "phase": "uploadWarmup",
+      "rttMs": 14.799999998882413,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 28863,
+      "phase": "uploadWarmup",
+      "rttMs": 10.150000000372529,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 29114,
+      "phase": "uploadWarmup",
+      "rttMs": 15.300000000745058,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 29359,
+      "phase": "uploadWarmup",
+      "rttMs": 12.950000001117587,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 29550,
+      "phase": "uploadWarmup",
+      "rttMs": 5.699999999254942,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 29750,
+      "phase": "uploadWarmup",
+      "rttMs": 5.599999999627471,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 29948,
+      "phase": "uploadWarmup",
+      "rttMs": 5.699999999254942,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 30150,
+      "phase": "uploadWarmup",
+      "rttMs": 5.599999999627471,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 30349,
+      "phase": "uploadWarmup",
+      "rttMs": 5.549999998882413,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 30551,
+      "phase": "uploadWarmup",
+      "rttMs": 5.349999999627471,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 30748,
+      "phase": "uploadWarmup",
+      "rttMs": 5.700000001117587,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 30951,
+      "phase": "uploadWarmup",
+      "rttMs": 7.900000000372529,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 31151,
+      "phase": "uploadWarmup",
+      "rttMs": 6.700000001117587,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 31349,
+      "phase": "uploadWarmup",
+      "rttMs": 5.599999999627471,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 31560,
+      "phase": "uploadWarmup",
+      "rttMs": 7.199999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 31754,
+      "phase": "uploadWarmup",
+      "rttMs": 13.650000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 31951,
+      "phase": "uploadWarmup",
+      "rttMs": 7.699999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 32194,
+      "phase": "uploadWarmup",
+      "rttMs": 10,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 32388,
+      "phase": "uploadWarmup",
+      "rttMs": 7.449999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 32549,
+      "phase": "uploadWarmup",
+      "rttMs": 5.499999998137355,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 32749,
+      "phase": "uploadWarmup",
+      "rttMs": 6.600000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 32950,
+      "phase": "uploadWarmup",
+      "rttMs": 10.099999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 33153,
+      "phase": "uploadWarmup",
+      "rttMs": 5.550000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 33390,
+      "phase": "uploadWarmup",
+      "rttMs": 12.699999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 33549,
+      "phase": "uploadWarmup",
+      "rttMs": 5.699999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 33754,
+      "phase": "uploadWarmup",
+      "rttMs": 8.149999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 33956,
+      "phase": "uploadWarmup",
+      "rttMs": 7.999999998137355,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 34149,
+      "phase": "uploadWarmup",
+      "rttMs": 5.649999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 34356,
+      "phase": "uploadWarmup",
+      "rttMs": 12.5,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 34550,
+      "phase": "uploadWarmup",
+      "rttMs": 5.849999997764826,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 34760,
+      "phase": "uploadWarmup",
+      "rttMs": 6.900000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 34953,
+      "phase": "uploadWarmup",
+      "rttMs": 10.649999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 35168,
+      "phase": "uploadWarmup",
+      "rttMs": 7.699999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 35356,
+      "phase": "uploadWarmup",
+      "rttMs": 12.900000002235174,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 35675,
+      "phase": "uploadWarmup",
+      "rttMs": 13.399999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 35879,
+      "phase": "uploadWarmup",
+      "rttMs": 13.299999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 36049,
+      "phase": "uploadWarmup",
+      "rttMs": 8.350000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 36250,
+      "phase": "uploadWarmup",
+      "rttMs": 5.850000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 36419,
+      "phase": "uploadWarmup",
+      "rttMs": 5.850000001490116,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 36419,
+      "phase": "upload",
+      "rttMs": 5.850000001490116,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 36712,
+      "phase": "upload",
+      "rttMs": 5.549999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 37809,
+      "phase": "upload",
+      "rttMs": 36.05000000074506,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 38061,
+      "phase": "upload",
+      "rttMs": 29.84999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 38258,
+      "phase": "upload",
+      "rttMs": 17.950000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 38477,
+      "phase": "upload",
+      "rttMs": 21.09999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 38661,
+      "phase": "upload",
+      "rttMs": 16.899999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 38865,
+      "phase": "upload",
+      "rttMs": 12.899999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 39056,
+      "phase": "upload",
+      "rttMs": 12.800000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 39262,
+      "phase": "upload",
+      "rttMs": 19.75,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 39460,
+      "phase": "upload",
+      "rttMs": 19.200000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 39666,
+      "phase": "upload",
+      "rttMs": 18.5,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 39859,
+      "phase": "upload",
+      "rttMs": 15.299999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 40055,
+      "phase": "upload",
+      "rttMs": 14.849999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 40267,
+      "phase": "upload",
+      "rttMs": 13.150000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 40617,
+      "phase": "upload",
+      "rttMs": 17.050000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 40896,
+      "phase": "upload",
+      "rttMs": 5.849999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 41167,
+      "phase": "upload",
+      "rttMs": 12.949999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 41366,
+      "phase": "upload",
+      "rttMs": 15.450000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 41550,
+      "phase": "upload",
+      "rttMs": 16.599999997764826,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 41750,
+      "phase": "upload",
+      "rttMs": 5.900000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 41949,
+      "phase": "upload",
+      "rttMs": 6.200000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 42152,
+      "phase": "upload",
+      "rttMs": 6.000000001862645,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 42352,
+      "phase": "upload",
+      "rttMs": 5.300000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 42550,
+      "phase": "upload",
+      "rttMs": 5.550000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 42750,
+      "phase": "upload",
+      "rttMs": 6.299999997019768,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 42950,
+      "phase": "upload",
+      "rttMs": 6.099999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 43150,
+      "phase": "upload",
+      "rttMs": 6.099999997764826,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 43350,
+      "phase": "upload",
+      "rttMs": 6.850000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 43548,
+      "phase": "upload",
+      "rttMs": 5.150000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 43751,
+      "phase": "upload",
+      "rttMs": 7.099999997764826,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 43950,
+      "phase": "upload",
+      "rttMs": 6.199999997392297,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 44149,
+      "phase": "upload",
+      "rttMs": 5.500000001862645,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 44349,
+      "phase": "upload",
+      "rttMs": 6,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 44549,
+      "phase": "upload",
+      "rttMs": 5.199999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 44749,
+      "phase": "upload",
+      "rttMs": 5.649999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 44949,
+      "phase": "upload",
+      "rttMs": 5.699999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 45149,
+      "phase": "upload",
+      "rttMs": 5.799999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 45349,
+      "phase": "upload",
+      "rttMs": 5.650000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 45549,
+      "phase": "upload",
+      "rttMs": 5.599999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 45749,
+      "phase": "upload",
+      "rttMs": 5.75,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 45949,
+      "phase": "upload",
+      "rttMs": 5.599999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 46149,
+      "phase": "upload",
+      "rttMs": 5.599999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 46349,
+      "phase": "upload",
+      "rttMs": 5.549999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 46549,
+      "phase": "upload",
+      "rttMs": 5.599999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 46782,
+      "phase": "upload",
+      "rttMs": 22.84999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 46882,
+      "phase": "upload",
+      "rttMs": 22.84999999962747,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 46882,
+      "phase": "bidirectional",
+      "rttMs": 22.84999999962747,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 47128,
+      "phase": "bidirectional",
+      "rttMs": 10.199999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 48136,
+      "phase": "bidirectional",
+      "rttMs": 41.599999997764826,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 48386,
+      "phase": "bidirectional",
+      "rttMs": 24.09999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 48576,
+      "phase": "bidirectional",
+      "rttMs": 36.399999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 48781,
+      "phase": "bidirectional",
+      "rttMs": 22.199999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 48994,
+      "phase": "bidirectional",
+      "rttMs": 36.4499999973923,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 49195,
+      "phase": "bidirectional",
+      "rttMs": 29.449999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 49478,
+      "phase": "bidirectional",
+      "rttMs": 29.550000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 49699,
+      "phase": "bidirectional",
+      "rttMs": 27.09999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 49994,
+      "phase": "bidirectional",
+      "rttMs": 21.40000000037253,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 50453,
+      "phase": "bidirectional",
+      "rttMs": 18.65000000037253,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 50663,
+      "phase": "bidirectional",
+      "rttMs": 18.09999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 50859,
+      "phase": "bidirectional",
+      "rttMs": 64.79999999888241,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 51082,
+      "phase": "bidirectional",
+      "rttMs": 31.65000000037253,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 51276,
+      "phase": "bidirectional",
+      "rttMs": 30.449999999254942,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 51465,
+      "phase": "bidirectional",
+      "rttMs": 28.300000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 51694,
+      "phase": "bidirectional",
+      "rttMs": 35.44999999925494,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 51877,
+      "phase": "bidirectional",
+      "rttMs": 21.800000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 52078,
+      "phase": "bidirectional",
+      "rttMs": 29.899999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 52499,
+      "phase": "bidirectional",
+      "rttMs": 25.499999998137355,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 52878,
+      "phase": "bidirectional",
+      "rttMs": 69.45000000111759,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 53081,
+      "phase": "bidirectional",
+      "rttMs": 23.34999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 53301,
+      "phase": "bidirectional",
+      "rttMs": 42.94999999925494,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 53804,
+      "phase": "bidirectional",
+      "rttMs": 39.15000000037253,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 53965,
+      "phase": "bidirectional",
+      "rttMs": 13.349999999627471,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 54172,
+      "phase": "bidirectional",
+      "rttMs": 53.05000000074506,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 54397,
+      "phase": "bidirectional",
+      "rttMs": 31.75,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 54600,
+      "phase": "bidirectional",
+      "rttMs": 44.100000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 54875,
+      "phase": "bidirectional",
+      "rttMs": 31.399999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 55067,
+      "phase": "bidirectional",
+      "rttMs": 28.700000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 55299,
+      "phase": "bidirectional",
+      "rttMs": 37.79999999888241,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 55595,
+      "phase": "bidirectional",
+      "rttMs": 19.25,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 55869,
+      "phase": "bidirectional",
+      "rttMs": 25.59999999962747,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 56112,
+      "phase": "bidirectional",
+      "rttMs": 29.000000001862645,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 56366,
+      "phase": "bidirectional",
+      "rttMs": 18.149999998509884,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 56566,
+      "phase": "bidirectional",
+      "rttMs": 20.099999997764826,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 56795,
+      "phase": "bidirectional",
+      "rttMs": 28.800000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 56956,
+      "phase": "bidirectional",
+      "rttMs": 11.650000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 57107,
+      "phase": "bidirectional",
+      "rttMs": 11.650000000372529,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 57107,
+      "phase": "recovery",
+      "rttMs": 11.650000000372529,
+      "counted": false,
+      "loss": false
+    },
+    {
+      "elapsedMs": 57246,
+      "phase": "recovery",
+      "rttMs": 5.550000002607703,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 57454,
+      "phase": "recovery",
+      "rttMs": 6.150000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 57650,
+      "phase": "recovery",
+      "rttMs": 5.700000002980232,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 57851,
+      "phase": "recovery",
+      "rttMs": 5.550000002607703,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 58050,
+      "phase": "recovery",
+      "rttMs": 5.799999997019768,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 58249,
+      "phase": "recovery",
+      "rttMs": 6.100000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 58449,
+      "phase": "recovery",
+      "rttMs": 5.799999998882413,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 58650,
+      "phase": "recovery",
+      "rttMs": 6.050000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 58850,
+      "phase": "recovery",
+      "rttMs": 5.900000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 59050,
+      "phase": "recovery",
+      "rttMs": 5.900000002235174,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 59249,
+      "phase": "recovery",
+      "rttMs": 5.850000001490116,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 59450,
+      "phase": "recovery",
+      "rttMs": 5.400000000372529,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 59650,
+      "phase": "recovery",
+      "rttMs": 5.700000001117587,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 59849,
+      "phase": "recovery",
+      "rttMs": 5.800000000745058,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 60049,
+      "phase": "recovery",
+      "rttMs": 5.5,
+      "counted": true,
+      "loss": false
+    },
+    {
+      "elapsedMs": 60359,
+      "phase": "recovery",
+      "rttMs": 5.900000002235174,
+      "counted": true,
+      "loss": false
+    }
+  ],
+  "throughputSamples": [
+    {
+      "elapsedMs": 9447,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 386.86893158665276,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 9447,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 386.86893158665276,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 9701,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 799.8478147464726,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 9701,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 616.3016444532194,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 9940,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 875.5206586985391,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 9940,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 722.5389453734323,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 10193,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 915.1757375745526,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 10193,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 787.795311295221,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 10439,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 990.2622637573181,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 10439,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 848.0246522227845,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 10691,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1025.1271547295091,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 10691,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 896.0292771107639,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 10940,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1051.964339988591,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 10940,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 935.492281556206,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 11190,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1077.668848,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 11191,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 969.6599841035743,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 11440,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1238.810456,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 11441,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1031.8350783740252,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 11689,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1277.409588,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 11690,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1086.8580241109635,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 11943,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1145.528704,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 11943,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1116.8440347660405,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 12243,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1150.953072,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 12243,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1132.1127500191296,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 12440,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1081.837904,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 12440,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1127.021371402192,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 12690,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1238.059392,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 12690,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1156.996926598381,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 12945,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1075.879864,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 12945,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1142.8333065794027,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 13236,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1067.139572,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 13236,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1128.7052964954894,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 13448,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1045.260664,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 13448,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1111.855092624808,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 13689,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1216.991096,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 13689,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1136.2341148972437,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 13939,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1255.485312,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 13940,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1160.4855188358574,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 14191,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1274.054652,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 14191,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1183.1186322509186,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 14441,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1174.95606,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 14441,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1182.1940826004063,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 14693,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1184.230016,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 14693,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1183.401847660273,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 14938,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1341.555636,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 14938,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1221.2809074898705,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 15196,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1322.914548,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 15196,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1243.6490851709423,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 15444,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1332.086752,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 15444,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1267.5004566381913,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 15698,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1174.291572,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 15698,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1251.4365478756167,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 15947,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1194.871472,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 15947,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1243.722876987979,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 16188,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1343.81138,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 16188,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1266.791626313766,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 16448,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1183.420968,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 16449,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1248.3837670655848,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 16688,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1331.145724,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 16688,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1266.3096583126492,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 16941,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1160.923828,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 16941,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1244.8949041121698,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 17199,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1179.899104,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 17199,
+      "phase": "downloadWarmup",
+      "direction": "download",
+      "mbps": 1231.7915507926393,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 17749,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 735.6261642010365,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 17749,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1117.9809919935774,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18016,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 903.7547508447361,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18016,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1065.0515764392508,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18212,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1018.147032996922,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18212,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1048.1178903190332,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1115.9584399002495,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1060.2826188312113,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18714,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1120.9273663366337,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18714,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1070.632617346932,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18957,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1152.877821178237,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 18957,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1082.4881690235918,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 19219,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1158.9765414219462,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 19219,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1097.197758268374,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 19531,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1215.102976,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 19531,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1117.9870395904225,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 19723,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1333.788672,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 19723,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1165.3061571187607,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 19954,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1345.248768,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 19954,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1205.272669765831,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 20205,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1340.327872,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 20205,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1246.8316540858038,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 20474,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1190.485672,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 20474,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1242.4606444835,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 20707,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1305.32164,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 20707,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1261.9417046179324,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 20957,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1331.235908,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 20957,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1280.9797013686127,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 21234,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1159.410048,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 21234,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1257.5915889714158,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 21455,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1296.997368,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 21455,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1268.9399800290666,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 21712,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1268.770104,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 21712,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1271.5474238326874,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 21959,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1196.572212,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 21959,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1256.106567420776,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 22205,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1303.133748,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 22205,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1264.774505844725,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 22454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1284.779392,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 22454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1267.32070780932,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 22705,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1239.942964,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 22705,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1259.4300939195443,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 22954,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1268.454452,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 22954,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1263.110742337103,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 23247,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1080.478912,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 23247,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1221.175098695234,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 23454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1200.247432,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 23454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1213.8382380615908,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 23724,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1081.544904,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 23724,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1185.5062877278667,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 23999,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1065.001164,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 23999,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1155.8238867251332,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 24205,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1096.352936,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 24205,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1139.78167574524,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 24454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1260.379392,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 24454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1165.436295317908,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 24705,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1180.623252,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 24705,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1165.5263230257933,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 24970,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1175.639428,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 24970,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1164.923249318419,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 25210,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1328.162704,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 25210,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1199.6935351636143,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 25454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1209.76222,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 25454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1200.2952514834997,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 25704,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1377.730612,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 25704,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1242.933619824304,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 25965,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1322.460724,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 25966,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1261.7792541393078,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 26205,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1185.956696,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 26206,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1249.1266866156536,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 26454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1171.883264,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 26454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1236.2493769899133,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 26706,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1143.30558,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 26706,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1218.7902066451743,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 26955,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1304.327532,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 26955,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1236.9549782621652,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 27208,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1306.288252,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 27208,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1253.844887852971,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 27454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1154.95284,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 27454,
+      "phase": "download",
+      "direction": "download",
+      "mbps": 1233.5687993155916,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 28391,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 210.2553413231979,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 28391,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 210.2553413231979,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 28624,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 345.0796632116027,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 28625,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 285.15774237231165,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 28874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 507.0103734431126,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 28874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 376.0809518275579,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 29125,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 518.2765900338505,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 29125,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 424.25020596248095,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 29374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 536.7089792331093,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 29374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 457.70414851085917,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 29624,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 453.70453702538134,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 29625,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 456.62003142419786,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 29874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 392.9984472874813,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 29875,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 440.51910574861444,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 30125,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 367.0016,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 30125,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 422.8514666202203,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 30374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 367.0016,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 30375,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 409.94987035833236,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 30624,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 260.441,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 30625,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 376.4512044200524,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 30874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 147.0605,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 30875,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 329.0527188887809,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 31124,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 173.2749,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 31124,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 293.7638675411287,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 31374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 42.991616,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 31375,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 232.4460308023651,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 31648,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 76.546048,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 31648,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 190.6388588103054,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 31875,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 112.775108,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 31875,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 164.86708641119762,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 32124,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 146.32954,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 32124,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 153.76473410625883,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 32374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 179.883972,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 32374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 153.861462999795,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 32624,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 196.661188,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 32624,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 158.3233498644897,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 32874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 246.992836,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 32874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 173.17007025640214,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 33128,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 238.447964,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 33128,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 185.696539447134,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 33374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 272.002396,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 33375,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 205.96356912881643,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 33624,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 293.320332,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 33625,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 226.32298069881725,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 33874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 310.097548,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 33875,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 249.50394200512721,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 34124,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 260.724296,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 34125,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 256.1789822887255,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 34374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 260.724296,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 34374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 260.64741398155724,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 34624,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 260.724296,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 34625,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 263.4149051357183,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 34874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 250.291364,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 34874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 262.4840614600712,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 35124,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 277.501512,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 35125,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 267.4324121184249,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 35374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 293.386416,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 35374,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 273.739351958363,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 35627,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 289.712876,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 35627,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 278.167390578748,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 35874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 372.794572,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 35874,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 299.5176900647854,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 36124,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 355.456328,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 36125,
+      "phase": "uploadWarmup",
+      "direction": "upload",
+      "mbps": 312.200288545446,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 37931,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 63.54250878016171,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 37931,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 256.53709915072835,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 38182,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 217.92398159223174,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 38182,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 247.78478353840094,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 38432,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 348.9185,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 38432,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 270.1333073932369,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 38681,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 442.7145,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 38681,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 309.0278753274333,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 38932,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 546.47374,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 38932,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 363.64261864927784,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 39182,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 649.57074,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 39183,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 429.77950298046653,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 39432,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 754.69824,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 39432,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 505.86151327500573,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 39682,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 882.56148,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 39682,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 595.464287930237,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 39932,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 912.29848,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 39932,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 671.810538295069,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 40182,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 878.63872,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 40182,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 725.7629227402311,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 40597,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 854.47646,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 40597,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 770.533958674319,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 40681,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 854.47646,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 40681,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 802.6366702419018,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 40931,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 760.68046,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 40931,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 804.1516179824962,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 41181,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 807.90596,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 41181,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 813.6882807611566,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 41431,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 834.30246,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 41431,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 824.7357143231912,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 41681,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 755.2512,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 41681,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 813.3812772408371,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 41931,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 627.38796,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 41931,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 773.1197767210579,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 42183,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 549.70496,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 42183,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 720.4289346023776,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 42431,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 439.52672,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 42431,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 652.8745250788977,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 42681,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 306.55448,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 42681,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 569.8472848585617,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 42931,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 306.55448,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 42931,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 504.00678953956105,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 43181,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 155.56974,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 43181,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 417.5050468722317,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 43431,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 26.07624,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 43431,
+      "phase": "upload",
+      "direction": "upload",
+      "mbps": 321.54614050133716,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 47336,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 259.9391589194474,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 47337,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 1013.1434958627383,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48081,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 154.2152385728377,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48081,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 815.9634424323252,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48136,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 233.2681651891905,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48137,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 671.890852306376,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48353,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 84.83299250170415,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48353,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 256.8077853532923,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48387,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 330.1227689034159,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48387,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 579.6635195642278,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48608,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 242.17272621664512,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48608,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 239.63528683128865,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48637,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 382.95402876088264,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48637,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 521.0029431489586,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48854,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 268.8379732678756,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48854,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 233.77367042797374,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48890,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 411.158272,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 48891,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 480.7324490859851,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49106,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 294.75724,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49106,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 237.96793787558224,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49140,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 515.706112,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49140,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 472.6283623376687,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49354,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 362.09124,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49354,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 258.2789780589662,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49389,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 569.125504,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49389,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 474.24026357898,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49612,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 400.40874,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49612,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 285.7638281315503,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49639,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 680.63172,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49639,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 500.4664787833447,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49858,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 466.89124,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49858,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 325.84670028138487,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49887,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 782.076828,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 49887,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 547.8178789158846,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50108,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 487.19624,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50109,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 362.462496704885,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50137,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 802.588456,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50137,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 611.8270782111059,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50436,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 465.84324,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50436,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 390.6032207158648,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50439,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 722.60214,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50439,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 647.6563710174836,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50603,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 465.84324,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50603,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 416.2311610120075,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50636,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 806.48822,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50636,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 693.213297507962,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50853,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 438.20224,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50854,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 429.12675180623097,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50889,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 718.932124,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 50889,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 707.7110576807761,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51104,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 532.65324,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51104,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 456.8204441464691,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51138,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 743.8079,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51138,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 723.6118665928376,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51355,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 485.36224,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51355,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 467.73795493518054,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51387,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 752.862108,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51387,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 737.6826428187278,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51611,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 514.70624,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51612,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 482.42315597007195,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51637,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 738.889756,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51637,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 743.2934287037364,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51856,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 529.31274,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51856,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 495.8240959708107,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51888,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 635.201024,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 51888,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 723.2645959216611,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52105,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 497.74174,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52105,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 498.5492669495445,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52149,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 637.09298,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52149,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 704.9828155569404,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52471,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 481.11198,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52471,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 495.4039328324597,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52475,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 629.1456,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52475,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 686.1361453279504,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52603,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 481.11198,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52603,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 492.3991668351594,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52636,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 637.534208,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52636,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 672.4448745244131,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52862,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 362.49148,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52862,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 463.9311876666932,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52894,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 637.534208,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 52894,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 663.4161726648548,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53121,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 530.36074,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53121,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 478.76926336908974,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53166,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 574.31808,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53166,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 640.0109933137529,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53355,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 529.31998,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53355,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 491.07152183281977,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53388,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 565.945088,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53388,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 621.5172425017503,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53781,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 551.91748,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53781,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 503.70417351385316,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53785,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 526.601728,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53785,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 597.3085826724196,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53853,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 551.91748,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53853,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 514.9480240974624,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53886,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 593.710592,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 53886,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 592.7601094211108,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54106,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 464.08198,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54106,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 503.5568943037099,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54138,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 484.448,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54138,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 564.9763150692231,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54357,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 684.70046,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54357,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 543.5239329677349,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54386,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 432.105984,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54386,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 533.5161782444862,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54606,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 709.97622,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54606,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 581.9203380888441,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54636,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 523.302656,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54636,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 528.735900500346,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54854,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 733.62172,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54854,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 618.3355064013659,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54886,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 540.207244,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 54886,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 528.8904857917963,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55110,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 770.83296,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55110,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 655.8051189209009,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55139,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 646.457972,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55139,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 552.6186713932264,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55353,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 502.41396,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55353,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 628.4931491455376,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55386,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 722.727936,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55386,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 588.6901192757045,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55603,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 505.09222,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55603,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 603.2050520008571,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55637,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 720.630272,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55637,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 618.598135839653,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55853,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 482.56022,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55853,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 577.9511369603429,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55889,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 695.862156,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 55889,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 637.17649117917,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56103,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 536.92522,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56103,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 569.3852690287757,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56137,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 803.742872,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56137,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 677.1572428206665,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56353,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 573.53972,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56353,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 570.73634815233,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56386,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 836.682252,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56386,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 714.9076689820397,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56604,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 363.93248,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56604,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 526.9661728513676,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56637,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 870.204172,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56637,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 755.2475108286849,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56853,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 294.10948,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56853,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 470.99797698582165,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56887,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 915.686884,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 56887,
+      "phase": "bidirectional",
+      "direction": "download",
+      "mbps": 798.969398895668,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 57103,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 270.46398,
+      "totalBytes": null
+    },
+    {
+      "elapsedMs": 57103,
+      "phase": "bidirectional",
+      "direction": "upload",
+      "mbps": 420.3173701781394,
+      "totalBytes": null
+    }
+  ],
+  "transferSamples": [],
+  "bins1s": [
+    {
+      "startMs": 0,
+      "endMs": 1000,
+      "phase": null,
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": null,
+      "latencyP95Ms": null,
+      "lossPct": 0
+    },
+    {
+      "startMs": 1000,
+      "endMs": 2000,
+      "phase": "baseline",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 6.2749999994412065,
+      "latencyP95Ms": 15.495000001322474,
+      "lossPct": 0
+    },
+    {
+      "startMs": 2000,
+      "endMs": 3000,
+      "phase": "baseline",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.299999998882413,
+      "latencyP95Ms": 5.500000000372529,
+      "lossPct": 0
+    },
+    {
+      "startMs": 3000,
+      "endMs": 4000,
+      "phase": "baseline",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.300000000745058,
+      "latencyP95Ms": 5.659999999776483,
+      "lossPct": 0
+    },
+    {
+      "startMs": 4000,
+      "endMs": 5000,
+      "phase": "baseline",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.100000001490116,
+      "latencyP95Ms": 5.339999999850988,
+      "lossPct": 0
+    },
+    {
+      "startMs": 5000,
+      "endMs": 6000,
+      "phase": "baseline",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.249999998137355,
+      "latencyP95Ms": 5.409999999403953,
+      "lossPct": 0
+    },
+    {
+      "startMs": 6000,
+      "endMs": 7000,
+      "phase": "baseline",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.25,
+      "latencyP95Ms": 5.420000000298024,
+      "lossPct": 0
+    },
+    {
+      "startMs": 7000,
+      "endMs": 8000,
+      "phase": "baseline",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.150000000372529,
+      "latencyP95Ms": 5.480000000074505,
+      "lossPct": 0
+    },
+    {
+      "startMs": 8000,
+      "endMs": 9000,
+      "phase": "baseline",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.299999998882413,
+      "latencyP95Ms": 5.7199999995529645,
+      "lossPct": 0
+    },
+    {
+      "startMs": 9000,
+      "endMs": 10000,
+      "phase": "downloadWarmup",
+      "downloadMbps": 631.3244877408282,
+      "uploadMbps": 0,
+      "latencyP50Ms": 11.624999999068677,
+      "latencyP95Ms": 26.03749999916181,
+      "lossPct": 0
+    },
+    {
+      "startMs": 10000,
+      "endMs": 11000,
+      "phase": "downloadWarmup",
+      "downloadMbps": 931.2338772793682,
+      "uploadMbps": 0,
+      "latencyP50Ms": 17.850000001490116,
+      "latencyP95Ms": 22.260000000149013,
+      "lossPct": 0
+    },
+    {
+      "startMs": 11000,
+      "endMs": 12000,
+      "phase": "downloadWarmup",
+      "downloadMbps": 1118.0768396693254,
+      "uploadMbps": 0,
+      "latencyP50Ms": 24.399999998509884,
+      "latencyP95Ms": 32.20000000074506,
+      "lossPct": 0
+    },
+    {
+      "startMs": 12000,
+      "endMs": 13000,
+      "phase": "downloadWarmup",
+      "downloadMbps": 1138.2118233248882,
+      "uploadMbps": 0,
+      "latencyP50Ms": 15.149999999441206,
+      "latencyP95Ms": 32.05999999931081,
+      "lossPct": 0
+    },
+    {
+      "startMs": 13000,
+      "endMs": 14000,
+      "phase": "downloadWarmup",
+      "downloadMbps": 1140.2695833566747,
+      "uploadMbps": 0,
+      "latencyP50Ms": 37.44999999925494,
+      "latencyP95Ms": 286.7050000019371,
+      "lossPct": 0
+    },
+    {
+      "startMs": 14000,
+      "endMs": 15000,
+      "phase": "downloadWarmup",
+      "downloadMbps": 1218.0989792501837,
+      "uploadMbps": 0,
+      "latencyP50Ms": 27.599999997764826,
+      "latencyP95Ms": 38.639999999478455,
+      "lossPct": 0
+    },
+    {
+      "startMs": 15000,
+      "endMs": 16000,
+      "phase": "downloadWarmup",
+      "downloadMbps": 1253.8091638340911,
+      "uploadMbps": 0,
+      "latencyP50Ms": 20.049999999813735,
+      "latencyP95Ms": 33.22500000167638,
+      "lossPct": 0
+    },
+    {
+      "startMs": 16000,
+      "endMs": 17000,
+      "phase": "downloadWarmup",
+      "downloadMbps": 1255.7102319755213,
+      "uploadMbps": 0,
+      "latencyP50Ms": 29.90000000037253,
+      "latencyP95Ms": 31.82000000141561,
+      "lossPct": 0
+    },
+    {
+      "startMs": 17000,
+      "endMs": 18000,
+      "phase": "downloadWarmup",
+      "downloadMbps": 1066.3244527468132,
+      "uploadMbps": 0,
+      "latencyP50Ms": 8.650000000372529,
+      "latencyP95Ms": 50.03749999916181,
+      "lossPct": 0
+    },
+    {
+      "startMs": 18000,
+      "endMs": 19000,
+      "phase": "download",
+      "downloadMbps": 1063.82382832168,
+      "uploadMbps": 0,
+      "latencyP50Ms": 26.950000001117587,
+      "latencyP95Ms": 28.200000001862644,
+      "lossPct": 0
+    },
+    {
+      "startMs": 19000,
+      "endMs": 20000,
+      "phase": "download",
+      "downloadMbps": 1204.8600727706669,
+      "uploadMbps": 0,
+      "latencyP50Ms": 26.624999999068677,
+      "latencyP95Ms": 43.69500000141561,
+      "lossPct": 0
+    },
+    {
+      "startMs": 20000,
+      "endMs": 21000,
+      "phase": "download",
+      "downloadMbps": 1274.9480995694812,
+      "uploadMbps": 0,
+      "latencyP50Ms": 28.649999998509884,
+      "latencyP95Ms": 39.65999999865889,
+      "lossPct": 0
+    },
+    {
+      "startMs": 21000,
+      "endMs": 22000,
+      "phase": "download",
+      "downloadMbps": 1246.9919115317432,
+      "uploadMbps": 0,
+      "latencyP50Ms": 25.199999999254942,
+      "latencyP95Ms": 31.37749999919906,
+      "lossPct": 0
+    },
+    {
+      "startMs": 22000,
+      "endMs": 23000,
+      "phase": "download",
+      "downloadMbps": 1268.8683257388366,
+      "uploadMbps": 0,
+      "latencyP50Ms": 18.625000000931323,
+      "latencyP95Ms": 37.24500000244006,
+      "lossPct": 0
+    },
+    {
+      "startMs": 23000,
+      "endMs": 24000,
+      "phase": "download",
+      "downloadMbps": 1150.4519904012284,
+      "uploadMbps": 0,
+      "latencyP50Ms": 23.024999998509884,
+      "latencyP95Ms": 28.44249999877065,
+      "lossPct": 0
+    },
+    {
+      "startMs": 24000,
+      "endMs": 25000,
+      "phase": "download",
+      "downloadMbps": 1168.58281892592,
+      "uploadMbps": 0,
+      "latencyP50Ms": 21.100000001490116,
+      "latencyP95Ms": 35.25000000037253,
+      "lossPct": 0
+    },
+    {
+      "startMs": 25000,
+      "endMs": 26000,
+      "phase": "download",
+      "downloadMbps": 1267.8522400763409,
+      "uploadMbps": 0,
+      "latencyP50Ms": 24.600000001490116,
+      "latencyP95Ms": 26.87000000067055,
+      "lossPct": 0
+    },
+    {
+      "startMs": 26000,
+      "endMs": 27000,
+      "phase": "download",
+      "downloadMbps": 1218.3242900641133,
+      "uploadMbps": 0,
+      "latencyP50Ms": 21.59999999962747,
+      "latencyP95Ms": 24.375,
+      "lossPct": 0
+    },
+    {
+      "startMs": 27000,
+      "endMs": 28000,
+      "phase": "download",
+      "downloadMbps": 1237.1636947921406,
+      "uploadMbps": 0,
+      "latencyP50Ms": 11.75,
+      "latencyP95Ms": 17.490000000782306,
+      "lossPct": 0
+    },
+    {
+      "startMs": 28000,
+      "endMs": 29000,
+      "phase": "uploadWarmup",
+      "downloadMbps": 0,
+      "uploadMbps": 322.30656891683014,
+      "latencyP50Ms": 12.474999999627471,
+      "latencyP95Ms": 35.709999998565756,
+      "lossPct": 0
+    },
+    {
+      "startMs": 29000,
+      "endMs": 30000,
+      "phase": "uploadWarmup",
+      "downloadMbps": 0,
+      "uploadMbps": 460.09775565324685,
+      "latencyP50Ms": 5.699999999254942,
+      "latencyP95Ms": 14.830000000819563,
+      "lossPct": 0
+    },
+    {
+      "startMs": 30000,
+      "endMs": 31000,
+      "phase": "uploadWarmup",
+      "downloadMbps": 0,
+      "uploadMbps": 334.9762450359233,
+      "latencyP50Ms": 5.599999999627471,
+      "latencyP95Ms": 7.46000000052154,
+      "lossPct": 0
+    },
+    {
+      "startMs": 31000,
+      "endMs": 32000,
+      "phase": "uploadWarmup",
+      "downloadMbps": 0,
+      "uploadMbps": 160.9129394456246,
+      "latencyP50Ms": 7.199999999254942,
+      "latencyP95Ms": 12.46000000014901,
+      "lossPct": 0
+    },
+    {
+      "startMs": 32000,
+      "endMs": 33000,
+      "phase": "uploadWarmup",
+      "downloadMbps": 0,
+      "uploadMbps": 176.12339415336822,
+      "latencyP50Ms": 7.449999999254942,
+      "latencyP95Ms": 10.079999999701977,
+      "lossPct": 0
+    },
+    {
+      "startMs": 33000,
+      "endMs": 34000,
+      "phase": "uploadWarmup",
+      "downloadMbps": 0,
+      "uploadMbps": 247.66940890998683,
+      "latencyP50Ms": 7.999999998137355,
+      "latencyP95Ms": 11.789999999105929,
+      "lossPct": 0
+    },
+    {
+      "startMs": 34000,
+      "endMs": 35000,
+      "phase": "uploadWarmup",
+      "downloadMbps": 0,
+      "uploadMbps": 259.398701858259,
+      "latencyP50Ms": 6.900000000372529,
+      "latencyP95Ms": 12.129999999701976,
+      "lossPct": 0
+    },
+    {
+      "startMs": 35000,
+      "endMs": 36000,
+      "phase": "uploadWarmup",
+      "downloadMbps": 0,
+      "uploadMbps": 294.0315275900401,
+      "latencyP50Ms": 13.100000000558794,
+      "latencyP95Ms": 13.384999998565762,
+      "lossPct": 0
+    },
+    {
+      "startMs": 36000,
+      "endMs": 37000,
+      "phase": "uploadWarmup",
+      "downloadMbps": 0,
+      "uploadMbps": 333.828308272723,
+      "latencyP50Ms": 5.850000001490116,
+      "latencyP95Ms": 7.850000001490116,
+      "lossPct": 0
+    },
+    {
+      "startMs": 37000,
+      "endMs": 38000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 160.03980396544503,
+      "latencyP50Ms": 36.05000000074506,
+      "latencyP95Ms": 36.05000000074506,
+      "lossPct": 0
+    },
+    {
+      "startMs": 38000,
+      "endMs": 39000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 343.32741331257256,
+      "latencyP50Ms": 17.950000001117587,
+      "latencyP95Ms": 28.09999999962747,
+      "lossPct": 0
+    },
+    {
+      "startMs": 39000,
+      "endMs": 40000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 675.2555978100972,
+      "latencyP50Ms": 18.5,
+      "latencyP95Ms": 19.640000000223516,
+      "lossPct": 0
+    },
+    {
+      "startMs": 40000,
+      "endMs": 41000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 806.4196587048684,
+      "latencyP50Ms": 14,
+      "latencyP95Ms": 16.72000000057742,
+      "lossPct": 0
+    },
+    {
+      "startMs": 41000,
+      "endMs": 42000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 781.2215786307804,
+      "latencyP50Ms": 12.949999999254942,
+      "latencyP95Ms": 16.36999999843538,
+      "lossPct": 0
+    },
+    {
+      "startMs": 42000,
+      "endMs": 43000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 506.1872717599247,
+      "latencyP50Ms": 6.000000001862645,
+      "latencyP95Ms": 6.259999997541309,
+      "lossPct": 0
+    },
+    {
+      "startMs": 43000,
+      "endMs": 44000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 230.1742918433922,
+      "latencyP50Ms": 6.199999997392297,
+      "latencyP95Ms": 7.049999998509884,
+      "lossPct": 0
+    },
+    {
+      "startMs": 44000,
+      "endMs": 45000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.649999998509884,
+      "latencyP95Ms": 5.939999999850988,
+      "lossPct": 0
+    },
+    {
+      "startMs": 45000,
+      "endMs": 46000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.650000000372529,
+      "latencyP95Ms": 5.78999999910593,
+      "lossPct": 0
+    },
+    {
+      "startMs": 46000,
+      "endMs": 47000,
+      "phase": "upload",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 14.224999999627471,
+      "latencyP95Ms": 22.84999999962747,
+      "lossPct": 0
+    },
+    {
+      "startMs": 47000,
+      "endMs": 48000,
+      "phase": "bidirectional",
+      "downloadMbps": 636.5413273910929,
+      "uploadMbps": 0,
+      "latencyP50Ms": 10.199999999254942,
+      "latencyP95Ms": 10.199999999254942,
+      "lossPct": 0
+    },
+    {
+      "startMs": 48000,
+      "endMs": 49000,
+      "phase": "bidirectional",
+      "downloadMbps": 458.0971679964199,
+      "uploadMbps": 221.01007243312992,
+      "latencyP50Ms": 36.399999998509884,
+      "latencyP95Ms": 40.569999997690324,
+      "lossPct": 0
+    },
+    {
+      "startMs": 49000,
+      "endMs": 50000,
+      "phase": "bidirectional",
+      "downloadMbps": 567.8366434519847,
+      "uploadMbps": 329.0007380434355,
+      "latencyP50Ms": 28.274999999441206,
+      "latencyP95Ms": 29.535000000521542,
+      "lossPct": 0
+    },
+    {
+      "startMs": 50000,
+      "endMs": 51000,
+      "phase": "bidirectional",
+      "downloadMbps": 713.877343052166,
+      "uploadMbps": 431.93857377987354,
+      "latencyP50Ms": 18.65000000037253,
+      "latencyP95Ms": 60.18499999903142,
+      "lossPct": 0
+    },
+    {
+      "startMs": 51000,
+      "endMs": 52000,
+      "phase": "bidirectional",
+      "downloadMbps": 724.8266652546204,
+      "uploadMbps": 495.60501387781653,
+      "latencyP50Ms": 30.449999999254942,
+      "latencyP95Ms": 34.68999999947846,
+      "lossPct": 0
+    },
+    {
+      "startMs": 52000,
+      "endMs": 53000,
+      "phase": "bidirectional",
+      "downloadMbps": 658.5358755092698,
+      "uploadMbps": 471.5925917854821,
+      "latencyP50Ms": 29.899999998509884,
+      "latencyP95Ms": 65.49500000085682,
+      "lossPct": 0
+    },
+    {
+      "startMs": 53000,
+      "endMs": 54000,
+      "phase": "bidirectional",
+      "downloadMbps": 589.0215519886292,
+      "uploadMbps": 519.0010828516531,
+      "latencyP50Ms": 31.25,
+      "latencyP95Ms": 42.37999999942258,
+      "lossPct": 0
+    },
+    {
+      "startMs": 54000,
+      "endMs": 55000,
+      "phase": "bidirectional",
+      "downloadMbps": 517.0228454507314,
+      "uploadMbps": 604.9646314702069,
+      "latencyP50Ms": 37.92500000074506,
+      "latencyP95Ms": 51.70750000085681,
+      "lossPct": 0
+    },
+    {
+      "startMs": 55000,
+      "endMs": 56000,
+      "phase": "bidirectional",
+      "downloadMbps": 647.8452192109692,
+      "uploadMbps": 590.7942271284548,
+      "latencyP50Ms": 27.15000000037253,
+      "latencyP95Ms": 36.43499999921768,
+      "lossPct": 0
+    },
+    {
+      "startMs": 56000,
+      "endMs": 57000,
+      "phase": "bidirectional",
+      "downloadMbps": 796.5747501908824,
+      "uploadMbps": 488.3240833772868,
+      "latencyP50Ms": 20.099999997764826,
+      "latencyP95Ms": 28.960000001639127,
+      "lossPct": 0
+    },
+    {
+      "startMs": 57000,
+      "endMs": 58000,
+      "phase": "recovery",
+      "downloadMbps": 0,
+      "uploadMbps": 345.3906750890697,
+      "latencyP50Ms": 5.925000001676381,
+      "latencyP95Ms": 11.650000000372529,
+      "lossPct": 0
+    },
+    {
+      "startMs": 58000,
+      "endMs": 59000,
+      "phase": "recovery",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.900000000372529,
+      "latencyP95Ms": 6.090000001341105,
+      "lossPct": 0
+    },
+    {
+      "startMs": 59000,
+      "endMs": 60000,
+      "phase": "recovery",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.800000000745058,
+      "latencyP95Ms": 5.890000002086163,
+      "lossPct": 0
+    },
+    {
+      "startMs": 60000,
+      "endMs": 61000,
+      "phase": "recovery",
+      "downloadMbps": 0,
+      "uploadMbps": 0,
+      "latencyP50Ms": 5.700000001117587,
+      "latencyP95Ms": 5.880000002123416,
+      "lossPct": 0
+    }
+  ],
+  "metadata": {
+    "generatedAt": "2026-08-27T22:42:10.558Z",
+    "location": "Paris, FR",
+    "sessionMeta": {
+      "asn": "12322",
+      "asOrganization": "Free SAS",
+      "ipVersion": "ipv6",
+      "timestamp": 1787870191909
+    },
+    "endpointUsage": {
+      "download": {
+        "totalBytes": 3349272313,
+        "byHostType": {
+          "cf-speedtest": 2029248786,
+          "worker": 1316038173,
+          "measurement": 3985354
+        },
+        "byEndpoint": {
+          "el-paso-reference-1": {
+            "bytes": 3985354,
+            "endpointType": "libreqos_reference"
+          }
+        }
+      },
+      "upload": {
+        "totalClientBytes": 1158079221,
+        "totalServerBytes": 506966373,
+        "requestCount": 58,
+        "okCount": 44,
+        "errorCount": 0,
+        "timeoutCount": 0,
+        "abortCount": 14,
+        "byHost": {
+          "api-bufferbloat.libreqos.com": {
+            "requests": 23,
+            "ok": 18,
+            "errors": 0,
+            "timeouts": 0,
+            "aborts": 5,
+            "clientBytes": 544552030,
+            "serverBytes": 288699486,
+            "clientDurationMs": 47139.59999999404,
+            "serverDurationMs": 5705,
+            "maxClientMbps": 207.14658237804917,
+            "maxServerMbps": 4029.444,
+            "endpointId": null,
+            "endpointType": "worker",
+            "statuses": {
+              "200": 18
+            }
+          },
+          "dl2-bufferbloat.libreqos.com": {
+            "requests": 17,
+            "ok": 14,
+            "errors": 0,
+            "timeouts": 0,
+            "aborts": 3,
+            "clientBytes": 274690428,
+            "serverBytes": 142304797,
+            "clientDurationMs": 27893.899999994785,
+            "serverDurationMs": 4076,
+            "maxClientMbps": 210.90152105890257,
+            "maxServerMbps": 3050.402909090909,
+            "endpointId": null,
+            "endpointType": "worker",
+            "statuses": {
+              "200": 14
+            }
+          },
+          "dl3-bufferbloat.libreqos.com": {
+            "requests": 15,
+            "ok": 12,
+            "errors": 0,
+            "timeouts": 0,
+            "aborts": 3,
+            "clientBytes": 206451132,
+            "serverBytes": 75962090,
+            "clientDurationMs": 27367.79999999702,
+            "serverDurationMs": 3593,
+            "maxClientMbps": 184.97481808310712,
+            "maxServerMbps": 4597.596,
+            "endpointId": null,
+            "endpointType": "worker",
+            "statuses": {
+              "200": 12
+            }
+          },
+          "dl4-bufferbloat.libreqos.com": {
+            "requests": 3,
+            "ok": 0,
+            "errors": 0,
+            "timeouts": 0,
+            "aborts": 3,
+            "clientBytes": 132385631,
+            "serverBytes": 0,
+            "clientDurationMs": 19595.5,
+            "serverDurationMs": 0,
+            "maxClientMbps": 94.62761681387245,
+            "maxServerMbps": 0,
+            "endpointId": null,
+            "endpointType": "worker",
+            "statuses": {}
+          }
+        }
+      }
+    }
+  }
+}

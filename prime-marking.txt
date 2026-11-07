@@ -1,0 +1,553 @@
+tcpdump: listening on br-lan, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+01:17:43.307360 IP (tos 0x0, ttl 4, id 62251, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.35439 > 239.255.255.250.1900: UDP, length 325
+01:17:43.338069 IP (tos 0x0, ttl 4, id 62256, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.49341 > 239.255.255.250.1900: UDP, length 381
+01:17:43.368550 IP (tos 0x0, ttl 4, id 62262, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.45275 > 239.255.255.250.1900: UDP, length 334
+01:17:43.399565 IP (tos 0x0, ttl 4, id 62264, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.57724 > 239.255.255.250.1900: UDP, length 391
+01:17:43.430619 IP (tos 0x0, ttl 4, id 62266, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.60306 > 239.255.255.250.1900: UDP, length 379
+01:17:43.461361 IP (tos 0x0, ttl 4, id 62270, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.59960 > 239.255.255.250.1900: UDP, length 389
+01:17:43.945664 IP (tos 0x0, ttl 255, id 20977, offset 0, flags [DF], proto UDP (17), length 424)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0*- [0q] 4/0/5 148.8.168.192.in-addr.arpa. (Cache flush) PTR LinuxTV.local., 3.2.5.3.C.E.5.D.0.8.C.6.0.5.F.4.0.0.0.0.9.5.5.6.4.4.B.F.C.D.D.F.ip6.arpa. (Cache flush) PTR LinuxTV.local., 2.D.4.1.5.2.4.8.9.5.1.4.8.9.5.2.1.0.E.7.2.E.E.0.A.0.E.0.1.0.A.2.ip6.arpa. (Cache flush) PTR LinuxTV.local., 8.3.2.A.3.E.C.0.B.C.C.B.0.A.4.A.0.0.0.0.0.0.0.0.0.0.0.0.0.8.E.F.ip6.arpa. (Cache flush) PTR LinuxTV.local. (396)
+01:17:44.114827 IP (tos 0x0, ttl 255, id 20988, offset 0, flags [DF], proto UDP (17), length 90)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0 [1au] PTR (QU)? lb._dns-sd._udp.local. (62)
+01:17:44.445554 IP (tos 0x0, ttl 255, id 21035, offset 0, flags [DF], proto UDP (17), length 235)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0 [2q] [5n] [1au] ANY (QU)? Smart TV (2)._airplay._tcp.local. ANY (QU)? LinuxTV.local. (207)
+01:17:44.694925 IP (tos 0x0, ttl 255, id 21060, offset 0, flags [DF], proto UDP (17), length 235)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0 [2q] [5n] [1au] ANY (QM)? Smart TV (2)._airplay._tcp.local. ANY (QM)? LinuxTV.local. (207)
+01:17:44.945666 IP (tos 0x0, ttl 255, id 21085, offset 0, flags [DF], proto UDP (17), length 235)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0 [2q] [5n] [1au] ANY (QM)? Smart TV (2)._airplay._tcp.local. ANY (QM)? LinuxTV.local. (207)
+01:17:44.945893 IP (tos 0x0, ttl 255, id 21086, offset 0, flags [DF], proto UDP (17), length 424)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0*- [0q] 4/0/5 148.8.168.192.in-addr.arpa. (Cache flush) PTR LinuxTV.local., 3.2.5.3.C.E.5.D.0.8.C.6.0.5.F.4.0.0.0.0.9.5.5.6.4.4.B.F.C.D.D.F.ip6.arpa. (Cache flush) PTR LinuxTV.local., 2.D.4.1.5.2.4.8.9.5.1.4.8.9.5.2.1.0.E.7.2.E.E.0.A.0.E.0.1.0.A.2.ip6.arpa. (Cache flush) PTR LinuxTV.local., 8.3.2.A.3.E.C.0.B.C.C.B.0.A.4.A.0.0.0.0.0.0.0.0.0.0.0.0.0.8.E.F.ip6.arpa. (Cache flush) PTR LinuxTV.local. (396)
+01:17:45.116841 IP (tos 0x0, ttl 255, id 21124, offset 0, flags [DF], proto UDP (17), length 90)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0 [1au] PTR (QM)? lb._dns-sd._udp.local. (62)
+01:17:45.217840 IP (tos 0x0, ttl 255, id 21138, offset 0, flags [DF], proto UDP (17), length 754)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0*- [0q] 8/0/3 Smart TV (2)._airplay._tcp.local. (Cache flush) TXT "acl=0" "deviceid=D3:AE:9F:C8:C2:2D" "features=0x7F8AD0,0xBCF46" "fex=0Ip/AEbPCwBABA" "rsf=0x3" "fv=p20.09.6010.260602" "at=0x1" "flags=0x244" "model=50U6QE" "integrator=Hisense" "manufacturer=Hisense" "serialNumber=31LW4V25262PFR8EH020243" "protovers=1.1" "srcvers=377.40.00" "pi=D3:AE:9F:C8:C2:2D" "psi=00000000-0000-0000-0000-D3AE9FC8C22D" "gid=00000000-0000-0000-0000-D3AE9FC8C22D" "gcgl=0" "pk=4cd2dd75025cd1e4ab701baa7fdff67cd5db86388bf7e940b246c1f7ddd315db", _services._dns-sd._udp.local. PTR _airplay._tcp.local., _airplay._tcp.local. PTR Smart TV (2)._airplay._tcp.local., Smart TV (2)._airplay._tcp.local. (Cache flush) SRV LinuxTV.local.:7000 0 0, LinuxTV.local. (Cache flush) A 192.168.8.148, LinuxTV.local. (Cache flush) AAAA fddc:fb44:6559:0:4f50:6c80:d5ec:3523, LinuxTV.local. (Cache flush) AAAA 2a01:e0a:ee2:7e01:2598:4159:8425:14d2, LinuxTV.local. (Cache flush) AAAA fe80::a4a0:bccb:ce3:a238 (726)
+01:17:46.218055 IP (tos 0x0, ttl 255, id 21375, offset 0, flags [DF], proto UDP (17), length 754)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0*- [0q] 8/0/3 Smart TV (2)._airplay._tcp.local. (Cache flush) TXT "acl=0" "deviceid=D3:AE:9F:C8:C2:2D" "features=0x7F8AD0,0xBCF46" "fex=0Ip/AEbPCwBABA" "rsf=0x3" "fv=p20.09.6010.260602" "at=0x1" "flags=0x244" "model=50U6QE" "integrator=Hisense" "manufacturer=Hisense" "serialNumber=31LW4V25262PFR8EH020243" "protovers=1.1" "srcvers=377.40.00" "pi=D3:AE:9F:C8:C2:2D" "psi=00000000-0000-0000-0000-D3AE9FC8C22D" "gid=00000000-0000-0000-0000-D3AE9FC8C22D" "gcgl=0" "pk=4cd2dd75025cd1e4ab701baa7fdff67cd5db86388bf7e940b246c1f7ddd315db", _services._dns-sd._udp.local. PTR _airplay._tcp.local., _airplay._tcp.local. PTR Smart TV (2)._airplay._tcp.local., Smart TV (2)._airplay._tcp.local. (Cache flush) SRV LinuxTV.local.:7000 0 0, LinuxTV.local. (Cache flush) A 192.168.8.148, LinuxTV.local. (Cache flush) AAAA fddc:fb44:6559:0:4f50:6c80:d5ec:3523, LinuxTV.local. (Cache flush) AAAA 2a01:e0a:ee2:7e01:2598:4159:8425:14d2, LinuxTV.local. (Cache flush) AAAA fe80::a4a0:bccb:ce3:a238 (726)
+01:17:46.947372 IP (tos 0x0, ttl 255, id 21536, offset 0, flags [DF], proto UDP (17), length 424)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0*- [0q] 4/0/5 148.8.168.192.in-addr.arpa. (Cache flush) PTR LinuxTV.local., 3.2.5.3.C.E.5.D.0.8.C.6.0.5.F.4.0.0.0.0.9.5.5.6.4.4.B.F.C.D.D.F.ip6.arpa. (Cache flush) PTR LinuxTV.local., 2.D.4.1.5.2.4.8.9.5.1.4.8.9.5.2.1.0.E.7.2.E.E.0.A.0.E.0.1.0.A.2.ip6.arpa. (Cache flush) PTR LinuxTV.local., 8.3.2.A.3.E.C.0.B.C.C.B.0.A.4.A.0.0.0.0.0.0.0.0.0.0.0.0.0.8.E.F.ip6.arpa. (Cache flush) PTR LinuxTV.local. (396)
+01:17:48.124055 IP (tos 0x0, ttl 255, id 21599, offset 0, flags [DF], proto UDP (17), length 90)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0 [1au] PTR (QM)? lb._dns-sd._udp.local. (62)
+01:17:48.218585 IP (tos 0x0, ttl 255, id 21618, offset 0, flags [DF], proto UDP (17), length 754)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0*- [0q] 8/0/3 Smart TV (2)._airplay._tcp.local. (Cache flush) TXT "acl=0" "deviceid=D3:AE:9F:C8:C2:2D" "features=0x7F8AD0,0xBCF46" "fex=0Ip/AEbPCwBABA" "rsf=0x3" "fv=p20.09.6010.260602" "at=0x1" "flags=0x244" "model=50U6QE" "integrator=Hisense" "manufacturer=Hisense" "serialNumber=31LW4V25262PFR8EH020243" "protovers=1.1" "srcvers=377.40.00" "pi=D3:AE:9F:C8:C2:2D" "psi=00000000-0000-0000-0000-D3AE9FC8C22D" "gid=00000000-0000-0000-0000-D3AE9FC8C22D" "gcgl=0" "pk=4cd2dd75025cd1e4ab701baa7fdff67cd5db86388bf7e940b246c1f7ddd315db", _services._dns-sd._udp.local. PTR _airplay._tcp.local., _airplay._tcp.local. PTR Smart TV (2)._airplay._tcp.local., Smart TV (2)._airplay._tcp.local. (Cache flush) SRV LinuxTV.local.:7000 0 0, LinuxTV.local. (Cache flush) A 192.168.8.148, LinuxTV.local. (Cache flush) AAAA fddc:fb44:6559:0:4f50:6c80:d5ec:3523, LinuxTV.local. (Cache flush) AAAA 2a01:e0a:ee2:7e01:2598:4159:8425:14d2, LinuxTV.local. (Cache flush) AAAA fe80::a4a0:bccb:ce3:a238 (726)
+01:17:48.493606 IP (tos 0x0, ttl 4, id 62965, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.45350 > 239.255.255.250.1900: UDP, length 325
+01:17:48.524138 IP (tos 0x0, ttl 4, id 62968, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.37799 > 239.255.255.250.1900: UDP, length 381
+01:17:48.554836 IP (tos 0x0, ttl 4, id 62971, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.60805 > 239.255.255.250.1900: UDP, length 334
+01:17:48.585645 IP (tos 0x0, ttl 4, id 62973, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.55015 > 239.255.255.250.1900: UDP, length 391
+01:17:48.616649 IP (tos 0x0, ttl 4, id 62977, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.51518 > 239.255.255.250.1900: UDP, length 379
+01:17:48.647467 IP (tos 0x0, ttl 4, id 62983, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.50727 > 239.255.255.250.1900: UDP, length 389
+01:17:50.949889 IP (tos 0x0, ttl 255, id 21964, offset 0, flags [DF], proto UDP (17), length 1102)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0*- [0q] 12/0/7 Smart TV (2)._airplay._tcp.local. (Cache flush) TXT "acl=0" "deviceid=D3:AE:9F:C8:C2:2D" "features=0x7F8AD0,0xBCF46" "fex=0Ip/AEbPCwBABA" "rsf=0x3" "fv=p20.09.6010.260602" "at=0x1" "flags=0x244" "model=50U6QE" "integrator=Hisense" "manufacturer=Hisense" "serialNumber=31LW4V25262PFR8EH020243" "protovers=1.1" "srcvers=377.40.00" "pi=D3:AE:9F:C8:C2:2D" "psi=00000000-0000-0000-0000-D3AE9FC8C22D" "gid=00000000-0000-0000-0000-D3AE9FC8C22D" "gcgl=0" "pk=4cd2dd75025cd1e4ab701baa7fdff67cd5db86388bf7e940b246c1f7ddd315db", _services._dns-sd._udp.local. PTR _airplay._tcp.local., _airplay._tcp.local. PTR Smart TV (2)._airplay._tcp.local., Smart TV (2)._airplay._tcp.local. (Cache flush) SRV LinuxTV.local.:7000 0 0, 148.8.168.192.in-addr.arpa. (Cache flush) PTR LinuxTV.local., 3.2.5.3.C.E.5.D.0.8.C.6.0.5.F.4.0.0.0.0.9.5.5.6.4.4.B.F.C.D.D.F.ip6.arpa. (Cache flush) PTR LinuxTV.local., 2.D.4.1.5.2.4.8.9.5.1.4.8.9.5.2.1.0.E.7.2.E.E.0.A.0.E.0.1.0.A.2.ip6.arpa. (Cache flush) PTR LinuxTV.local., 8.3.2.A.3.E.C.0.B.C.C.B.0.A.4.A.0.0.0.0.0.0.0.0.0.0.0.0.0.8.E.F.ip6.arpa. (Cache flush) PTR LinuxTV.local., LinuxTV.local. (Cache flush) A 192.168.8.148, LinuxTV.local. (Cache flush) AAAA fddc:fb44:6559:0:4f50:6c80:d5ec:3523, LinuxTV.local. (Cache flush) AAAA 2a01:e0a:ee2:7e01:2598:4159:8425:14d2, LinuxTV.local. (Cache flush) AAAA fe80::a4a0:bccb:ce3:a238 (1074)
+01:17:52.522652 IP (tos 0x0, ttl 55, id 53808, offset 0, flags [DF], proto TCP (6), length 71)
+    43.157.101.228.10443 > 192.168.8.148.35476: Flags [P.], cksum 0x18ac (correct), seq 3212090304:3212090335, ack 2636904624, win 501, length 31
+01:17:52.679998 IP (tos 0x0, ttl 4, id 63130, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.40059 > 239.255.255.250.1900: UDP, length 325
+01:17:52.710954 IP (tos 0x0, ttl 4, id 63131, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.55679 > 239.255.255.250.1900: UDP, length 381
+01:17:52.741687 IP (tos 0x0, ttl 4, id 63138, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.39903 > 239.255.255.250.1900: UDP, length 334
+01:17:52.775986 IP (tos 0x0, ttl 4, id 63139, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.58033 > 239.255.255.250.1900: UDP, length 391
+01:17:52.808055 IP (tos 0x0, ttl 4, id 63146, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.44702 > 239.255.255.250.1900: UDP, length 379
+01:17:52.839008 IP (tos 0x0, ttl 4, id 63154, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.44799 > 239.255.255.250.1900: UDP, length 389
+01:17:55.873095 IP (tos 0x0, ttl 4, id 63291, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.58925 > 239.255.255.250.1900: UDP, length 325
+01:17:55.903743 IP (tos 0x0, ttl 4, id 63293, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.41752 > 239.255.255.250.1900: UDP, length 381
+01:17:55.934314 IP (tos 0x0, ttl 4, id 63297, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.39159 > 239.255.255.250.1900: UDP, length 334
+01:17:55.965113 IP (tos 0x0, ttl 4, id 63303, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.34486 > 239.255.255.250.1900: UDP, length 391
+01:17:55.995802 IP (tos 0x0, ttl 4, id 63304, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.41827 > 239.255.255.250.1900: UDP, length 379
+01:17:56.027295 IP (tos 0x0, ttl 4, id 63306, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.43367 > 239.255.255.250.1900: UDP, length 389
+01:17:57.147853 IP (tos 0x0, ttl 255, id 22299, offset 0, flags [DF], proto UDP (17), length 90)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0 [1au] PTR (QM)? lb._dns-sd._udp.local. (62)
+01:17:57.567248 ARP, Ethernet (len 6), IPv4 (len 4), Request who-has 192.168.8.148 tell 192.168.8.1, length 28
+01:17:57.568911 ARP, Ethernet (len 6), IPv4 (len 4), Reply 192.168.8.148 is-at cc:12:28:9d:d6:dd, length 46
+01:17:57.599821 IP (tos 0x0, ttl 64, id 47711, offset 0, flags [DF], proto TCP (6), length 75)
+    192.168.8.148.35476 > 43.157.101.228.10443: Flags [P.], cksum 0xb235 (correct), seq 36:71, ack 31, win 501, length 35
+01:18:01.058782 IP (tos 0x0, ttl 4, id 64288, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.49291 > 239.255.255.250.1900: UDP, length 325
+01:18:01.089426 IP (tos 0x0, ttl 4, id 64296, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.40008 > 239.255.255.250.1900: UDP, length 381
+01:18:01.120057 IP (tos 0x0, ttl 4, id 64298, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.40637 > 239.255.255.250.1900: UDP, length 334
+01:18:01.150843 IP (tos 0x0, ttl 4, id 64299, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.56027 > 239.255.255.250.1900: UDP, length 391
+01:18:01.181643 IP (tos 0x0, ttl 4, id 64302, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.59139 > 239.255.255.250.1900: UDP, length 379
+01:18:01.212430 IP (tos 0x0, ttl 4, id 64304, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.46813 > 239.255.255.250.1900: UDP, length 389
+01:18:01.560821 IP (tos 0x0, ttl 64, id 61595, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.37132 > 98.67.144.87.443: Flags [.], cksum 0xfeb0 (correct), ack 1697325112, win 501, options [nop,nop,TS val 2584018875 ecr 2162929133], length 0
+01:18:03.960965 IP (tos 0x0, ttl 64, id 48737, offset 0, flags [DF], proto TCP (6), length 76)
+    192.168.8.148.53872 > 44.215.130.62.443: Flags [P.], cksum 0xdc93 (correct), seq 642852394:642852418, ack 1714440283, win 501, options [nop,nop,TS val 4278482798 ecr 4128621676], length 24
+01:18:04.064616 IP (tos 0x0, ttl 64, id 49290, offset 0, flags [DF], proto UDP (17), length 118)
+    192.168.8.148.43421 > 192.168.8.1.53: 2811+ A? absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. (90)
+01:18:04.065172 IP (tos 0x0, ttl 64, id 49291, offset 0, flags [DF], proto UDP (17), length 118)
+    192.168.8.148.43421 > 192.168.8.1.53: 63160+ AAAA? absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. (90)
+01:18:04.065374 IP (tos 0x0, ttl 64, id 21637, offset 0, flags [DF], proto UDP (17), length 182)
+    192.168.8.1.53 > 192.168.8.148.43421: 2811 4/0/0 absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. A 18.244.28.112, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. A 18.244.28.55, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. A 18.244.28.102, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. A 18.244.28.24 (154)
+01:18:04.065898 IP (tos 0x0, ttl 64, id 21638, offset 0, flags [DF], proto UDP (17), length 342)
+    192.168.8.1.53 > 192.168.8.148.43421: 63160 8/0/0 absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. AAAA 2600:9000:262b:1c00:3:f3bf:59c0:93a1, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. AAAA 2600:9000:262b:5200:3:f3bf:59c0:93a1, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. AAAA 2600:9000:262b:ca00:3:f3bf:59c0:93a1, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. AAAA 2600:9000:262b:4400:3:f3bf:59c0:93a1, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. AAAA 2600:9000:262b:4600:3:f3bf:59c0:93a1, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. AAAA 2600:9000:262b:2000:3:f3bf:59c0:93a1, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. AAAA 2600:9000:262b:9e00:3:f3bf:59c0:93a1, absuaiobihoeaaayh7gncrl2qkqvf.ta.mid-pop-vod-dash.main.amazon.pv-cdn.net. AAAA 2600:9000:262b:5600:3:f3bf:59c0:93a1 (314)
+01:18:04.883318 IP (tos 0x0, ttl 64, id 24275, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.52433 > 192.168.8.1.53: 44246+ [1au] A? avsxappcaptiveportal.com. (65)
+01:18:04.883405 IP (tos 0x0, ttl 64, id 24276, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.52433 > 192.168.8.1.53: 19924+ [1au] AAAA? avsxappcaptiveportal.com. (65)
+01:18:04.884647 IP (tos 0x0, ttl 64, id 21684, offset 0, flags [DF], proto UDP (17), length 209)
+    192.168.8.1.53 > 192.168.8.148.52433: 44246 8/0/1 avsxappcaptiveportal.com. A 100.58.147.237, avsxappcaptiveportal.com. A 44.193.185.191, avsxappcaptiveportal.com. A 44.219.29.189, avsxappcaptiveportal.com. A 34.226.114.223, avsxappcaptiveportal.com. A 100.63.57.227, avsxappcaptiveportal.com. A 98.90.65.217, avsxappcaptiveportal.com. A 18.214.32.139, avsxappcaptiveportal.com. A 34.237.58.237 (181)
+01:18:04.885374 IP (tos 0x0, ttl 64, id 21685, offset 0, flags [DF], proto UDP (17), length 305)
+    192.168.8.1.53 > 192.168.8.148.52433: 19924 8/0/1 avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4301:83a0:505c:c79:d773, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4300:6cc4:3b77:3d9d:13b8, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4302:2a51:cad4:6864:eedb, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4302:5148:445a:f29e:3de4, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4302:5d27:e089:5679:6021, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4301:b4ad:8e65:e39e:8560, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4300:d880:c119:55ac:72ff, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4300:27cd:4dda:5fd9:782d (277)
+01:18:04.914297 IP (tos 0x0, ttl 64, id 51993, offset 0, flags [DF], proto UDP (17), length 154)
+    192.168.8.148.46381 > 192.168.8.1.53: 46434+ A? avpk-A3KW1YEVMSBBVK-0.zaz.api.amazonvideo.com. (126)
+01:18:04.916872 IP (tos 0x0, ttl 64, id 21686, offset 0, flags [DF], proto UDP (17), length 404)
+    192.168.8.1.53 > 192.168.8.148.46381: 46434 8/0/0 avpk-A3KW1YEVMSBBVK-0.zaz.api.amazonvideo.com. CNAME d001.zaz.prod.t300.ter.int.amazonvideo.com., d001.zaz.prod.t300.ter.int.amazonvideo.com. CNAME t300-weighted.c001.cfzaz.prod.t300.ter.int.amazonvideo.com., t300-weighted.c001.cfzaz.prod.t300.ter.int.amazonvideo.com. CNAME t300-failover-l1-20.c001.cfzaz.prod.t300.ter.int.amazonvideo.com., t300-failover-l1-20.c001.cfzaz.prod.t300.ter.int.amazonvideo.com. CNAME d1b402l3mw86j5.cloudfront.net., d1b402l3mw86j5.cloudfront.net. A 52.222.201.49, d1b402l3mw86j5.cloudfront.net. A 52.222.201.55, d1b402l3mw86j5.cloudfront.net. A 52.222.201.31, d1b402l3mw86j5.cloudfront.net. A 52.222.201.124 (376)
+01:18:04.931210 IP (tos 0x0, ttl 64, id 21687, offset 0, flags [DF], proto UDP (17), length 91)
+    192.168.8.1.53 > 192.168.8.148.46381: 42925| 0/0/0 (63)
+01:18:04.932843 IP (tos 0x0, ttl 64, id 1046, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.148.38882 > 192.168.8.1.53: Flags [S], cksum 0x6020 (correct), seq 3359284602, win 64240, options [mss 1460,sackOK,TS val 661206483 ecr 0,nop,wscale 7], length 0
+01:18:04.933024 IP (tos 0x0, ttl 64, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.1.53 > 192.168.8.148.38882: Flags [S.], cksum 0x9214 (incorrect -> 0x24f8), seq 4187248227, ack 3359284603, win 43440, options [mss 1460,sackOK,TS val 2203891965 ecr 661206483,nop,wscale 12], length 0
+01:18:04.933490 IP (tos 0x0, ttl 64, id 1047, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.38882 > 192.168.8.1.53: Flags [.], cksum 0xfb83 (correct), ack 1, win 502, options [nop,nop,TS val 661206483 ecr 2203891965], length 0
+01:18:04.933659 IP (tos 0x0, ttl 64, id 1048, offset 0, flags [DF], proto TCP (6), length 117)
+    192.168.8.148.38882 > 192.168.8.1.53: Flags [P.], cksum 0xabf6 (correct), seq 1:66, ack 1, win 502, options [nop,nop,TS val 661206484 ecr 2203891965], length 65 42925+ AAAA? avpk-A3KW1YEVMSBBVK-0.zaz.api.amazonvideo.com. (63)
+01:18:04.933733 IP (tos 0x0, ttl 64, id 2812, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.1.53 > 192.168.8.148.38882: Flags [.], cksum 0x920c (incorrect -> 0xfd2b), ack 66, win 11, options [nop,nop,TS val 2203891966 ecr 661206484], length 0
+01:18:04.941075 IP (tos 0x0, ttl 64, id 2813, offset 0, flags [DF], proto TCP (6), length 590)
+    192.168.8.1.53 > 192.168.8.148.38882: Flags [P.], cksum 0x9426 (incorrect -> 0x9f29), seq 1:539, ack 66, win 11, options [nop,nop,TS val 2203891973 ecr 661206484], length 538 42925 12/0/0 avpk-A3KW1YEVMSBBVK-0.zaz.api.amazonvideo.com. CNAME d001.zaz.prod.t300.ter.int.amazonvideo.com., d001.zaz.prod.t300.ter.int.amazonvideo.com. CNAME t300-weighted.c001.cfzaz.prod.t300.ter.int.amazonvideo.com., t300-weighted.c001.cfzaz.prod.t300.ter.int.amazonvideo.com. CNAME t300-failover-l1-20.c001.cfzaz.prod.t300.ter.int.amazonvideo.com., t300-failover-l1-20.c001.cfzaz.prod.t300.ter.int.amazonvideo.com. CNAME d1b402l3mw86j5.cloudfront.net., d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:ec00:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:d000:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:1e00:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:4e00:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:a000:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:3c00:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:c400:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:6400:e:1f9e:c440:93a1 (536)
+01:18:04.941777 IP (tos 0x0, ttl 64, id 1049, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.38882 > 192.168.8.1.53: Flags [.], cksum 0xf918 (correct), ack 539, win 501, options [nop,nop,TS val 661206492 ecr 2203891973], length 0
+01:18:04.942016 IP (tos 0x0, ttl 64, id 1050, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.38882 > 192.168.8.1.53: Flags [F.], cksum 0xf917 (correct), seq 66, ack 539, win 501, options [nop,nop,TS val 661206492 ecr 2203891973], length 0
+01:18:04.945145 IP (tos 0x0, ttl 64, id 2814, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.1.53 > 192.168.8.148.38882: Flags [F.], cksum 0x920c (incorrect -> 0xfafc), seq 539, ack 67, win 11, options [nop,nop,TS val 2203891977 ecr 661206492], length 0
+01:18:04.946773 IP (tos 0x0, ttl 64, id 1051, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.38882 > 192.168.8.1.53: Flags [.], cksum 0xf90d (correct), ack 540, win 501, options [nop,nop,TS val 661206497 ecr 2203891977], length 0
+01:18:06.244856 IP (tos 0x0, ttl 4, id 64830, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.57085 > 239.255.255.250.1900: UDP, length 325
+01:18:06.275553 IP (tos 0x0, ttl 4, id 64834, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.48209 > 239.255.255.250.1900: UDP, length 381
+01:18:06.306663 IP (tos 0x0, ttl 4, id 64841, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.44600 > 239.255.255.250.1900: UDP, length 334
+01:18:06.338213 IP (tos 0x0, ttl 4, id 64843, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.43988 > 239.255.255.250.1900: UDP, length 391
+01:18:06.369173 IP (tos 0x0, ttl 4, id 64850, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.50532 > 239.255.255.250.1900: UDP, length 379
+01:18:06.402199 IP (tos 0x0, ttl 4, id 64858, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.49096 > 239.255.255.250.1900: UDP, length 389
+01:18:06.789020 IP (tos 0x0, ttl 64, id 31528, offset 0, flags [DF], proto UDP (17), length 73)
+    192.168.8.148.33540 > 192.168.8.1.53: 24765+ A? cf-timedtext.aux.pv-cdn.net. (45)
+01:18:06.789132 IP (tos 0x0, ttl 64, id 31529, offset 0, flags [DF], proto UDP (17), length 73)
+    192.168.8.148.33540 > 192.168.8.1.53: 48164+ AAAA? cf-timedtext.aux.pv-cdn.net. (45)
+01:18:06.789632 IP (tos 0x0, ttl 64, id 21847, offset 0, flags [DF], proto UDP (17), length 179)
+    192.168.8.1.53 > 192.168.8.148.33540: 24765 5/0/0 cf-timedtext.aux.pv-cdn.net. CNAME dmqdd6hw24ucf.cloudfront.net., dmqdd6hw24ucf.cloudfront.net. A 143.204.55.67, dmqdd6hw24ucf.cloudfront.net. A 143.204.55.22, dmqdd6hw24ucf.cloudfront.net. A 143.204.55.44, dmqdd6hw24ucf.cloudfront.net. A 143.204.55.125 (151)
+01:18:06.790932 IP (tos 0x0, ttl 64, id 21848, offset 0, flags [DF], proto UDP (17), length 339)
+    192.168.8.1.53 > 192.168.8.148.33540: 48164 9/0/0 cf-timedtext.aux.pv-cdn.net. CNAME dmqdd6hw24ucf.cloudfront.net., dmqdd6hw24ucf.cloudfront.net. AAAA 2600:9000:20a5:f600:14:2c71:27c0:93a1, dmqdd6hw24ucf.cloudfront.net. AAAA 2600:9000:20a5:ae00:14:2c71:27c0:93a1, dmqdd6hw24ucf.cloudfront.net. AAAA 2600:9000:20a5:6e00:14:2c71:27c0:93a1, dmqdd6hw24ucf.cloudfront.net. AAAA 2600:9000:20a5:1c00:14:2c71:27c0:93a1, dmqdd6hw24ucf.cloudfront.net. AAAA 2600:9000:20a5:4200:14:2c71:27c0:93a1, dmqdd6hw24ucf.cloudfront.net. AAAA 2600:9000:20a5:9800:14:2c71:27c0:93a1, dmqdd6hw24ucf.cloudfront.net. AAAA 2600:9000:20a5:e00:14:2c71:27c0:93a1, dmqdd6hw24ucf.cloudfront.net. AAAA 2600:9000:20a5:c800:14:2c71:27c0:93a1 (311)
+01:18:06.832525 IP (tos 0x0, ttl 64, id 17158, offset 0, flags [DF], proto UDP (17), length 73)
+    192.168.8.148.57396 > 192.168.8.1.53: 57280+ A? cf-trickplay.aux.pv-cdn.net. (45)
+01:18:06.832679 IP (tos 0x0, ttl 64, id 17159, offset 0, flags [DF], proto UDP (17), length 73)
+    192.168.8.148.57396 > 192.168.8.1.53: 56693+ AAAA? cf-trickplay.aux.pv-cdn.net. (45)
+01:18:06.837058 IP (tos 0x0, ttl 64, id 21849, offset 0, flags [DF], proto UDP (17), length 180)
+    192.168.8.1.53 > 192.168.8.148.57396: 57280 5/0/0 cf-trickplay.aux.pv-cdn.net. CNAME d25xi40x97liuc.cloudfront.net., d25xi40x97liuc.cloudfront.net. A 13.227.231.47, d25xi40x97liuc.cloudfront.net. A 13.227.231.129, d25xi40x97liuc.cloudfront.net. A 13.227.231.6, d25xi40x97liuc.cloudfront.net. A 13.227.231.7 (152)
+01:18:06.842142 IP (tos 0x0, ttl 64, id 21850, offset 0, flags [DF], proto UDP (17), length 340)
+    192.168.8.1.53 > 192.168.8.148.57396: 56693 9/0/0 cf-trickplay.aux.pv-cdn.net. CNAME d25xi40x97liuc.cloudfront.net., d25xi40x97liuc.cloudfront.net. AAAA 2600:9000:2035:d800:14:2be3:6900:93a1, d25xi40x97liuc.cloudfront.net. AAAA 2600:9000:2035:1000:14:2be3:6900:93a1, d25xi40x97liuc.cloudfront.net. AAAA 2600:9000:2035:8000:14:2be3:6900:93a1, d25xi40x97liuc.cloudfront.net. AAAA 2600:9000:2035:4200:14:2be3:6900:93a1, d25xi40x97liuc.cloudfront.net. AAAA 2600:9000:2035:1600:14:2be3:6900:93a1, d25xi40x97liuc.cloudfront.net. AAAA 2600:9000:2035:8200:14:2be3:6900:93a1, d25xi40x97liuc.cloudfront.net. AAAA 2600:9000:2035:9800:14:2be3:6900:93a1, d25xi40x97liuc.cloudfront.net. AAAA 2600:9000:2035:de00:14:2be3:6900:93a1 (312)
+01:18:09.274933 IP (tos 0x0, ttl 64, id 33765, offset 0, flags [DF], proto UDP (17), length 65)
+    192.168.8.148.55084 > 192.168.8.1.53: 59440+ A? unagi-eu.amazon.com. (37)
+01:18:09.275251 IP (tos 0x0, ttl 64, id 33766, offset 0, flags [DF], proto UDP (17), length 65)
+    192.168.8.148.55084 > 192.168.8.1.53: 33513+ AAAA? unagi-eu.amazon.com. (37)
+01:18:09.278215 IP (tos 0x0, ttl 64, id 22053, offset 0, flags [DF], proto UDP (17), length 140)
+    192.168.8.1.53 > 192.168.8.148.55084: 33513 0/1/0 (112)
+01:18:09.289192 IP (tos 0x0, ttl 64, id 22054, offset 0, flags [DF], proto UDP (17), length 193)
+    192.168.8.1.53 > 192.168.8.148.55084: 59440 8/0/0 unagi-eu.amazon.com. A 3.254.239.161, unagi-eu.amazon.com. A 3.254.236.135, unagi-eu.amazon.com. A 3.253.179.213, unagi-eu.amazon.com. A 3.253.178.152, unagi-eu.amazon.com. A 3.251.217.112, unagi-eu.amazon.com. A 3.254.239.211, unagi-eu.amazon.com. A 3.254.238.10, unagi-eu.amazon.com. A 3.253.180.115 (165)
+01:18:09.290611 IP (tos 0x0, ttl 64, id 6233, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.148.34758 > 3.254.239.161.443: Flags [S], cksum 0xf5c0 (correct), seq 3220374484, win 64240, options [mss 1460,sackOK,TS val 3994509073 ecr 0,nop,wscale 7], length 0
+01:18:09.310365 IP (tos 0x0, ttl 249, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    3.254.239.161.443 > 192.168.8.148.34758: Flags [S.], cksum 0xb7f1 (correct), seq 4184042582, ack 3220374485, win 64800, options [mss 1452,sackOK,TS val 176409432 ecr 3994509073,nop,wscale 7], length 0
+01:18:09.310927 IP (tos 0x0, ttl 64, id 6234, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.34758 > 3.254.239.161.443: Flags [.], cksum 0xe1cc (correct), ack 1, win 502, options [nop,nop,TS val 3994509093 ecr 176409432], length 0
+01:18:09.434377 IP (tos 0x0, ttl 4, id 9, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.33400 > 239.255.255.250.1900: UDP, length 325
+01:18:09.465611 IP (tos 0x0, ttl 4, id 11, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.48605 > 239.255.255.250.1900: UDP, length 381
+01:18:09.497685 IP (tos 0x0, ttl 4, id 12, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.32998 > 239.255.255.250.1900: UDP, length 334
+01:18:09.529657 IP (tos 0x0, ttl 4, id 18, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.37384 > 239.255.255.250.1900: UDP, length 391
+01:18:09.561505 IP (tos 0x0, ttl 4, id 21, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.36560 > 239.255.255.250.1900: UDP, length 379
+01:18:09.592294 IP (tos 0x0, ttl 4, id 23, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.36008 > 239.255.255.250.1900: UDP, length 389
+01:18:10.382604 IP (tos 0x0, ttl 64, id 758, offset 0, flags [DF], proto UDP (17), length 89)
+    192.168.8.148.43901 > 192.168.8.1.53: 44075+ A? prod.us-east-1.sonar.prime-video.amazon.dev. (61)
+01:18:10.383364 IP (tos 0x0, ttl 64, id 22118, offset 0, flags [DF], proto UDP (17), length 217)
+    192.168.8.1.53 > 192.168.8.148.43901: 44075 8/0/0 prod.us-east-1.sonar.prime-video.amazon.dev. A 100.56.83.243, prod.us-east-1.sonar.prime-video.amazon.dev. A 52.71.33.243, prod.us-east-1.sonar.prime-video.amazon.dev. A 44.215.65.148, prod.us-east-1.sonar.prime-video.amazon.dev. A 44.209.228.218, prod.us-east-1.sonar.prime-video.amazon.dev. A 35.175.159.211, prod.us-east-1.sonar.prime-video.amazon.dev. A 98.89.182.194, prod.us-east-1.sonar.prime-video.amazon.dev. A 23.21.204.104, prod.us-east-1.sonar.prime-video.amazon.dev. A 54.158.198.30 (189)
+01:18:10.383690 IP (tos 0x0, ttl 64, id 759, offset 0, flags [DF], proto UDP (17), length 89)
+    192.168.8.148.43901 > 192.168.8.1.53: 26689+ AAAA? prod.us-east-1.sonar.prime-video.amazon.dev. (61)
+01:18:10.390939 IP (tos 0x0, ttl 64, id 22119, offset 0, flags [DF], proto UDP (17), length 170)
+    192.168.8.1.53 > 192.168.8.148.43901: 26689 0/1/0 (142)
+01:18:10.393328 IP (tos 0x0, ttl 64, id 34927, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.148.34046 > 100.56.83.243.443: Flags [S], cksum 0x2e77 (correct), seq 621236822, win 64240, options [mss 1460,sackOK,TS val 1103453524 ecr 0,nop,wscale 7], length 0
+01:18:10.478795 IP (tos 0x0, ttl 244, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    100.56.83.243.443 > 192.168.8.148.34046: Flags [S.], cksum 0x4930 (correct), seq 1404307037, ack 621236823, win 26847, options [mss 1460,sackOK,TS val 1774891882 ecr 1103453524,nop,wscale 8], length 0
+01:18:10.479289 IP (tos 0x0, ttl 64, id 34928, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.34046 > 100.56.83.243.443: Flags [.], cksum 0xde8f (correct), ack 1, win 502, options [nop,nop,TS val 1103453611 ecr 1774891882], length 0
+01:18:12.623520 IP (tos 0x0, ttl 4, id 448, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.40686 > 239.255.255.250.1900: UDP, length 325
+01:18:12.654244 IP (tos 0x0, ttl 4, id 454, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.59070 > 239.255.255.250.1900: UDP, length 381
+01:18:12.684818 IP (tos 0x0, ttl 4, id 461, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.43115 > 239.255.255.250.1900: UDP, length 334
+01:18:12.715499 IP (tos 0x0, ttl 4, id 462, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.36721 > 239.255.255.250.1900: UDP, length 391
+01:18:12.746231 IP (tos 0x0, ttl 4, id 469, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.40765 > 239.255.255.250.1900: UDP, length 379
+01:18:12.777071 IP (tos 0x0, ttl 4, id 475, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.54739 > 239.255.255.250.1900: UDP, length 389
+01:18:13.104916 IP (tos 0x0, ttl 64, id 17416, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.148.34772 > 3.254.239.161.443: Flags [S], cksum 0xf049 (correct), seq 2831880574, win 64240, options [mss 1460,sackOK,TS val 3994512888 ecr 0,nop,wscale 7], length 0
+01:18:13.124077 IP (tos 0x0, ttl 249, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    3.254.239.161.443 > 192.168.8.148.34772: Flags [S.], cksum 0x6865 (correct), seq 1045257455, ack 2831880575, win 65504, options [mss 1436,sackOK,TS val 2437109371 ecr 3994512888,nop,wscale 7], length 0
+01:18:13.127115 IP (tos 0x0, ttl 64, id 17417, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.34772 > 3.254.239.161.443: Flags [.], cksum 0x94ee (correct), ack 1, win 502, options [nop,nop,TS val 3994512910 ecr 2437109371], length 0
+01:18:17.808825 IP (tos 0x0, ttl 4, id 793, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.37175 > 239.255.255.250.1900: UDP, length 325
+01:18:17.839500 IP (tos 0x0, ttl 4, id 799, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.44244 > 239.255.255.250.1900: UDP, length 381
+01:18:17.870761 IP (tos 0x0, ttl 4, id 804, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.36935 > 239.255.255.250.1900: UDP, length 334
+01:18:17.901544 IP (tos 0x0, ttl 4, id 809, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.49285 > 239.255.255.250.1900: UDP, length 391
+01:18:17.932438 IP (tos 0x0, ttl 4, id 817, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.53428 > 239.255.255.250.1900: UDP, length 379
+01:18:17.963443 IP (tos 0x0, ttl 4, id 818, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.46275 > 239.255.255.250.1900: UDP, length 389
+01:18:21.995962 IP (tos 0x0, ttl 4, id 1566, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.55654 > 239.255.255.250.1900: UDP, length 325
+01:18:22.026565 IP (tos 0x0, ttl 4, id 1571, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.51882 > 239.255.255.250.1900: UDP, length 381
+01:18:22.057294 IP (tos 0x0, ttl 4, id 1574, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.51421 > 239.255.255.250.1900: UDP, length 334
+01:18:22.089011 IP (tos 0x0, ttl 4, id 1582, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.53226 > 239.255.255.250.1900: UDP, length 391
+01:18:22.120199 IP (tos 0x0, ttl 4, id 1588, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.39890 > 239.255.255.250.1900: UDP, length 379
+01:18:22.151172 IP (tos 0x0, ttl 4, id 1596, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.57431 > 239.255.255.250.1900: UDP, length 389
+01:18:22.544593 IP (tos 0x0, ttl 64, id 9470, offset 0, flags [DF], proto UDP (17), length 85)
+    192.168.8.148.54399 > 192.168.8.1.53: 19764+ A? global.telemetry.insights.video.a2z.com. (57)
+01:18:22.544675 IP (tos 0x0, ttl 64, id 9471, offset 0, flags [DF], proto UDP (17), length 85)
+    192.168.8.148.54399 > 192.168.8.1.53: 63307+ AAAA? global.telemetry.insights.video.a2z.com. (57)
+01:18:22.545397 IP (tos 0x0, ttl 64, id 22618, offset 0, flags [DF], proto UDP (17), length 332)
+    192.168.8.1.53 > 192.168.8.148.54399: 19764 10/0/0 global.telemetry.insights.video.a2z.com. CNAME wetfs.global-3.telemetry.insights.video.a2z.com., wetfs.global-3.telemetry.insights.video.a2z.com. CNAME eu-west-2-3.telemetry.insights.video.a2z.com., eu-west-2-3.telemetry.insights.video.a2z.com. A 18.130.199.57, eu-west-2-3.telemetry.insights.video.a2z.com. A 51.24.117.209, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.171.47.175, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.132.75.195, eu-west-2-3.telemetry.insights.video.a2z.com. A 16.60.237.211, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.135.216.136, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.134.45.59, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.135.170.118 (304)
+01:18:22.546010 IP (tos 0x0, ttl 64, id 22619, offset 0, flags [DF], proto UDP (17), length 428)
+    192.168.8.1.53 > 192.168.8.148.54399: 63307 10/0/0 global.telemetry.insights.video.a2z.com. CNAME wetfs.global-3.telemetry.insights.video.a2z.com., wetfs.global-3.telemetry.insights.video.a2z.com. CNAME eu-west-2-3.telemetry.insights.video.a2z.com., eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:c681:938d:c843:b9ae, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e01:249f:c352:8544:7865, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e02:1dc9:3605:6a10:58e6, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e02:3c3a:d82a:83b8:f75b, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:d010:1f38:cbf:7477, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:1ab6:cca2:eac:37d3, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e01:c801:a4ea:c358:6052, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:4357:2305:a417:c96d (400)
+01:18:22.971595 IP (tos 0x0, ttl 64, id 34945, offset 0, flags [DF], proto TCP (6), length 83)
+    192.168.8.148.34046 > 100.56.83.243.443: Flags [P.], cksum 0x7e64 (correct), seq 1332:1363, ack 4937, win 501, options [nop,nop,TS val 1103466103 ecr 1774892186], length 31
+01:18:23.826725 IP (tos 0x0, ttl 64, id 60459, offset 0, flags [DF], proto UDP (17), length 65)
+    192.168.8.148.53274 > 192.168.8.1.53: 61854+ A? unagi-na.amazon.com. (37)
+01:18:23.826820 IP (tos 0x0, ttl 64, id 60460, offset 0, flags [DF], proto UDP (17), length 65)
+    192.168.8.148.53274 > 192.168.8.1.53: 26220+ AAAA? unagi-na.amazon.com. (37)
+01:18:23.827467 IP (tos 0x0, ttl 64, id 22739, offset 0, flags [DF], proto UDP (17), length 193)
+    192.168.8.1.53 > 192.168.8.148.53274: 61854 8/0/0 unagi-na.amazon.com. A 44.215.137.166, unagi-na.amazon.com. A 44.215.130.62, unagi-na.amazon.com. A 44.215.132.248, unagi-na.amazon.com. A 44.215.143.203, unagi-na.amazon.com. A 44.215.129.188, unagi-na.amazon.com. A 44.215.141.185, unagi-na.amazon.com. A 44.215.138.159, unagi-na.amazon.com. A 44.199.181.222 (165)
+01:18:23.832620 IP (tos 0x0, ttl 64, id 22740, offset 0, flags [DF], proto UDP (17), length 140)
+    192.168.8.1.53 > 192.168.8.148.53274: 26220 0/1/0 (112)
+01:18:23.833525 IP (tos 0x0, ttl 64, id 50430, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.148.59314 > 44.215.137.166.443: Flags [S], cksum 0xc347 (correct), seq 2343076824, win 64240, options [mss 1460,sackOK,TS val 2835376158 ecr 0,nop,wscale 7], length 0
+01:18:23.921382 IP (tos 0x0, ttl 243, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    44.215.137.166.443 > 192.168.8.148.59314: Flags [S.], cksum 0xb15e (correct), seq 3654543784, ack 2343076825, win 64676, options [mss 1418,sackOK,TS val 1970984790 ecr 2835376158,nop,wscale 7], length 0
+01:18:23.921827 IP (tos 0x0, ttl 64, id 50431, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.59314 > 44.215.137.166.443: Flags [.], cksum 0xda56 (correct), ack 1, win 502, options [nop,nop,TS val 2835376247 ecr 1970984790], length 0
+01:18:24.052498 IP (tos 0x0, ttl 64, id 64829, offset 0, flags [DF], proto UDP (17), length 70)
+    192.168.8.148.46159 > 192.168.8.1.53: 51967+ A? qgmg.api.amazonvideo.com. (42)
+01:18:24.052587 IP (tos 0x0, ttl 64, id 64830, offset 0, flags [DF], proto UDP (17), length 70)
+    192.168.8.148.46159 > 192.168.8.1.53: 14251+ AAAA? qgmg.api.amazonvideo.com. (42)
+01:18:24.053115 IP (tos 0x0, ttl 64, id 22753, offset 0, flags [DF], proto UDP (17), length 177)
+    192.168.8.1.53 > 192.168.8.148.46159: 51967 5/0/0 qgmg.api.amazonvideo.com. CNAME d1b402l3mw86j5.cloudfront.net., d1b402l3mw86j5.cloudfront.net. A 52.222.201.124, d1b402l3mw86j5.cloudfront.net. A 52.222.201.49, d1b402l3mw86j5.cloudfront.net. A 52.222.201.55, d1b402l3mw86j5.cloudfront.net. A 52.222.201.31 (149)
+01:18:24.055652 IP (tos 0x0, ttl 64, id 22754, offset 0, flags [DF], proto UDP (17), length 337)
+    192.168.8.1.53 > 192.168.8.148.46159: 14251 9/0/0 qgmg.api.amazonvideo.com. CNAME d1b402l3mw86j5.cloudfront.net., d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:ec00:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:d000:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:1e00:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:4e00:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:a000:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:3c00:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:c400:e:1f9e:c440:93a1, d1b402l3mw86j5.cloudfront.net. AAAA 2600:9000:273b:6400:e:1f9e:c440:93a1 (309)
+01:18:24.226869 IP (tos 0x0, ttl 255, id 26998, offset 0, flags [DF], proto UDP (17), length 90)
+    192.168.8.148.5353 > 224.0.0.251.5353: 0 [1au] PTR (QM)? lb._dns-sd._udp.local. (62)
+01:18:26.182804 IP (tos 0x0, ttl 4, id 1651, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.36381 > 239.255.255.250.1900: UDP, length 325
+01:18:26.213979 IP (tos 0x0, ttl 4, id 1657, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.41252 > 239.255.255.250.1900: UDP, length 381
+01:18:26.244558 IP (tos 0x0, ttl 4, id 1658, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.60894 > 239.255.255.250.1900: UDP, length 334
+01:18:26.275727 IP (tos 0x0, ttl 4, id 1659, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.53429 > 239.255.255.250.1900: UDP, length 391
+01:18:26.307035 IP (tos 0x0, ttl 4, id 1664, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.49465 > 239.255.255.250.1900: UDP, length 379
+01:18:26.337851 IP (tos 0x0, ttl 4, id 1666, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.45262 > 239.255.255.250.1900: UDP, length 389
+01:18:27.609293 IP (tos 0x0, ttl 64, id 47713, offset 0, flags [DF], proto TCP (6), length 75)
+    192.168.8.148.35476 > 43.157.101.228.10443: Flags [P.], cksum 0xbd0d (correct), seq 71:106, ack 62, win 501, length 35
+01:18:29.369469 IP (tos 0x0, ttl 4, id 2317, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.49034 > 239.255.255.250.1900: UDP, length 325
+01:18:29.399947 IP (tos 0x0, ttl 4, id 2318, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.53593 > 239.255.255.250.1900: UDP, length 381
+01:18:29.430461 IP (tos 0x0, ttl 4, id 2320, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.59100 > 239.255.255.250.1900: UDP, length 334
+01:18:29.461294 IP (tos 0x0, ttl 4, id 2327, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.55505 > 239.255.255.250.1900: UDP, length 391
+01:18:29.492005 IP (tos 0x0, ttl 4, id 2333, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.36501 > 239.255.255.250.1900: UDP, length 379
+01:18:29.522766 IP (tos 0x0, ttl 4, id 2339, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.60909 > 239.255.255.250.1900: UDP, length 389
+01:18:33.554495 IP (tos 0x0, ttl 4, id 2929, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.50562 > 239.255.255.250.1900: UDP, length 325
+01:18:33.585081 IP (tos 0x0, ttl 4, id 2935, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.59090 > 239.255.255.250.1900: UDP, length 381
+01:18:33.615664 IP (tos 0x0, ttl 4, id 2942, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.32790 > 239.255.255.250.1900: UDP, length 334
+01:18:33.646462 IP (tos 0x0, ttl 4, id 2948, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.54393 > 239.255.255.250.1900: UDP, length 391
+01:18:33.677422 IP (tos 0x0, ttl 4, id 2954, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.57330 > 239.255.255.250.1900: UDP, length 379
+01:18:33.708607 IP (tos 0x0, ttl 4, id 2961, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.43140 > 239.255.255.250.1900: UDP, length 389
+01:18:35.067858 IP (tos 0x0, ttl 64, id 18349, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.44624 > 192.168.8.1.53: 33363+ [1au] A? avsxappcaptiveportal.com. (65)
+01:18:35.067955 IP (tos 0x0, ttl 64, id 18350, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.44624 > 192.168.8.1.53: 37465+ [1au] AAAA? avsxappcaptiveportal.com. (65)
+01:18:35.069811 IP (tos 0x0, ttl 64, id 23129, offset 0, flags [DF], proto UDP (17), length 209)
+    192.168.8.1.53 > 192.168.8.148.44624: 33363 8/0/1 avsxappcaptiveportal.com. A 34.237.58.237, avsxappcaptiveportal.com. A 100.58.147.237, avsxappcaptiveportal.com. A 44.193.185.191, avsxappcaptiveportal.com. A 44.219.29.189, avsxappcaptiveportal.com. A 34.226.114.223, avsxappcaptiveportal.com. A 100.63.57.227, avsxappcaptiveportal.com. A 98.90.65.217, avsxappcaptiveportal.com. A 18.214.32.139 (181)
+01:18:35.070543 IP (tos 0x0, ttl 64, id 23130, offset 0, flags [DF], proto UDP (17), length 305)
+    192.168.8.1.53 > 192.168.8.148.44624: 37465 8/0/1 avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4300:27cd:4dda:5fd9:782d, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4301:83a0:505c:c79:d773, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4300:6cc4:3b77:3d9d:13b8, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4302:2a51:cad4:6864:eedb, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4302:5148:445a:f29e:3de4, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4302:5d27:e089:5679:6021, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4301:b4ad:8e65:e39e:8560, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4300:d880:c119:55ac:72ff (277)
+01:18:38.739941 IP (tos 0x0, ttl 4, id 3182, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.49291 > 239.255.255.250.1900: UDP, length 325
+01:18:38.770533 IP (tos 0x0, ttl 4, id 3184, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.59845 > 239.255.255.250.1900: UDP, length 381
+01:18:38.801424 IP (tos 0x0, ttl 4, id 3186, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.60183 > 239.255.255.250.1900: UDP, length 334
+01:18:38.832805 IP (tos 0x0, ttl 4, id 3193, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.53072 > 239.255.255.250.1900: UDP, length 391
+01:18:38.863930 IP (tos 0x0, ttl 4, id 3196, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.54267 > 239.255.255.250.1900: UDP, length 379
+01:18:38.895249 IP (tos 0x0, ttl 4, id 3201, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.41561 > 239.255.255.250.1900: UDP, length 389
+01:18:40.486289 IP (tos 0x0, ttl 64, id 48967, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.40652 > 192.168.8.1.53: 2672+ [1au] A? ter-jrnl-eu.vidaahub.com. (65)
+01:18:40.486363 IP (tos 0x0, ttl 64, id 48968, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.40652 > 192.168.8.1.53: 16379+ [1au] AAAA? ter-jrnl-eu.vidaahub.com. (65)
+01:18:40.491629 IP (tos 0x0, ttl 64, id 23321, offset 0, flags [DF], proto UDP (17), length 144)
+    192.168.8.1.53 > 192.168.8.148.40652: 2672 2/0/1 ter-jrnl-eu.vidaahub.com. CNAME data-tenant-fluentd.prod-eu-c.az.vidaahub.com., data-tenant-fluentd.prod-eu-c.az.vidaahub.com. A 20.170.76.123 (116)
+01:18:40.494601 IP (tos 0x0, ttl 64, id 23322, offset 0, flags [DF], proto UDP (17), length 211)
+    192.168.8.1.53 > 192.168.8.148.40652: 16379 1/1/1 ter-jrnl-eu.vidaahub.com. CNAME data-tenant-fluentd.prod-eu-c.az.vidaahub.com. (183)
+01:18:40.495852 IP (tos 0x0, ttl 64, id 60361, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.148.35468 > 20.170.76.123.443: Flags [S], cksum 0x7dc7 (correct), seq 4054625132, win 64240, options [mss 1460,sackOK,TS val 3847132726 ecr 0,nop,wscale 7], length 0
+01:18:40.506833 IP (tos 0x0, ttl 50, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    20.170.76.123.443 > 192.168.8.148.35468: Flags [S.], cksum 0x1a57 (correct), seq 1505252300, ack 4054625133, win 65160, options [mss 1460,sackOK,TS val 2227318141 ecr 3847132726,nop,wscale 10], length 0
+01:18:40.507879 IP (tos 0x0, ttl 64, id 60362, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.35468 > 20.170.76.123.443: Flags [.], cksum 0x45ad (correct), ack 1, win 502, options [nop,nop,TS val 3847132738 ecr 2227318141], length 0
+01:18:40.625408 IP (tos 0x0, ttl 64, id 440, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.45444 > 192.168.8.1.53: 12708+ [1au] A? exc-jrnl-eu.vidaahub.com. (65)
+01:18:40.625489 IP (tos 0x0, ttl 64, id 441, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.45444 > 192.168.8.1.53: 27652+ [1au] AAAA? exc-jrnl-eu.vidaahub.com. (65)
+01:18:40.630997 IP (tos 0x0, ttl 64, id 23332, offset 0, flags [DF], proto UDP (17), length 144)
+    192.168.8.1.53 > 192.168.8.148.45444: 12708 2/0/1 exc-jrnl-eu.vidaahub.com. CNAME data-tenant-fluentd.prod-eu-c.az.vidaahub.com., data-tenant-fluentd.prod-eu-c.az.vidaahub.com. A 20.170.76.123 (116)
+01:18:40.636446 IP (tos 0x0, ttl 64, id 23333, offset 0, flags [DF], proto UDP (17), length 211)
+    192.168.8.1.53 > 192.168.8.148.45444: 27652 1/1/1 exc-jrnl-eu.vidaahub.com. CNAME data-tenant-fluentd.prod-eu-c.az.vidaahub.com. (183)
+01:18:40.638703 IP (tos 0x0, ttl 64, id 64608, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.148.35480 > 20.170.76.123.443: Flags [S], cksum 0x420e (correct), seq 1191153976, win 64240, options [mss 1460,sackOK,TS val 3847132869 ecr 0,nop,wscale 7], length 0
+01:18:40.649434 IP (tos 0x0, ttl 51, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    20.170.76.123.443 > 192.168.8.148.35480: Flags [S.], cksum 0x4e1e (correct), seq 2912998695, ack 1191153977, win 65160, options [mss 1460,sackOK,TS val 720323212 ecr 3847132869,nop,wscale 10], length 0
+01:18:40.649866 IP (tos 0x0, ttl 64, id 64609, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.35480 > 20.170.76.123.443: Flags [.], cksum 0x7975 (correct), ack 1, win 502, options [nop,nop,TS val 3847132880 ecr 720323212], length 0
+01:18:42.928834 IP (tos 0x0, ttl 4, id 3883, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.49132 > 239.255.255.250.1900: UDP, length 325
+01:18:42.959633 IP (tos 0x0, ttl 4, id 3885, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.40869 > 239.255.255.250.1900: UDP, length 381
+01:18:42.990334 IP (tos 0x0, ttl 4, id 3890, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.45907 > 239.255.255.250.1900: UDP, length 334
+01:18:43.021573 IP (tos 0x0, ttl 4, id 3898, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.38726 > 239.255.255.250.1900: UDP, length 391
+01:18:43.052648 IP (tos 0x0, ttl 4, id 3901, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.35251 > 239.255.255.250.1900: UDP, length 379
+01:18:43.083393 IP (tos 0x0, ttl 4, id 3908, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.49229 > 239.255.255.250.1900: UDP, length 389
+01:18:45.567248 ARP, Ethernet (len 6), IPv4 (len 4), Request who-has 192.168.8.148 tell 192.168.8.1, length 28
+01:18:45.567929 ARP, Ethernet (len 6), IPv4 (len 4), Reply 192.168.8.148 is-at cc:12:28:9d:d6:dd, length 46
+01:18:46.619745 IP (tos 0x0, ttl 64, id 61596, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.37132 > 98.67.144.87.443: Flags [.], cksum 0x9774 (correct), ack 1, win 501, options [nop,nop,TS val 2584063935 ecr 2162976036], length 0
+01:18:47.114448 IP (tos 0x0, ttl 4, id 4129, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.52378 > 239.255.255.250.1900: UDP, length 325
+01:18:47.145203 IP (tos 0x0, ttl 4, id 4130, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.33199 > 239.255.255.250.1900: UDP, length 381
+01:18:47.175760 IP (tos 0x0, ttl 4, id 4134, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.36892 > 239.255.255.250.1900: UDP, length 334
+01:18:47.206561 IP (tos 0x0, ttl 4, id 4141, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.34400 > 239.255.255.250.1900: UDP, length 391
+01:18:47.237330 IP (tos 0x0, ttl 4, id 4148, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.43956 > 239.255.255.250.1900: UDP, length 379
+01:18:47.268738 IP (tos 0x0, ttl 4, id 4156, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.37325 > 239.255.255.250.1900: UDP, length 389
+01:18:52.301053 IP (tos 0x0, ttl 4, id 5336, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.34290 > 239.255.255.250.1900: UDP, length 325
+01:18:52.331631 IP (tos 0x0, ttl 4, id 5341, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.54415 > 239.255.255.250.1900: UDP, length 381
+01:18:52.362263 IP (tos 0x0, ttl 4, id 5348, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.56271 > 239.255.255.250.1900: UDP, length 334
+01:18:52.393669 IP (tos 0x0, ttl 4, id 5353, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.36174 > 239.255.255.250.1900: UDP, length 391
+01:18:52.424639 IP (tos 0x0, ttl 4, id 5359, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.54796 > 239.255.255.250.1900: UDP, length 379
+01:18:52.455462 IP (tos 0x0, ttl 4, id 5361, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.54796 > 239.255.255.250.1900: UDP, length 389
+01:18:56.487594 IP (tos 0x0, ttl 4, id 6247, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.40456 > 239.255.255.250.1900: UDP, length 325
+01:18:56.518214 IP (tos 0x0, ttl 4, id 6250, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.44646 > 239.255.255.250.1900: UDP, length 381
+01:18:56.549249 IP (tos 0x0, ttl 4, id 6253, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.36852 > 239.255.255.250.1900: UDP, length 334
+01:18:56.580111 IP (tos 0x0, ttl 4, id 6260, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.56822 > 239.255.255.250.1900: UDP, length 391
+01:18:56.611047 IP (tos 0x0, ttl 4, id 6268, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.33244 > 239.255.255.250.1900: UDP, length 379
+01:18:56.642026 IP (tos 0x0, ttl 4, id 6276, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.48878 > 239.255.255.250.1900: UDP, length 389
+01:18:57.619731 IP (tos 0x0, ttl 64, id 47717, offset 0, flags [DF], proto TCP (6), length 75)
+    192.168.8.148.35476 > 43.157.101.228.10443: Flags [P.], cksum 0x25fe (correct), seq 141:176, ack 124, win 501, length 35
+01:19:00.673567 IP (tos 0x0, ttl 4, id 7179, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.53896 > 239.255.255.250.1900: UDP, length 325
+01:19:00.704403 IP (tos 0x0, ttl 4, id 7182, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.34859 > 239.255.255.250.1900: UDP, length 381
+01:19:00.735747 IP (tos 0x0, ttl 4, id 7186, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.44901 > 239.255.255.250.1900: UDP, length 334
+01:19:00.766879 IP (tos 0x0, ttl 4, id 7192, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.53063 > 239.255.255.250.1900: UDP, length 391
+01:19:00.797703 IP (tos 0x0, ttl 4, id 7200, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.55727 > 239.255.255.250.1900: UDP, length 379
+01:19:00.828567 IP (tos 0x0, ttl 4, id 7202, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.56030 > 239.255.255.250.1900: UDP, length 389
+01:19:05.251555 IP (tos 0x0, ttl 64, id 38434, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.33690 > 192.168.8.1.53: 30816+ [1au] A? avsxappcaptiveportal.com. (65)
+01:19:05.251669 IP (tos 0x0, ttl 64, id 38435, offset 0, flags [DF], proto UDP (17), length 93)
+    192.168.8.148.33690 > 192.168.8.1.53: 4970+ [1au] AAAA? avsxappcaptiveportal.com. (65)
+01:19:05.252454 IP (tos 0x0, ttl 64, id 24513, offset 0, flags [DF], proto UDP (17), length 209)
+    192.168.8.1.53 > 192.168.8.148.33690: 30816 8/0/1 avsxappcaptiveportal.com. A 18.214.32.139, avsxappcaptiveportal.com. A 34.237.58.237, avsxappcaptiveportal.com. A 100.58.147.237, avsxappcaptiveportal.com. A 44.193.185.191, avsxappcaptiveportal.com. A 44.219.29.189, avsxappcaptiveportal.com. A 34.226.114.223, avsxappcaptiveportal.com. A 100.63.57.227, avsxappcaptiveportal.com. A 98.90.65.217 (181)
+01:19:05.256042 IP (tos 0x0, ttl 64, id 24514, offset 0, flags [DF], proto UDP (17), length 305)
+    192.168.8.1.53 > 192.168.8.148.33690: 4970 8/0/1 avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4300:d880:c119:55ac:72ff, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4300:27cd:4dda:5fd9:782d, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4301:83a0:505c:c79:d773, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4300:6cc4:3b77:3d9d:13b8, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4302:2a51:cad4:6864:eedb, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4302:5148:445a:f29e:3de4, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4302:5d27:e089:5679:6021, avsxappcaptiveportal.com. AAAA 2600:1f18:6be4:4301:b4ad:8e65:e39e:8560 (277)
+01:19:05.860490 IP (tos 0x0, ttl 4, id 8430, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.38893 > 239.255.255.250.1900: UDP, length 325
+01:19:05.890966 IP (tos 0x0, ttl 4, id 8437, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.41338 > 239.255.255.250.1900: UDP, length 381
+01:19:05.921621 IP (tos 0x0, ttl 4, id 8438, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.37082 > 239.255.255.250.1900: UDP, length 334
+01:19:05.955571 IP (tos 0x0, ttl 4, id 8439, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.52766 > 239.255.255.250.1900: UDP, length 391
+01:19:05.986443 IP (tos 0x0, ttl 4, id 8443, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.39580 > 239.255.255.250.1900: UDP, length 379
+01:19:06.017113 IP (tos 0x0, ttl 4, id 8448, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.42925 > 239.255.255.250.1900: UDP, length 389
+01:19:09.283025 IP (tos 0x0, ttl 64, id 53826, offset 0, flags [DF], proto UDP (17), length 65)
+    192.168.8.148.60658 > 192.168.8.1.53: 36343+ A? unagi-eu.amazon.com. (37)
+01:19:09.283124 IP (tos 0x0, ttl 64, id 53827, offset 0, flags [DF], proto UDP (17), length 65)
+    192.168.8.148.60658 > 192.168.8.1.53: 25214+ AAAA? unagi-eu.amazon.com. (37)
+01:19:09.283733 IP (tos 0x0, ttl 64, id 24599, offset 0, flags [DF], proto UDP (17), length 193)
+    192.168.8.1.53 > 192.168.8.148.60658: 36343 8/0/0 unagi-eu.amazon.com. A 3.254.239.161, unagi-eu.amazon.com. A 3.254.236.135, unagi-eu.amazon.com. A 3.253.179.213, unagi-eu.amazon.com. A 3.253.178.152, unagi-eu.amazon.com. A 3.251.217.112, unagi-eu.amazon.com. A 3.254.239.211, unagi-eu.amazon.com. A 3.254.238.10, unagi-eu.amazon.com. A 3.253.180.115 (165)
+01:19:09.288204 IP (tos 0x0, ttl 64, id 24600, offset 0, flags [DF], proto UDP (17), length 140)
+    192.168.8.1.53 > 192.168.8.148.60658: 25214 0/1/0 (112)
+01:19:09.288962 IP (tos 0x0, ttl 64, id 46151, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.148.58268 > 3.254.239.161.443: Flags [S], cksum 0x836b (correct), seq 2364171005, win 64240, options [mss 1460,sackOK,TS val 3994569071 ecr 0,nop,wscale 7], length 0
+01:19:09.308763 IP (tos 0x0, ttl 249, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    3.254.239.161.443 > 192.168.8.148.58268: Flags [S.], cksum 0x354f (correct), seq 2332545431, ack 2364171006, win 62643, options [mss 1460,sackOK,TS val 3053797795 ecr 3994569071,nop,wscale 7], length 0
+01:19:09.311488 IP (tos 0x0, ttl 64, id 46152, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.58268 > 3.254.239.161.443: Flags [.], cksum 0x56c3 (correct), ack 1, win 502, options [nop,nop,TS val 3994569093 ecr 3053797795], length 0
+01:19:09.394688 IP (tos 0x0, ttl 64, id 50448, offset 0, flags [DF], proto TCP (6), length 76)
+    192.168.8.148.59314 > 44.215.137.166.443: Flags [P.], cksum 0x805c (correct), seq 10286:10310, ack 5161, win 501, options [nop,nop,TS val 2835421720 ecr 1970984993], length 24
+01:19:10.621331 IP (tos 0x0, ttl 64, id 23364, offset 0, flags [DF], proto UDP (17), length 76)
+    192.168.8.148.35449 > 192.168.8.1.53: 37043+ A? api.eu-west-1.aiv-delivery.net. (48)
+01:19:10.621475 IP (tos 0x0, ttl 64, id 23365, offset 0, flags [DF], proto UDP (17), length 76)
+    192.168.8.148.35449 > 192.168.8.1.53: 28447+ AAAA? api.eu-west-1.aiv-delivery.net. (48)
+01:19:10.624314 IP (tos 0x0, ttl 64, id 24722, offset 0, flags [DF], proto UDP (17), length 376)
+    192.168.8.1.53 > 192.168.8.148.35449: 37043 11/0/0 api.eu-west-1.aiv-delivery.net. CNAME global.telemetry.insights.video.a2z.com., global.telemetry.insights.video.a2z.com. CNAME wetfs.global-3.telemetry.insights.video.a2z.com., wetfs.global-3.telemetry.insights.video.a2z.com. CNAME eu-west-2-3.telemetry.insights.video.a2z.com., eu-west-2-3.telemetry.insights.video.a2z.com. A 18.135.170.118, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.130.199.57, eu-west-2-3.telemetry.insights.video.a2z.com. A 51.24.117.209, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.171.47.175, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.132.75.195, eu-west-2-3.telemetry.insights.video.a2z.com. A 16.60.237.211, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.135.216.136, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.134.45.59 (348)
+01:19:10.632336 IP (tos 0x0, ttl 64, id 24723, offset 0, flags [DF], proto UDP (17), length 472)
+    192.168.8.1.53 > 192.168.8.148.35449: 28447 11/0/0 api.eu-west-1.aiv-delivery.net. CNAME global.telemetry.insights.video.a2z.com., global.telemetry.insights.video.a2z.com. CNAME wetfs.global-3.telemetry.insights.video.a2z.com., wetfs.global-3.telemetry.insights.video.a2z.com. CNAME eu-west-2-3.telemetry.insights.video.a2z.com., eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:4357:2305:a417:c96d, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:c681:938d:c843:b9ae, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e01:249f:c352:8544:7865, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e02:1dc9:3605:6a10:58e6, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e02:3c3a:d82a:83b8:f75b, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:d010:1f38:cbf:7477, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:1ab6:cca2:eac:37d3, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e01:c801:a4ea:c358:6052 (444)
+01:19:11.048273 IP (tos 0x0, ttl 4, id 9517, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.34255 > 239.255.255.250.1900: UDP, length 325
+01:19:11.078740 IP (tos 0x0, ttl 4, id 9525, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.39076 > 239.255.255.250.1900: UDP, length 381
+01:19:11.109284 IP (tos 0x0, ttl 4, id 9531, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.34780 > 239.255.255.250.1900: UDP, length 334
+01:19:11.139922 IP (tos 0x0, ttl 4, id 9532, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.57180 > 239.255.255.250.1900: UDP, length 391
+01:19:11.173218 IP (tos 0x0, ttl 4, id 9538, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.34618 > 239.255.255.250.1900: UDP, length 379
+01:19:11.203973 IP (tos 0x0, ttl 4, id 9539, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.33776 > 239.255.255.250.1900: UDP, length 389
+01:19:12.522355 IP (tos 0x0, ttl 55, id 53817, offset 0, flags [DF], proto TCP (6), length 71)
+    43.157.101.228.10443 > 192.168.8.148.35476: Flags [P.], cksum 0xcb45 (correct), seq 155:186, ack 176, win 501, length 31
+01:19:16.234745 IP (tos 0x0, ttl 4, id 10228, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.36801 > 239.255.255.250.1900: UDP, length 325
+01:19:16.265389 IP (tos 0x0, ttl 4, id 10233, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.58293 > 239.255.255.250.1900: UDP, length 381
+01:19:16.296650 IP (tos 0x0, ttl 4, id 10239, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.42277 > 239.255.255.250.1900: UDP, length 334
+01:19:16.327675 IP (tos 0x0, ttl 4, id 10246, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.47799 > 239.255.255.250.1900: UDP, length 391
+01:19:16.358433 IP (tos 0x0, ttl 4, id 10248, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.38289 > 239.255.255.250.1900: UDP, length 379
+01:19:16.390333 IP (tos 0x0, ttl 4, id 10255, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.43802 > 239.255.255.250.1900: UDP, length 389
+01:19:21.421193 IP (tos 0x0, ttl 4, id 11092, offset 0, flags [DF], proto UDP (17), length 353)
+    192.168.8.148.56088 > 239.255.255.250.1900: UDP, length 325
+01:19:21.451858 IP (tos 0x0, ttl 4, id 11100, offset 0, flags [DF], proto UDP (17), length 409)
+    192.168.8.148.37396 > 239.255.255.250.1900: UDP, length 381
+01:19:21.482400 IP (tos 0x0, ttl 4, id 11101, offset 0, flags [DF], proto UDP (17), length 362)
+    192.168.8.148.49043 > 239.255.255.250.1900: UDP, length 334
+01:19:21.513558 IP (tos 0x0, ttl 4, id 11105, offset 0, flags [DF], proto UDP (17), length 419)
+    192.168.8.148.34813 > 239.255.255.250.1900: UDP, length 391
+01:19:21.544585 IP (tos 0x0, ttl 4, id 11111, offset 0, flags [DF], proto UDP (17), length 407)
+    192.168.8.148.40681 > 239.255.255.250.1900: UDP, length 379
+01:19:21.575840 IP (tos 0x0, ttl 4, id 11117, offset 0, flags [DF], proto UDP (17), length 417)
+    192.168.8.148.49473 > 239.255.255.250.1900: UDP, length 389
+01:19:22.529699 IP (tos 0x0, ttl 64, id 25101, offset 0, flags [DF], proto UDP (17), length 85)
+    192.168.8.148.45776 > 192.168.8.1.53: 25066+ A? global.telemetry.insights.video.a2z.com. (57)
+01:19:22.529790 IP (tos 0x0, ttl 64, id 25102, offset 0, flags [DF], proto UDP (17), length 85)
+    192.168.8.148.45776 > 192.168.8.1.53: 49213+ AAAA? global.telemetry.insights.video.a2z.com. (57)
+01:19:22.530510 IP (tos 0x0, ttl 64, id 25696, offset 0, flags [DF], proto UDP (17), length 332)
+    192.168.8.1.53 > 192.168.8.148.45776: 25066 10/0/0 global.telemetry.insights.video.a2z.com. CNAME wetfs.global-3.telemetry.insights.video.a2z.com., wetfs.global-3.telemetry.insights.video.a2z.com. CNAME eu-west-2-3.telemetry.insights.video.a2z.com., eu-west-2-3.telemetry.insights.video.a2z.com. A 18.134.45.59, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.135.170.118, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.130.199.57, eu-west-2-3.telemetry.insights.video.a2z.com. A 51.24.117.209, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.171.47.175, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.132.75.195, eu-west-2-3.telemetry.insights.video.a2z.com. A 16.60.237.211, eu-west-2-3.telemetry.insights.video.a2z.com. A 18.135.216.136 (304)
+01:19:22.533802 IP (tos 0x0, ttl 64, id 25697, offset 0, flags [DF], proto UDP (17), length 428)
+    192.168.8.1.53 > 192.168.8.148.45776: 49213 10/0/0 global.telemetry.insights.video.a2z.com. CNAME wetfs.global-3.telemetry.insights.video.a2z.com., wetfs.global-3.telemetry.insights.video.a2z.com. CNAME eu-west-2-3.telemetry.insights.video.a2z.com., eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e01:c801:a4ea:c358:6052, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:4357:2305:a417:c96d, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:c681:938d:c843:b9ae, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e01:249f:c352:8544:7865, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e02:1dc9:3605:6a10:58e6, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e02:3c3a:d82a:83b8:f75b, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:d010:1f38:cbf:7477, eu-west-2-3.telemetry.insights.video.a2z.com. AAAA 2a05:d01c:1db:1e00:1ab6:cca2:eac:37d3 (400)
+01:19:23.647659 IP (tos 0x0, ttl 64, id 95, offset 0, flags [DF], proto UDP (17), length 156)
+    192.168.8.148.34488 > 192.168.8.1.53: 39666+ A? ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. (128)
+01:19:23.647801 IP (tos 0x0, ttl 64, id 96, offset 0, flags [DF], proto UDP (17), length 156)
+    192.168.8.148.34488 > 192.168.8.1.53: 39086+ AAAA? ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. (128)
+01:19:23.653901 IP (tos 0x0, ttl 64, id 25757, offset 0, flags [DF], proto UDP (17), length 220)
+    192.168.8.1.53 > 192.168.8.148.34488: 39666 4/0/0 ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. A 3.233.15.176, ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. A 34.236.119.76, ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. A 52.5.144.62, ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. A 3.89.165.216 (192)
+01:19:23.660263 IP (tos 0x0, ttl 64, id 25758, offset 0, flags [DF], proto UDP (17), length 268)
+    192.168.8.1.53 > 192.168.8.148.34488: 39086 4/0/0 ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. AAAA 2600:1f18:42f5:7702:c4e2:5f54:25a8:9d5e, ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. AAAA 2600:1f18:42f5:7701:3b3:fef9:2161:b9c6, ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. AAAA 2600:1f18:42f5:7700:35a3:2887:5e87:6b41, ddc70ef48047d6c9dda0648d4373dfdfeeb48b22b8c4485d61f5c5ce13a5128.us-east-1.prod.service.minerva.devices.a2z.com. AAAA 2600:1f18:42f5:7703:e64b:9108:251:1131 (240)
+01:19:23.826347 IP (tos 0x0, ttl 64, id 61875, offset 0, flags [DF], proto UDP (17), length 65)
+    192.168.8.148.60086 > 192.168.8.1.53: 29141+ A? unagi-na.amazon.com. (37)
+01:19:23.826435 IP (tos 0x0, ttl 64, id 61876, offset 0, flags [DF], proto UDP (17), length 65)
+    192.168.8.148.60086 > 192.168.8.1.53: 22517+ AAAA? unagi-na.amazon.com. (37)
+01:19:23.827101 IP (tos 0x0, ttl 64, id 25766, offset 0, flags [DF], proto UDP (17), length 193)
+    192.168.8.1.53 > 192.168.8.148.60086: 29141 8/0/0 unagi-na.amazon.com. A 44.199.181.222, unagi-na.amazon.com. A 44.215.137.166, unagi-na.amazon.com. A 44.215.130.62, unagi-na.amazon.com. A 44.215.132.248, unagi-na.amazon.com. A 44.215.143.203, unagi-na.amazon.com. A 44.215.129.188, unagi-na.amazon.com. A 44.215.141.185, unagi-na.amazon.com. A 44.215.138.159 (165)
+01:19:23.828329 IP (tos 0x0, ttl 64, id 25767, offset 0, flags [DF], proto UDP (17), length 140)
+    192.168.8.1.53 > 192.168.8.148.60086: 22517 0/1/0 (112)
+01:19:23.836941 IP (tos 0x0, ttl 64, id 47063, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.8.148.39844 > 44.199.181.222.443: Flags [S], cksum 0xde43 (correct), seq 2972187746, win 64240, options [mss 1460,sackOK,TS val 3018703889 ecr 0,nop,wscale 7], length 0
+01:19:23.925217 IP (tos 0x0, ttl 239, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    44.199.181.222.443 > 192.168.8.148.39844: Flags [S.], cksum 0xeeba (correct), seq 798263903, ack 2972187747, win 62643, options [mss 1460,sackOK,TS val 1839124002 ecr 3018703889,nop,wscale 7], length 0
+01:19:23.925674 IP (tos 0x0, ttl 64, id 47064, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.8.148.39844 > 44.199.181.222.443: Flags [.], cksum 0x0fed (correct), ack 1, win 502, options [nop,nop,TS val 3018703977 ecr 1839124002], length 0
+
+276 packets captured
+276 packets received by filter
+0 packets dropped by kernel

@@ -1,0 +1,1 @@
+sqm-gov — overlay de gouvernance SQM (mission 28/08). qosify reste propriétaire du cake eth1 ; ce script délègue à sqm-gov (status/dry-run/apply/rollback), qui lit qosify.wan comme source de vérité et répare via tc qdisc replace. SQM stock reste désactivé (garde-fou) — ce choix est purement informatif.
