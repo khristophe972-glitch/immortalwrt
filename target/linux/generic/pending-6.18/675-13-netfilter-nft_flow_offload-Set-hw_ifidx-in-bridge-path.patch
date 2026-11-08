@@ -15,16 +15,13 @@ not yet been consolidated into ifidx (unlike newer upstream).
 
 Signed-off-by: Bohdan Chubuk <chbgdn@gmail.com>
 ---
- net/netfilter/nf_flow_table_path.c | 1 +
- 1 file changed, 1 insertion(+)
-
 --- a/net/netfilter/nf_flow_table_path.c
 +++ b/net/netfilter/nf_flow_table_path.c
-@@ -373,6 +373,7 @@
+@@ -374,6 +374,7 @@
  	ether_addr_copy(th[dir].tuple.out.h_source, src_ha);
  	ether_addr_copy(th[dir].tuple.out.h_dest, dst_ha);
  	th[dir].tuple.out.ifidx = info.outdev->ifindex;
 +	th[dir].tuple.out.hw_ifidx = info.hw_outdev->ifindex;
- 	th[dir].tuple.xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
- 
- 	return 0;
+ 	th[dir].tuple.bridge_path = info.bridge_path;
+ 	th[dir].tuple.bridge_vlan = info.bridge_vlan;
+ 	th[dir].tuple.port_vlans = info.port_vlans;

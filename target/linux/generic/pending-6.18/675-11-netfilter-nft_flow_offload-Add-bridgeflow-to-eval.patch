@@ -17,11 +17,6 @@ Based on commit 20242242e192 from ericwoud/bpir-nftflow-nf-next-20260707.
 Co-authored-by: Eric Woudstra <ericwouds@gmail.com>
 Signed-off-by: Bohdan Chubuk <chbgdn@gmail.com>
 ---
- include/net/netfilter/nf_flow_table.h |   7 ++
- net/netfilter/nf_flow_table_path.c    | 128 ++++++++++++++++++++++++++
- net/netfilter/nft_flow_offload.c      |  20 +++-
- 3 files changed, 150 insertions(+), 5 deletions(-)
-
 --- a/include/net/netfilter/nf_flow_table.h
 +++ b/include/net/netfilter/nf_flow_table.h
 @@ -14,6 +14,8 @@
@@ -57,7 +52,7 @@ Signed-off-by: Bohdan Chubuk <chbgdn@gmail.com>
  #include <linux/netfilter/nf_conntrack_common.h>
  #include <linux/netfilter/nf_tables.h>
  #include <net/ip.h>
-@@ -310,3 +313,128 @@
+@@ -310,3 +313,132 @@
  	return -ENOENT;
  }
  EXPORT_SYMBOL_GPL(nft_flow_route);
@@ -71,7 +66,7 @@ Signed-off-by: Bohdan Chubuk <chbgdn@gmail.com>
 +				    unsigned char *dst_ha)
 +{
 +	struct flow_offload_tuple_rhash *th = flow->tuplehash;
-+	struct net_device_path_ctx ctx = {};
++	struct net_device_path_ctx ctx = { .ieee80211 = true };
 +	struct net_device_path_stack stack;
 +	struct nft_forward_info info = {};
 +	int i, j = 0;
@@ -102,7 +97,8 @@ Signed-off-by: Bohdan Chubuk <chbgdn@gmail.com>
 +	if (dev_fill_bridge_path(&ctx, &stack) < 0)
 +		return -1;
 +
-+	nft_dev_path_info(&stack, &info, dst_ha, &ft->data);
++	if (nft_dev_path_info(&stack, &info, dst_ha, &ft->data) < 0)
++		return -1;
 +
 +	if (!info.indev || info.indev != dst_dev)
 +		return -1;
@@ -121,6 +117,9 @@ Signed-off-by: Bohdan Chubuk <chbgdn@gmail.com>
 +	ether_addr_copy(th[dir].tuple.out.h_source, src_ha);
 +	ether_addr_copy(th[dir].tuple.out.h_dest, dst_ha);
 +	th[dir].tuple.out.ifidx = info.outdev->ifindex;
++	th[dir].tuple.bridge_path = info.bridge_path;
++	th[dir].tuple.bridge_vlan = info.bridge_vlan;
++	th[dir].tuple.port_vlans = info.port_vlans;
 +	th[dir].tuple.xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
 +
 +	return 0;

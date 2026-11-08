@@ -23,7 +23,6 @@ to bridge flowtables either.
 
 Link: https://github.com/openwrt/openwrt/pull/24038#issuecomment-5790185621
 ---
-
 --- a/net/netfilter/nf_flow_table_inet.c
 +++ b/net/netfilter/nf_flow_table_inet.c
 @@ -65,10 +65,23 @@
@@ -188,7 +187,7 @@ Link: https://github.com/openwrt/openwrt/pull/24038#issuecomment-5790185621
  	struct flow_offload *flow;
 --- a/net/netfilter/nf_flow_table_path.c
 +++ b/net/netfilter/nf_flow_table_path.c
-@@ -359,6 +359,9 @@
+@@ -360,6 +360,9 @@
  	if (!info.indev || info.indev != dst_dev)
  		return -1;
  
@@ -198,7 +197,7 @@ Link: https://github.com/openwrt/openwrt/pull/24038#issuecomment-5790185621
  	th[!dir].tuple.iifidx = info.indev->ifindex;
  	for (i = info.num_encaps - 1; i >= 0; i--) {
  		th[!dir].tuple.encap[j].id = info.encap[i].id;
-@@ -389,6 +392,21 @@
+@@ -393,6 +396,21 @@
  	struct flow_offload_tuple *tuple;
  	int err, i = 0;
  
@@ -220,7 +219,7 @@ Link: https://github.com/openwrt/openwrt/pull/24038#issuecomment-5790185621
  	in_dev = nft_in(pkt);
  	if (!in_dev || !nft_flowtable_find_dev(in_dev, ft))
  		return -1;
-@@ -405,25 +423,6 @@
+@@ -409,25 +427,6 @@
  		i++;
  	}
  
@@ -246,7 +245,7 @@ Link: https://github.com/openwrt/openwrt/pull/24038#issuecomment-5790185621
  	tuple->encap_num = i;
  
  	err = nft_dev_fill_bridge_path(flow, ft, !dir, out_dev, in_dev,
-@@ -436,6 +435,14 @@
+@@ -440,6 +439,14 @@
  	if (err < 0)
  		return err;
  
