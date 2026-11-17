@@ -1,0 +1,53 @@
+From 8ae3ed3f70893dfca460b2c25759c800ea38faa5 Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Tue, 3 Nov 2026 16:29:15 +0100
+Subject: [PATCH] wifi: mac80211: remove redundant RCU critical sections
+
+With the context analysis annotations it's now obvious
+that the extra RCU critical sections aren't needed, so
+remove them.
+
+Link: https://patch.msgid.link/20261103162921.d87216986293.I456279ce9f5e70fb378fc668054057b49a79f005@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+diff --git a/net/mac80211/rx.c b/net/mac80211/rx.c
+index a52bccf..e0b8805 100644
+--- a/net/mac80211/rx.c
++++ b/net/mac80211/rx.c
+@@ -3052,7 +3052,6 @@ ieee80211_rx_mesh_data(struct ieee80211_sub_if_data *sdata, struct sta_info *sta
+ 		else
+ 			return RX_DROP_U_MESH_BAD_AE;
+ 
+-		rcu_read_lock();
+ 		mppath = mpp_path_lookup(sdata, proxied_addr);
+ 		if (!mppath) {
+ 			mpp_path_add(sdata, proxied_addr, eth->h_source);
+@@ -3069,8 +3068,6 @@ ieee80211_rx_mesh_data(struct ieee80211_sub_if_data *sdata, struct sta_info *sta
+ 		/* flush fast xmit cache if the address path changed */
+ 		if (update)
+ 			mesh_fast_tx_flush_addr(sdata, proxied_addr);
+-
+-		rcu_read_unlock();
+ 	}
+ 
+ 	/* Frame has reached destination.  Don't forward */
+diff --git a/net/mac80211/tx.c b/net/mac80211/tx.c
+index dd4aa80..1e6747d 100644
+--- a/net/mac80211/tx.c
++++ b/net/mac80211/tx.c
+@@ -6781,7 +6781,6 @@ void __ieee80211_tx_skb_tid_band(struct ieee80211_sub_if_data *sdata,
+ 		link = IEEE80211_LINK_UNSPECIFIED;
+ 	} else {
+ 		/* otherwise must be addressed from a link */
+-		rcu_read_lock();
+ 		for (link = 0; link < ARRAY_SIZE(sdata->vif.link_conf); link++) {
+ 			struct ieee80211_bss_conf *link_conf;
+ 
+@@ -6791,7 +6790,6 @@ void __ieee80211_tx_skb_tid_band(struct ieee80211_sub_if_data *sdata,
+ 			if (memcmp(link_conf->addr, hdr->addr2, ETH_ALEN) == 0)
+ 				break;
+ 		}
+-		rcu_read_unlock();
+ 
+ 		if (WARN_ON_ONCE(link == ARRAY_SIZE(sdata->vif.link_conf)))
+ 			link = ffs(sdata->vif.active_links) - 1;

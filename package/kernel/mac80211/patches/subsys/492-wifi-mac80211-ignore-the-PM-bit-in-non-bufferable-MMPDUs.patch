@@ -1,0 +1,72 @@
+From 3b41a79718c015cb7bbc511199520a3f8304bfcb Mon Sep 17 00:00:00 2001
+From: Lee Jones <lee@kernel.org>
+Date: Tue, 3 Nov 2026 11:06:32 +0000
+Subject: [PATCH] wifi: mac80211: ignore PM bit in non-bufferable MMPDUs
+
+In AP mode, the Power Management (PM) subfield in the Frame Control
+header is reserved in non-bufferable management frames (such as Probe
+Request, Authentication, and (Re)Association Request).  Transmitters set
+reserved subfields to zero and receivers are expected to ignore them.
+
+Commit 9fef65443388 ("mac80211: always update the PM state of a peer on
+MGMT / DATA frames") removed the bufferable MMPDU check from
+ieee80211_rx_h_sta_process() so that a sleeping station that disappears
+and later re-authenticates transitions back to awake (sta_ps_end()).
+However, removing the check altogether caused the AP to honour the
+reserved PM bit on all non-bufferable management frames in both
+directions:
+
+ - A sleeping station transmitting a non-bufferable MMPDU with the
+   reserved PM bit set to 0 (for example, a Probe Request) is
+   spuriously transitioned out of power-save mode.
+
+ - An awake station for which a non-bufferable MMPDU with the reserved
+   PM bit set to 1 is received (for example, a spoofed Association
+   Request) is transitioned into power-save mode, causing the AP to
+   buffer subsequent frames such as SA Query Requests.
+
+Only inspect the PM bit on data frames and bufferable management frame
+subtypes (Action, Disassociation, and Deauthentication) via
+hdr->frame_control, avoiding inspection of encrypted Action payloads
+prior to ieee80211_rx_h_decrypt().  For Authentication and
+(Re)Association Request frames, where a station is always in Active
+mode per IEEE 802.11, transition a sleeping station to awake without
+consulting the reserved PM bit.
+
+Signed-off-by: Lee Jones <lee@kernel.org>
+Link: https://patch.msgid.link/20261103110642.260244-2-lee@kernel.org
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+diff --git a/net/mac80211/rx.c b/net/mac80211/rx.c
+index 880b6e6..a52bccf 100644
+--- a/net/mac80211/rx.c
++++ b/net/mac80211/rx.c
+@@ -1950,12 +1950,22 @@ ieee80211_rx_h_sta_process(struct ieee80211_rx_data *rx)
+ 	    !(status->rx_flags & IEEE80211_RX_DEFERRED_RELEASE) &&
+ 	    (rx->sdata->vif.type == NL80211_IFTYPE_AP ||
+ 	     rx->sdata->vif.type == NL80211_IFTYPE_AP_VLAN)) {
+-		if (test_sta_flag(sta, WLAN_STA_PS_STA)) {
+-			if (!ieee80211_has_pm(hdr->frame_control))
+-				sta_ps_end(sta);
+-		} else {
+-			if (ieee80211_has_pm(hdr->frame_control))
+-				sta_ps_start(sta);
++		if (ieee80211_is_data(hdr->frame_control) ||
++		    ieee80211_is_action(hdr->frame_control) ||
++		    ieee80211_is_disassoc(hdr->frame_control) ||
++		    ieee80211_is_deauth(hdr->frame_control)) {
++			if (test_sta_flag(sta, WLAN_STA_PS_STA)) {
++				if (!ieee80211_has_pm(hdr->frame_control))
++					sta_ps_end(sta);
++			} else {
++				if (ieee80211_has_pm(hdr->frame_control))
++					sta_ps_start(sta);
++			}
++		} else if (test_sta_flag(sta, WLAN_STA_PS_STA) &&
++			   (ieee80211_is_auth(hdr->frame_control) ||
++			    ieee80211_is_assoc_req(hdr->frame_control) ||
++			    ieee80211_is_reassoc_req(hdr->frame_control))) {
++			sta_ps_end(sta);
+ 		}
+ 	}
+ 

@@ -1,0 +1,116 @@
+From 032cdd30468ca019f6cbae184fa14b64574c13b8 Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Mon, 2 Nov 2026 23:14:19 +0100
+Subject: [PATCH] wifi: mac80211: move flush fallback into drv_flush_sta()
+
+When the flush_sta operation doesn't exist, the code
+falls back to flushing the interface queues. Move the
+fallback into the drv_flush_sta() wrapper to have it
+available to future callers too.
+
+While at it, pass the right sdata.
+
+Link: https://patch.msgid.link/20261102231419.4ba107276a39.I8e484338e2eac6a6ac782069d76816aa919282d5@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+diff --git a/net/mac80211/driver-ops.c b/net/mac80211/driver-ops.c
+index f9c9486..80620eb 100644
+--- a/net/mac80211/driver-ops.c
++++ b/net/mac80211/driver-ops.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * Copyright 2015 Intel Deutschland GmbH
+- * Copyright (C) 2022-2025 Intel Corporation
++ * Copyright (C) 2022-2026 Intel Corporation
+  */
+ #include <net/mac80211.h>
+ #include "ieee80211_i.h"
+@@ -638,3 +638,26 @@ int drv_change_sta_links(struct ieee80211_local *local,
+ 
+ 	return 0;
+ }
++
++void drv_flush_sta(struct ieee80211_local *local,
++		   struct ieee80211_sub_if_data *sdata,
++		   struct sta_info *sta)
++{
++	might_sleep();
++	lockdep_assert_wiphy(local->hw.wiphy);
++
++	sdata = get_bss_sdata(sdata);
++
++	if (sdata && !check_sdata_in_driver(sdata))
++		return;
++
++	if (!sta->uploaded)
++		return;
++
++	trace_drv_flush_sta(local, sdata, &sta->sta);
++	if (local->ops->flush_sta)
++		local->ops->flush_sta(&local->hw, &sdata->vif, &sta->sta);
++	else
++		ieee80211_flush_queues(local, sdata, false);
++	trace_drv_return_void(local);
++}
+diff --git a/net/mac80211/driver-ops.h b/net/mac80211/driver-ops.h
+index 74bebfe..7829dc6 100644
+--- a/net/mac80211/driver-ops.h
++++ b/net/mac80211/driver-ops.h
+@@ -2,7 +2,7 @@
+ /*
+ * Portions of this file
+ * Copyright(c) 2016 Intel Deutschland GmbH
+-* Copyright (C) 2018-2019, 2021-2025 Intel Corporation
++* Copyright (C) 2018-2019, 2021-2026 Intel Corporation
+ */
+ 
+ #ifndef __MAC80211_DRIVER_OPS
+@@ -735,26 +735,9 @@ static inline void drv_flush(struct ieee80211_local *local,
+ 	trace_drv_return_void(local);
+ }
+ 
+-static inline void drv_flush_sta(struct ieee80211_local *local,
+-				 struct ieee80211_sub_if_data *sdata,
+-				 struct sta_info *sta)
+-{
+-	might_sleep();
+-	lockdep_assert_wiphy(local->hw.wiphy);
+-
+-	sdata = get_bss_sdata(sdata);
+-
+-	if (sdata && !check_sdata_in_driver(sdata))
+-		return;
+-
+-	if (!sta->uploaded)
+-		return;
+-
+-	trace_drv_flush_sta(local, sdata, &sta->sta);
+-	if (local->ops->flush_sta)
+-		local->ops->flush_sta(&local->hw, &sdata->vif, &sta->sta);
+-	trace_drv_return_void(local);
+-}
++void drv_flush_sta(struct ieee80211_local *local,
++		   struct ieee80211_sub_if_data *sdata,
++		   struct sta_info *sta);
+ 
+ static inline void drv_channel_switch(struct ieee80211_local *local,
+ 				      struct ieee80211_sub_if_data *sdata,
+diff --git a/net/mac80211/sta_info.c b/net/mac80211/sta_info.c
+index 54fd84a..36e4bbe 100644
+--- a/net/mac80211/sta_info.c
++++ b/net/mac80211/sta_info.c
+@@ -1525,12 +1525,7 @@ static int _sta_info_move_state(struct sta_info *sta,
+ 			 */
+ 			if (local->ops->set_key) {
+ 				synchronize_net();
+-				if (local->ops->flush_sta)
+-					drv_flush_sta(local, sta->sdata, sta);
+-				else
+-					ieee80211_flush_queues(local,
+-							       sta->sdata,
+-							       false);
++				drv_flush_sta(local, sta->sdata, sta);
+ 			}
+ 
+ 			ieee80211_clear_fast_xmit(sta);
