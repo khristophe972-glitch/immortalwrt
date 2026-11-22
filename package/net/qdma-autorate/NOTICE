@@ -1,0 +1,70 @@
+mt7986-qdma-autorate
+====================
+
+This repository contains two OpenWrt packages:
+
+  kmod/qdma-rl             kmod-qdma-rl, kernel module           GPL-2.0-only
+  controller/qdma-autorate qdma-autorate, controller + service   GPL-2.0-only
+                           (its BPF object, from ePPing:         GPL-2.0-or-later)
+
+The full GPL-2.0 text is in LICENSE.
+
+
+ePPing (BPF passive ping) - third-party code
+--------------------------------------------
+
+controller/qdma-autorate/src/pping_kern.c, pping.h, pping_debug_cleanup.h and
+include/xdp/parsing_helpers.h are vendored from
+
+  xdp-project/bpf-examples, https://github.com/xdp-project/bpf-examples
+  commit 63a943e088b704c8c21649992931df795f4b9e5a
+  (pping/ and include/xdp/parsing_helpers.h)
+
+Their upstream license and copyright headers are kept unchanged
+(GPL-2.0-or-later; parsing_helpers.h: GPL-2.0-or-later OR BSD-2-Clause).
+
+Changes made to the vendored code, so it runs on a stock OpenWrt kernel
+(no CONFIG_PERF_EVENTS, no kernel BTF) and gives enough samples for downloads:
+
+  1. Ring buffer instead of perf buffer: the events map is
+     BPF_MAP_TYPE_RINGBUF and the program uses bpf_ringbuf_output()
+     (stock OpenWrt kernels have no CONFIG_PERF_EVENTS).
+  2. No CO-RE: with -DPPING_NO_CORE the preserve_access_index attribute is
+     dropped, so the object has no CO-RE relocations (no
+     /sys/kernel/btf/vmlinux on stock OpenWrt). The map-cleanup iterator
+     programs, which need kernel BTF, are not loaded; the controller removes
+     stale timestamps from user space instead.
+  3. Compiler flag: built with -mllvm -bpf-disable-trap-unreachable, because
+     clang 21 otherwise emits a weak __bpf_trap typed-ksym extern, which makes
+     libbpf require kernel BTF.
+  4. Static subprograms: under PPING_NO_CORE, parse_packet_identifer_tc/_xdp
+     are static, because without kernel BTF the verifier rejects global
+     functions that take a ctx pointer.
+  5. Pure-ACK timestamping: a ts_pure_acks config flag (on in this
+     controller) also timestamps pure ACKs. A download client sends almost
+     nothing else, and stock ePPing only timestamps packets with payload.
+
+The controller (autorate.c, ctl.c, ctl.h) is new code that loads this BPF
+object; it does not use ePPing's user-space program.
+
+
+MediaTek QDMA scheduler register fields
+---------------------------------------
+
+Register offsets, the per-queue max-rate fields, the queue scheduler-select
+bits (MTK_QTX_SCH_TX_SEL_V2) and the rate encoding come from the Linux
+6.12.112 mtk_eth_soc driver with the OpenWrt 25.12.6 patches.
+
+The field layout of the hardware scheduler rate registers (tx_sch_rate),
+which upstream does not define, is taken from MediaTek's OpenWrt feed:
+
+  mediatek/mtk-openwrt-feeds, commit c2b24b480
+  25.12/files/target/linux/mediatek/patches-6.12/
+    999-eth-90-mtk_eth_soc-support-proprietary-debugfs.patch
+      MTK_QDMA_TX_SCH_RATE_EN / _RATE_MAN / _RATE_EXP (one 16-bit half per
+      scheduler) and the scheduler-id -> word/half mapping
+    999-eth-20-mtk_eth_soc-add-HQoS-configuration-restore.patch
+      save/restore of qtx_sch and both tx_sch_rate words
+
+Only these definitions are used, for register writes from kmod-qdma-rl. No
+driver code is changed and no kernel rebuild is needed.

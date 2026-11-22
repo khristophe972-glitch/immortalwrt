@@ -1,0 +1,7 @@
+#!/bin/sh
+# Restart qdma-autorate when the WAN interface comes up (runs after 11-sqm).
+[ "$ACTION" = ifup ] || exit 0
+[ "$INTERFACE" = "$(uci -q get qdma-autorate.main.wan || echo wan)" ] || exit 0
+/etc/init.d/qdma-autorate enabled || exit 0
+[ "$(uci -q get qdma-autorate.main.enabled)" = 0 ] && exit 0
+/etc/init.d/qdma-autorate restart
