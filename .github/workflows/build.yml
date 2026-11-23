@@ -183,6 +183,12 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-qos-mt6000=y" >> .config
           echo "CONFIG_PACKAGE_irqbalance=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-irqbalance=y" >> .config
+          # qdma-autorate : COMPILATION SEULE. '=m' construit le paquet et le publie
+          # (bin/packages/<arch>/base) SANS l'installer dans l'image. Hors FLOOR_PKGS a
+          # dessein : '=y' l'installerait, ce qui n'est pas voulu tant que le portage
+          # n'est pas valide. Il porte @HAS_BPF_TOOLCHAIN : sans ce symbole kconfig le
+          # jette en silence et rien n'est compile (constat du run 45079995341, 23/11).
+          echo "CONFIG_PACKAGE_qdma-autorate=m" >> .config
           for p in $FLOOR_PKGS; do echo "CONFIG_PACKAGE_$p=y" >> .config; done
           make defconfig
           # Preuve que kconfig n'a pas ecrase VERSION_REPO apres defconfig
@@ -197,6 +203,14 @@ jobs:
           # Preuve que kconfig a garde irqbalance + sa page LuCI : sinon page ABSENTE de l'image (commit inerte)
           grep -q '^CONFIG_PACKAGE_irqbalance=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_irqbalance non pose ; .config porte :"; grep -n "irqbalance" .config; exit 1; }
           grep -q '^CONFIG_PACKAGE_luci-app-irqbalance=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_luci-app-irqbalance non pose ; .config porte :"; grep -n "irqbalance" .config; exit 1; }
+          # Preuve que qdma-autorate est bien construit (=m) : sinon aucun .apk publie et
+          # le portage reste invalide sans que le run le dise. Distingue les deux causes.
+          if ! grep -q '^CONFIG_PACKAGE_qdma-autorate=m$' .config; then
+            echo "ERREUR: CONFIG_PACKAGE_qdma-autorate=m non pose ; .config porte :"
+            grep -n "qdma" .config || echo "  (aucune ligne qdma)"
+            echo "symbole dans tmp/.config-package.in : $(grep -c '^config PACKAGE_qdma-autorate$' tmp/.config-package.in)"
+            exit 1
+          fi
           # Preuve : chaque paquet de la liste persistante doit rester selectionne apres
           # defconfig, sinon il sera ABSENT de l'image et irreinstallable (commit inerte).
           # On enumere TOUS les manquants d'un coup, jamais le premier seulement : un
