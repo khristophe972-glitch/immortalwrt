@@ -88,10 +88,19 @@ start_service() {
 		fi
 	fi
 
-	[ -d "$PARAM" ] || insmod qdma_rl mode=scheduler queues="$QUEUES" watchdog_ms="$WD" || {
-		log err "insmod qdma_rl failed"
-		return 1
-	}
+	# kmod-qdma-rl is published but deliberately NOT a dependency: installing it is
+	# what arms the shaping. Without it the service stays idle instead of failing at
+	# every boot and every ifup (fork change; upstream logged "insmod failed").
+	if [ ! -d "$PARAM" ]; then
+		if ! grep -qw qdma_rl /proc/modules; then
+			log notice "kmod-qdma-rl absent: idle (apk add kmod-qdma-rl to arm)"
+			return 0
+		fi
+		insmod qdma_rl mode=scheduler queues="$QUEUES" watchdog_ms="$WD" || {
+			log err "insmod qdma_rl failed"
+			return 1
+		}
+	fi
 	lan_qdiscs || {
 		log err "LAN qdisc setup on $LAN failed"
 		return 1
