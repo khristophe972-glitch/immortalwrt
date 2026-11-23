@@ -92,8 +92,11 @@ start_service() {
 	# what arms the shaping. Without it the service stays idle instead of failing at
 	# every boot and every ifup (fork change; upstream logged "insmod failed").
 	if [ ! -d "$PARAM" ]; then
-		if ! grep -qw qdma_rl /proc/modules; then
-			log notice "kmod-qdma-rl absent: idle (apk add kmod-qdma-rl to arm)"
+		# Test the FILE, not the loaded state: both used to be "not loaded", so the
+		# insmod below was dead code and the service stayed idle even with the
+		# package installed -- silently, after every boot and every flash.
+		if ! modinfo qdma_rl >/dev/null 2>&1; then
+			log notice "kmod-qdma-rl not installed: idle (apk add kmod-qdma-rl to arm)"
 			return 0
 		fi
 		insmod qdma_rl mode=scheduler queues="$QUEUES" watchdog_ms="$WD" || {
