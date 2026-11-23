@@ -1,0 +1,16 @@
+#!/bin/sh
+# Ship the package INERT on a fresh image.
+#
+# Upstream defaults to enabled='1' with --start 300 --floor 150: at the first
+# boot the service would insmod qdma_rl and cap every wired LAN download to
+# 300 Mbit/s, on a line where nobody asked for it. Present but dormant is the
+# only sane default for a port that is not validated yet.
+#
+# Only acts when the config does not exist yet (fresh install, or a keep-settings
+# flash that first discovers the package). If Christophe already set the option,
+# his value wins and this script does nothing.
+[ -f /etc/config/qdma-autorate ] && exit 0
+
+uci set qdma-autorate.main.enabled='0'
+uci commit qdma-autorate
+exit 0
