@@ -1,0 +1,112 @@
+#!/bin/sh
+# qdma-autorate, wifi mode (fork addition).
+#
+# Adapts the controller to the WDMA path. The WED has no rate register (no such
+# field in mtk_wed_regs.h), so the only actuator for WiFi-bound traffic is the
+# mt76 AQL queue limiter, and the only honest sensor is the queue depth mt76
+# exports per station, in microseconds of airtime -- the delay a frame actually
+# waits in the AP.
+#
+#   sensor    .../phyX/netdev:phyX-ap0/stations/<mac>/aql  "Q depth: ... BE: N us"
+#   actuator  .../phyX/aql_txq_limit                       one "AC low high" per write
+#
+# Cut 10% when the deepest station queue exceeds the target, raise 10% when it
+# stays below half of it, never below the floors, never above the ceiling read
+# at startup (the values rc.local set, so a reboot always restores them).
+#
+# usage: qdma-autorate-aql <phy> <target_us> <tick_s>
+#        qdma-autorate-aql --restore <phy>
+
+MODE=$1
+case "$MODE" in
+--restore)
+	PHY=${2:-phy1}
+	;;
+*)
+	PHY=${1:-phy1}
+	TGT=${2:-5000}
+	TICK=${3:-1}
+	;;
+esac
+
+RUNDIR=/var/run/qdma-aql
+CEIL_FILE="$RUNDIR/ceiling"
+LIM=/sys/kernel/debug/ieee80211/$PHY/aql_txq_limit
+STADIR=/sys/kernel/debug/ieee80211/$PHY/netdev:$PHY-ap0/stations
+
+LO_MIN=400
+HI_MIN=1500
+
+log() { logger -t qdma-autorate -p "daemon.$1" "$2"; }
+
+set_limits() {
+	local ac
+	for ac in 0 1 2 3; do
+		# One line per write: the node rejects several at once. It also
+		# returns EINVAL after storing the value, so the rc is meaningless.
+		printf "%s %s %s\n" "$ac" "$1" "$2" > "$LIM" 2>/dev/null
+	done
+}
+
+restore() {
+	local lo hi
+	read lo hi < "$CEIL_FILE" 2>/dev/null
+	[ -n "$lo" ] && [ -n "$hi" ] || return 0
+	set_limits "$lo" "$hi"
+	log notice "limits restored to $lo/$hi ($1)"
+}
+
+depth_max() {
+	local d=0 f v
+	for f in "$STADIR"/*/aql; do
+		[ -f "$f" ] || continue
+		v=$(sed -n 's/^Q depth:.*BE: \([0-9]*\) us.*/\1/p' "$f")
+		[ -n "$v" ] || continue
+		[ "$v" -gt "$d" ] && d=$v
+	done
+	echo "$d"
+}
+
+[ -f "$LIM" ] || { log err "$LIM absent (phy $PHY?)"; exit 1; }
+
+if [ "$MODE" = "--restore" ]; then
+	restore "service stop"
+	exit 0
+fi
+
+# ceiling = what rc.local set at boot
+read CEIL_LO CEIL_HI <<EOF
+$(awk 'NR==2 {print $2, $3; exit}' "$LIM")
+EOF
+[ -n "$CEIL_LO" ] && [ -n "$CEIL_HI" ] || { log err "cannot read $LIM"; exit 1; }
+
+mkdir -p "$RUNDIR"
+echo "$CEIL_LO $CEIL_HI" > "$CEIL_FILE"
+
+LO=$CEIL_LO
+HI=$CEIL_HI
+cur=""
+
+trap 'restore "signal"; exit 0' INT TERM
+log notice "wifi mode: phy=$PHY target=${TGT}us tick=${TICK}s ceiling=$CEIL_LO/$CEIL_HI"
+
+while :; do
+	d=$(depth_max)
+	if [ "$d" -gt "$TGT" ]; then
+		LO=$((LO * 9 / 10)); HI=$((HI * 9 / 10)); act=dec
+		[ "$LO" -lt "$LO_MIN" ] && LO=$LO_MIN
+		[ "$HI" -lt "$HI_MIN" ] && HI=$HI_MIN
+	elif [ "$d" -lt $((TGT / 2)) ]; then
+		LO=$((LO * 11 / 10)); HI=$((HI * 11 / 10)); act=inc
+		[ "$LO" -gt "$CEIL_LO" ] && LO=$CEIL_LO
+		[ "$HI" -gt "$CEIL_HI" ] && HI=$CEIL_HI
+	else
+		act=hold
+	fi
+	if [ "$LO/$HI" != "$cur" ]; then
+		set_limits "$LO" "$HI"
+		cur="$LO/$HI"
+		log info "depth=${d}us limits=${LO}/${HI} action=$act"
+	fi
+	sleep "$TICK"
+done

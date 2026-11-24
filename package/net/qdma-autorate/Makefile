@@ -53,6 +53,7 @@ define Package/qdma-autorate/install
 	$(INSTALL_DIR) $(1)/usr/sbin $(1)/usr/lib/qdma-autorate $(1)/etc/init.d $(1)/etc/config \
 		$(1)/etc/hotplug.d/iface
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/qdma-autorate $(1)/usr/sbin/
+	$(INSTALL_BIN) ./files/qdma-autorate-aql $(1)/usr/sbin/
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/pping_kern.o $(1)/usr/lib/qdma-autorate/
 	$(INSTALL_BIN) ./files/qdma-autorate.init $(1)/etc/init.d/qdma-autorate
 	$(INSTALL_CONF) ./files/qdma-autorate.config $(1)/etc/config/qdma-autorate
