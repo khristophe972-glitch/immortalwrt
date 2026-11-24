@@ -42,7 +42,7 @@ load_cfg() {
 	config_get ARGS main args ""
 	config_get TARGET main target wired
 	config_get WPHY main wifi_phy phy1
-	config_get WTGT main wifi_target_us 5000
+	config_get WTGT main wifi_target_us 2000
 	config_get WTICK main wifi_tick 1
 }
 
