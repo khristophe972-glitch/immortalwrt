@@ -189,6 +189,11 @@ jobs:
           # ajouts. Il porte @HAS_BPF_TOOLCHAIN : sans ce symbole kconfig le jette en
           # silence et rien n'est compile (constat du run 45079995341, 23/11).
           echo "CONFIG_PACKAGE_qdma-autorate=y" >> .config
+          # kmod-qdma-rl in the IMAGE, not only in the repository: on a
+          # keep-settings flash the 99-reinstall-packages hotplug installs it
+          # at ifup wan, i.e. AFTER S99qdma-autorate has started, so the wired
+          # half came up "idle" and stayed there (measured 24/11, r43080).
+          echo "CONFIG_PACKAGE_kmod-qdma-rl=y" >> .config
           for p in $FLOOR_PKGS; do echo "CONFIG_PACKAGE_$p=y" >> .config; done
           make defconfig
           # Preuve que kconfig n'a pas ecrase VERSION_REPO apres defconfig
@@ -205,6 +210,11 @@ jobs:
           grep -q '^CONFIG_PACKAGE_luci-app-irqbalance=y$' .config || { echo "ERREUR: CONFIG_PACKAGE_luci-app-irqbalance non pose ; .config porte :"; grep -n "irqbalance" .config; exit 1; }
           # Preuve que qdma-autorate est bien dans l'image (=y) : sinon paquet ABSENT de
           # l'image et du depot. Distingue les deux causes (nom inconnu / dependance).
+          if ! grep -q '^CONFIG_PACKAGE_kmod-qdma-rl=y$' .config; then
+            echo "ERREUR: CONFIG_PACKAGE_kmod-qdma-rl=y non pose ; .config porte :"
+            grep -n "qdma" .config || echo "  (aucune ligne qdma)"
+            exit 1
+          fi
           if ! grep -q '^CONFIG_PACKAGE_qdma-autorate=y$' .config; then
             echo "ERREUR: CONFIG_PACKAGE_qdma-autorate=y non pose ; .config porte :"
             grep -n "qdma" .config || echo "  (aucune ligne qdma)"
