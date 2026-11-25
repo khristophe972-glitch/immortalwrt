@@ -326,9 +326,16 @@ setup
 set_cfg qdisc cake-wnd
 run start
 expect_rc 0 "cake-wnd demarre"
-expect_tc "qdisc replace dev eth1 root cake " "cake-wnd pose le kind cake, pas cake-wnd"
+expect_tc "qdisc replace dev eth1 root cake_mq " "cake-wnd pose le kind cake_mq, pas un kind a lui"
 [ "$(cat "$T/wnd")" = 1 ] && ok "wnd_clamp passe a 1" || ko "wnd_clamp=$(cat "$T/wnd"), attendu 1"
 expect_out "wnd_clamp=1" "le journal dit que le clamp est arme"
+teardown
+
+setup
+set_cfg qdisc cake-wnd
+set_cfg tin_cap 50
+run check
+case "$OUT" in *"$T/dbg"*) ok "les reglages cake_mq restent appliques avec cake-wnd" ;; *) ko "reglages cake_mq perdus avec cake-wnd" ;; esac
 teardown
 
 setup

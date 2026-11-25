@@ -22,9 +22,10 @@ Gestion du qdisc racine `cake_mq` du port WAN du GL-MT6000 : un paquet backend
 * `qdisc` prend trois valeurs :
   - `cake_mq` (defaut) : une instance cake par file, partage du shaper entre elles ;
   - `cake` : une instance unique ;
-  - `cake-wnd` : `cake` **avec le clamp de fenetre TCP**. Ce n'est pas un kind a part :
-    `cake-wnd` remplace `sch_cake.ko` en gardant le kind `cake` et expose le parametre de
-    module `wnd_clamp` (`999-723`). Le service pose donc `root cake` et ecrit
+  - `cake-wnd` : `cake_mq` **avec le clamp de fenetre TCP**. Ce n'est pas un kind a part :
+    `cake-wnd` remplace `sch_cake.ko` et expose le parametre de module `wnd_clamp`
+    (`999-723`). Le service pose donc `root cake_mq` (les 4 files, le shaper partage et les
+    reglages `999-71x` restent) et ecrit
     `/sys/module/sch_cake/parameters/wnd_clamp=1`. Trois gardes :
     `start` refuse `cake-wnd` si ce parametre est absent (module sans le clamp), tout autre
     choix le remet a `0` (c'est un parametre GLOBAL, qui survit a un redemarrage du service),

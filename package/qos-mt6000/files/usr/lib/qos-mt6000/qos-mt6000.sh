@@ -261,10 +261,11 @@ current_qdisc() {
 }
 
 # cake-wnd is not a qdisc of its own: cake-wnd ships a replacement sch_cake.ko
-# that keeps the 'cake' kind and adds the wnd_clamp module parameter.
+# and arms its wnd_clamp module parameter. The kind stays cake_mq, so the
+# multi-queue root, the shared shaper and the 999-71x knobs are kept.
 tc_kind() {
 	case "$1" in
-	cake-wnd) echo cake ;;
+	cake-wnd) echo cake_mq ;;
 	*) echo "$1" ;;
 	esac
 }
@@ -289,7 +290,7 @@ apply_wnd() {
 
 apply_knobs() {
 	local k v f
-	[ "$QDISC" = cake_mq ] || return 0
+	[ "$(tc_kind "$QDISC")" = cake_mq ] || return 0
 	if [ -z "$QOS_DEBUGFS" ] && [ ! -d "$DEBUGFS" ]; then
 		mount -t debugfs none /sys/kernel/debug 2> /dev/null
 	fi
@@ -386,7 +387,7 @@ do_start() {
 	apply_wnd || return 1
 	apply_knobs
 	apply_ecn_filters
-	log "actif sur $DEV : $QDISC $ARGS"
+	log "actif sur $DEV : $(tc_kind "$QDISC") $ARGS"
 	return 0
 }
 
@@ -424,7 +425,7 @@ do_check() {
 	build_args
 	echo "tc qdisc replace dev $DEV root $(tc_kind "$QDISC") $ARGS"
 	[ -e "$WND_PARAM" ] && echo "printf '$([ "$QDISC" = cake-wnd ] && echo 1 || echo 0)' > $WND_PARAM"
-	if [ "$QDISC" = cake_mq ]; then
+	if [ "$(tc_kind "$QDISC")" = cake_mq ]; then
 		for k in $KNOBS; do
 			v=$(cfg "$k")
 			[ -z "$v" ] || echo "printf '$v' > $DEBUGFS/$k"
