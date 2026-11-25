@@ -1,15 +1,18 @@
 net/sched: sch_cake: clamp the TCP window of flows queueing on ingress
 
 Ported from mindwolf80/cake-wnd @ ef18fc80da ("sch_cake: carry upstream
-locking, backlog and overhead fixes"), whose base is Linux 6.12.112: the
-branch ships its own sch_cake.ko and overwrites the stock one, which would
-take cake_mq and the 999-71x debugfs knobs with it.
+locking, backlog and overhead fixes"). Its base is Linux 6.12.112 plus the
+sch_cake.c hunks of the v7.0 cake_mq backports (700-02/03/04/05/07 and
+701-01/02), so it already carries the cake_mq kind: replacing our file with
+it would keep cake_mq and lose only this tree's 999-71x debugfs layer
+(tin_share, tin_cap, sync_time_ns, rebalance), which it does not have.
 
-Grafted additively instead. The clamp block is self-contained -- it works
-on the skb alone, no cake_sched_data access -- and the three hooks only test
-CAKE_FLAG_INGRESS, which this tree already reaches through
-q->config->rate_flags: the same shape cake-wnd uses after the v7.0 cake_mq
-refactor, so the block is taken verbatim.
+Grafted additively instead, for two reasons: to keep that 999-71x layer, and
+to avoid re-taking a 6.12.112 file up to 6.18.56. The clamp block is
+self-contained -- it works on the skb alone, no cake_sched_data access -- and
+the three hooks only test CAKE_FLAG_INGRESS, which this tree already reaches
+through q->config->rate_flags: the same shape cake-wnd uses after the same
+backport, so the block is taken verbatim.
 
 An ingress-mode CAKE instance flags a TCP flow when COBALT drops (or
 CE-marks) one of its packets, i.e. a standing queue rather than a burst; any
