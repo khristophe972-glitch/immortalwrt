@@ -840,7 +840,11 @@ $(eval $(call KernelPackage,sched-bpf))
 define KernelPackage/sched-cake
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Cake fq_codel/blue derived shaper
-  DEPENDS:=+kmod-sched-core
+  # kmod-nf-conntrack: the cake-wnd window clamp (999-723) calls
+  # nf_conntrack_find_get()/nf_ct_put() to learn the window scale of
+  # flow-offloaded ACKs, which carry no ct. Without the declaration the
+  # package fails its dependency check at build time.
+  DEPENDS:=+kmod-sched-core +kmod-nf-conntrack
   KCONFIG:=CONFIG_NET_SCH_CAKE
   FILES:=$(LINUX_DIR)/net/sched/sch_cake.ko
   AUTOLOAD:=$(call AutoProbe,sch_cake)
