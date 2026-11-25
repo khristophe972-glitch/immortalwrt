@@ -1,0 +1,367 @@
+net/sched: sch_cake: clamp the TCP window of flows queueing on ingress
+
+Ported from mindwolf80/cake-wnd @ ef18fc80da ("sch_cake: carry upstream
+locking, backlog and overhead fixes"), whose base is Linux 6.12.112: the
+branch ships its own sch_cake.ko and overwrites the stock one, which would
+take cake_mq and the 999-71x debugfs knobs with it.
+
+Grafted additively instead. The clamp block is self-contained -- it works
+on the skb alone, no cake_sched_data access -- and the three hooks only test
+CAKE_FLAG_INGRESS, which this tree already reaches through
+q->config->rate_flags: the same shape cake-wnd uses after the v7.0 cake_mq
+refactor, so the block is taken verbatim.
+
+An ingress-mode CAKE instance flags a TCP flow when COBALT drops (or
+CE-marks) one of its packets, i.e. a standing queue rather than a burst; any
+egress-mode instance then lowers the window advertised in that flow's ACKs.
+While a flow stays flagged its clamp is cut by 1/4 once per CAKE interval,
+down to wnd_min_bytes; when the flag expires the clamp is raised by 1/4 per
+interval until it reaches the advertised window. Off by default: wnd_clamp=0
+leaves cake byte-for-byte identical to stock, so this patch is inert until
+asked for.
+
+No effect on this box as configured: no CAKE instance drops (ifb4eth1 is
+capped at 5Gbit, above the ~2.3Gbit the line delivers; eth0 is unlimited)
+and the actual limiter is the QDMA hardware scheduler, invisible to CAKE.
+Arming it means giving an ingress cake a rate below the line -- see the
+qos-mt6000 qdisc option.
+
+--- a/net/sched/sch_cake.c	2026-11-25 03:35:47.050941496 +0100
++++ b/net/sched/sch_cake.c	2026-11-25 03:35:47.055412443 +0100
+@@ -77,6 +77,8 @@
+ 
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ #include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_zones.h>
++#include <net/ipv6.h>
+ #endif
+ 
+ #define CAKE_SET_WAYS (8)
+@@ -731,6 +733,289 @@
+ #endif
+ }
+ 
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++/* Receive-window clamping (cake-wnd). An ingress-mode CAKE instance flags
++ * TCP flows when COBALT drops (or CE-marks) one of their packets, i.e. a
++ * standing queue rather than a burst; any egress-mode
++ * instance then lowers the window advertised in those flows' ACKs. While a
++ * flow stays flagged its clamp is cut by 1/4 once per CAKE interval, down to
++ * wnd_min_bytes. When the flag expires (wnd_hold_ms) the clamp is raised by
++ * 1/4 per interval until it reaches the advertised window, then dropped.
++ * With wnd_clamp=0 none of this code runs.
++ */
++static bool wnd_clamp;
++module_param(wnd_clamp, bool, 0644);
++MODULE_PARM_DESC(wnd_clamp, "Clamp TCP receive window of flows queueing on ingress (0 = stock CAKE)");
++static uint wnd_min_bytes = 5792;
++module_param(wnd_min_bytes, uint, 0644);
++MODULE_PARM_DESC(wnd_min_bytes, "Never clamp the window below this (bytes)");
++static uint wnd_hold_ms = 200;
++module_param(wnd_hold_ms, uint, 0644);
++MODULE_PARM_DESC(wnd_hold_ms, "How long a flag lasts after the last slow packet (ms)");
++
++/* stats, racy by design */
++static ulong wnd_flagged, wnd_cuts, wnd_raises, wnd_clamped, wnd_skip_noct,
++	     wnd_skip_other, wnd_skip_collide;
++module_param(wnd_flagged, ulong, 0444);
++module_param(wnd_cuts, ulong, 0444);
++module_param(wnd_raises, ulong, 0444);
++module_param(wnd_skip_collide, ulong, 0444);
++module_param(wnd_clamped, ulong, 0444);
++module_param(wnd_skip_noct, ulong, 0444);
++module_param(wnd_skip_other, ulong, 0444);
++
++#define CAKE_WND_SLOTS 1024
++
++/* Oriented by the data direction, so the ingress data packet and the
++ * egress ACK of one flow produce the same key. IPv4 is stored v4-mapped.
++ */
++struct cake_wnd_key {
++	struct in6_addr snd, rcv;
++	__be16 sport, dport;
++};
++
++/* @until: flag expiry. @next_step: earliest next cut (flagged) or raise
++ * (releasing). @last: last time either side touched the entry.
++ */
++struct cake_wnd_entry {
++	struct cake_wnd_key key;
++	unsigned long until, next_step, last, interval;
++	u32 clamp;
++	bool cut;
++};
++
++/* shortcut: direct-mapped, a flow whose slot is held by a live flow is not clamped; fine for home flow counts */
++static struct cake_wnd_entry cake_wnd_tbl[CAKE_WND_SLOTS];
++static DEFINE_SPINLOCK(cake_wnd_lock);
++static unsigned long cake_wnd_any_until;
++
++/* Parse a TCP packet into @k. @ack: the packet travels receiver->sender. */
++static const struct tcphdr *cake_wnd_parse(const struct sk_buff *skb,
++					   struct cake_wnd_key *k,
++					   struct tcphdr *buf, int *thoff,
++					   bool ack)
++{
++	struct in6_addr *src = ack ? &k->rcv : &k->snd;
++	struct in6_addr *dst = ack ? &k->snd : &k->rcv;
++	int off = skb_network_offset(skb);
++	const struct tcphdr *th;
++
++	memset(k, 0, sizeof(*k));
++	switch (skb_protocol(skb, true)) {
++	case htons(ETH_P_IP): {
++		const struct iphdr *iph;
++		struct iphdr _iph;
++
++		iph = skb_header_pointer(skb, off, sizeof(_iph), &_iph);
++		if (!iph || iph->ihl < 5 || iph->protocol != IPPROTO_TCP ||
++		    ip_is_fragment(iph))
++			return NULL;
++		ipv6_addr_set_v4mapped(iph->saddr, src);
++		ipv6_addr_set_v4mapped(iph->daddr, dst);
++		off += iph->ihl * 4;
++		break;
++	}
++	case htons(ETH_P_IPV6): {
++		const struct ipv6hdr *ip6h;
++		struct ipv6hdr _ip6h;
++
++		ip6h = skb_header_pointer(skb, off, sizeof(_ip6h), &_ip6h);
++		/* shortcut: extension headers are not walked, such packets pass untouched */
++		if (!ip6h || ip6h->nexthdr != IPPROTO_TCP)
++			return NULL;
++		*src = ip6h->saddr;
++		*dst = ip6h->daddr;
++		off += sizeof(*ip6h);
++		break;
++	}
++	default:
++		return NULL;
++	}
++
++	th = skb_header_pointer(skb, off, sizeof(*buf), buf);
++	if (!th)
++		return NULL;
++	k->sport = ack ? th->dest : th->source;
++	k->dport = ack ? th->source : th->dest;
++	*thoff = off;
++	return th;
++}
++
++static struct cake_wnd_entry *cake_wnd_slot(const struct cake_wnd_key *k)
++{
++	return &cake_wnd_tbl[jhash(k, sizeof(*k), 0) & (CAKE_WND_SLOTS - 1)];
++}
++
++/* Flagged, or still releasing a clamp. A release whose flow sent no ACK
++ * for a second is abandoned (flow gone).
++ */
++static bool cake_wnd_live(const struct cake_wnd_entry *e, unsigned long now)
++{
++	return time_before_eq(now, e->until) ||
++	       (e->clamp && time_before_eq(now, e->last + HZ));
++}
++
++static void cake_wnd_keep_alive(unsigned long until)
++{
++	if (time_after(until, cake_wnd_any_until))
++		WRITE_ONCE(cake_wnd_any_until, until);
++}
++
++/* Ingress dequeue: flag the flow of a packet COBALT drops or marks.
++ * (cvars.dropping is set on the first over-target packet, so it is no
++ * standing-queue signal; the actual drop is.)
++ */
++static void cake_wnd_flag(const struct sk_buff *skb, u64 interval)
++{
++	unsigned long now = jiffies;
++	struct cake_wnd_entry *e;
++	struct cake_wnd_key k;
++	struct tcphdr _th;
++	int thoff;
++
++	if (!cake_wnd_parse(skb, &k, &_th, &thoff, false))
++		return;
++
++	e = cake_wnd_slot(&k);
++	spin_lock(&cake_wnd_lock);
++	if (!cake_wnd_live(e, now)) {
++		e->key = k;
++		e->clamp = 0;
++		e->cut = false;
++		e->next_step = now;
++	} else if (memcmp(&e->key, &k, sizeof(k))) {
++		wnd_skip_collide++;
++		goto unlock;
++	}
++	/* a flow re-flagged while releasing resumes cutting from its clamp */
++	e->until = now + msecs_to_jiffies(READ_ONCE(wnd_hold_ms));
++	e->interval = nsecs_to_jiffies(interval);
++	e->last = now;
++	if (time_after_eq(now, e->next_step)) {
++		e->cut = true;
++		e->next_step = now + e->interval;
++	}
++	cake_wnd_keep_alive(e->until);
++	wnd_flagged++;
++unlock:
++	spin_unlock(&cake_wnd_lock);
++}
++
++/* Window scale the ACK sender uses, or -1 if conntrack never saw its SYN. */
++static int cake_wnd_scale(const struct sk_buff *skb,
++			  const struct cake_wnd_key *k)
++{
++	const struct nf_conntrack_tuple_hash *h = NULL;
++	struct nf_conntrack_tuple t = {};
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++	int dir, scale = -1;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (ct) {
++		dir = CTINFO2DIR(ctinfo);
++	} else {
++		/* flow-offloaded packets carry no ct: look up the data direction */
++		if (ipv6_addr_v4mapped(&k->snd)) {
++			t.src.l3num = NFPROTO_IPV4;
++			t.src.u3.ip = k->snd.s6_addr32[3];
++			t.dst.u3.ip = k->rcv.s6_addr32[3];
++		} else {
++			t.src.l3num = NFPROTO_IPV6;
++			t.src.u3.in6 = k->snd;
++			t.dst.u3.in6 = k->rcv;
++		}
++		t.src.u.tcp.port = k->sport;
++		t.dst.u.tcp.port = k->dport;
++		t.dst.protonum = IPPROTO_TCP;
++		h = nf_conntrack_find_get(dev_net(skb->dev), &nf_ct_zone_dflt, &t);
++		if (!h)
++			return -1;
++		ct = nf_ct_tuplehash_to_ctrack(h);
++		dir = !NF_CT_DIRECTION(h);
++	}
++
++	/* WINDOW_SCALE is only set from a seen SYN; td_scale is zeroed if the
++	 * peer declined. Mid-stream pickups and offload set BE_LIBERAL
++	 * instead, so it can't be used as the "unknown" test.
++	 */
++	if (nf_ct_protonum(ct) == IPPROTO_TCP &&
++	    ct->proto.tcp.seen[dir].flags & IP_CT_TCP_FLAG_WINDOW_SCALE)
++		scale = ct->proto.tcp.seen[dir].td_scale;
++
++	if (h)
++		nf_ct_put(ct);
++	return scale;
++}
++
++/* Egress enqueue: lower the window of an ACK whose flow is flagged. */
++static void cake_wnd_clamp(struct sk_buff *skb)
++{
++	unsigned long now = jiffies;
++	struct cake_wnd_entry *e;
++	const struct tcphdr *th;
++	struct cake_wnd_key k;
++	struct tcphdr _th, *wth;
++	u32 wnd, clamp = 0;
++	__be16 old, new;
++	int thoff, scale;
++
++	if (time_after(now, READ_ONCE(cake_wnd_any_until)))
++		return;
++	th = cake_wnd_parse(skb, &k, &_th, &thoff, true);
++	if (!th || !th->ack || th->syn || th->rst)
++		return;
++
++	e = cake_wnd_slot(&k);
++	spin_lock(&cake_wnd_lock);
++	if (memcmp(&e->key, &k, sizeof(k)) || !cake_wnd_live(e, now))
++		goto unlock;
++
++	scale = cake_wnd_scale(skb, &k);
++	if (scale < 0) {
++		wnd_skip_noct++;
++		goto unlock;
++	}
++	wnd = (u32)ntohs(th->window) << scale;
++	e->last = now;
++	if (time_before_eq(now, e->until)) {
++		if (e->cut) {
++			e->clamp = max(((e->clamp ?: wnd) / 4) * 3,
++				       READ_ONCE(wnd_min_bytes));
++			e->cut = false;
++			wnd_cuts++;
++		}
++	} else if (time_after_eq(now, e->next_step)) {
++		/* released: ratchet back up instead of snapping open */
++		e->clamp += e->clamp / 4;
++		e->next_step = now + e->interval;
++		wnd_raises++;
++		if (e->clamp >= wnd)
++			e->clamp = 0;
++	}
++	clamp = e->clamp;
++	if (clamp)
++		cake_wnd_keep_alive(now + HZ);
++unlock:
++	spin_unlock(&cake_wnd_lock);
++
++	if (!clamp)
++		return;
++	old = th->window;
++	new = htons(min_t(u32, DIV_ROUND_UP(clamp, 1U << scale), 0xffff));
++	if (ntohs(new) >= ntohs(old))
++		return;		/* never raise a window */
++	if (skb_is_gso(skb) || skb_ensure_writable(skb, thoff + sizeof(*th))) {
++		wnd_skip_other++;
++		return;
++	}
++	wth = (struct tcphdr *)(skb->data + thoff);
++	inet_proto_csum_replace2(&wth->check, skb, old, new, false);
++	wth->window = new;
++	wnd_clamped++;
++}
++#endif
++
+ /* Cake has several subtle multiple bit settings. In these cases you
+  *  would be matching triple isolate mode as well.
+  */
+@@ -1893,6 +2178,12 @@
+ 	struct cake_flow *flow;
+ 	bool same_flow = false;
+ 
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	if (READ_ONCE(wnd_clamp) &&
++	    !(q->config->rate_flags & CAKE_FLAG_INGRESS))
++		cake_wnd_clamp(skb);
++#endif
++
+ 	/* choose flow to insert into */
+ 	idx = cake_classify(sch, &b, skb, q->config->flow_mode, &ret);
+ 	if (idx == 0) {
+@@ -2682,6 +2973,11 @@
+ 		}
+ 		flow->dropped++;
+ 		WRITE_ONCE(b->tin_dropped, b->tin_dropped + 1);
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++		if (READ_ONCE(wnd_clamp) &&
++		    q->config->rate_flags & CAKE_FLAG_INGRESS)
++			cake_wnd_flag(skb, b->cparams.interval);
++#endif
+ 		qdisc_tree_reduce_backlog(sch, 1, qdisc_pkt_len(skb));
+ 		qdisc_qstats_drop(sch);
+ 		kfree_skb_reason(skb, reason);
+@@ -2690,6 +2986,12 @@
+ 	}
+ 
+ 	WRITE_ONCE(b->tin_ecn_mark, b->tin_ecn_mark + !!flow->cvars.ecn_marked);
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	if (READ_ONCE(wnd_clamp) &&
++	    q->config->rate_flags & CAKE_FLAG_INGRESS && flow->cvars.ecn_marked)
++		cake_wnd_flag(skb, b->cparams.interval);
++#endif
++
+ 	qdisc_bstats_update(sch, skb);
+ 	WRITE_ONCE(q->last_active, now);
+ 
