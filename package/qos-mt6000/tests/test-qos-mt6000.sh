@@ -48,8 +48,10 @@ X
 	printf '#!/bin/sh\nexit 0\n' > "$T/bin/logger"
 	chmod +x "$T/bin/uci" "$T/bin/tc" "$T/bin/logger"
 	for k in sync_time_ns active_window_ns active_release active_hold tin_share tin_hold tin_cap rebalance ewma_shift v1_headroom_shift v1_sat_shift v2_spare_pct; do : > "$T/dbg/$k"; done
+	printf '0' > "$T/wnd"
 	export QOS_T="$T" QOS_TC="$T/bin/tc" QOS_UCI="$T/bin/uci" QOS_SYSNET="$T/sys" \
-		QOS_DEBUGFS="$T/dbg" QOS_LOCKDIR="$T/lock" QOS_LOCK_TRIES=2 PATH="$T/bin:$PATH"
+		QOS_DEBUGFS="$T/dbg" QOS_WND_PARAM="$T/wnd" QOS_LOCKDIR="$T/lock" \
+		QOS_LOCK_TRIES=2 PATH="$T/bin:$PATH"
 	unset TC_FAIL
 }
 
@@ -180,7 +182,7 @@ setup
 set_cfg bandwidth unlimited; set_cfg qdisc cake; set_cfg tin_cap 50
 run check
 expect_out "root cake bandwidth unlimited" "qdisc cake et bandwidth unlimited"
-case "$OUT" in *"printf"*) ko "pas de reglage debugfs avec cake simple" ;; *) ok "pas de reglage debugfs avec cake simple" ;; esac
+case "$OUT" in *"$T/dbg"*) ko "pas de reglage debugfs avec cake simple" ;; *) ok "pas de reglage debugfs avec cake simple" ;; esac
 teardown
 
 echo "[validation : valeurs invalides]"
@@ -317,6 +319,39 @@ run start
 expect_rc 0 "start apres retour a keep"
 expect_tc "filter del dev eth1 egress prio 1" "filtres retires au passage a keep"
 grep -q 'filter add' "$T/tc.log" && ko "aucun filtre repose" || ok "aucun filtre repose"
+teardown
+
+echo "[cake-wnd]"
+setup
+set_cfg qdisc cake-wnd
+run start
+expect_rc 0 "cake-wnd demarre"
+expect_tc "qdisc replace dev eth1 root cake " "cake-wnd pose le kind cake, pas cake-wnd"
+[ "$(cat "$T/wnd")" = 1 ] && ok "wnd_clamp passe a 1" || ko "wnd_clamp=$(cat "$T/wnd"), attendu 1"
+expect_out "wnd_clamp=1" "le journal dit que le clamp est arme"
+teardown
+
+setup
+set_cfg qdisc cake
+run start
+expect_rc 0 "cake simple demarre"
+[ "$(cat "$T/wnd")" = 0 ] && ok "wnd_clamp reste a 0" || ko "wnd_clamp=$(cat "$T/wnd"), attendu 0"
+teardown
+
+setup
+printf '1' > "$T/wnd"
+set_cfg qdisc cake
+run start
+[ "$(cat "$T/wnd")" = 0 ] && ok "un clamp laisse arme est remis a 0 par un autre choix" || ko "wnd_clamp=$(cat "$T/wnd"), attendu 0"
+teardown
+
+setup
+rm -f "$T/wnd"
+set_cfg qdisc cake-wnd
+run start
+expect_rc 1 "cake-wnd refuse sans le parametre du module"
+expect_out "n'a pas le clamp" "le refus est explicite"
+expect_no_tc "aucun qdisc pose quand cake-wnd est indisponible"
 teardown
 
 echo "[usage]"

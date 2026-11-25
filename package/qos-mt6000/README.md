@@ -19,6 +19,20 @@ Gestion du qdisc racine `cake_mq` du port WAN du GL-MT6000 : un paquet backend
   arrete l'operation sans toucher au qdisc (aucune injection possible : chaque valeur est
   comparee a une liste ou a un motif strict).
 * Le qdisc est remplace par `tc qdisc replace` (jamais `change`), puis verifie par `tc qdisc show`.
+* `qdisc` prend trois valeurs :
+  - `cake_mq` (defaut) : une instance cake par file, partage du shaper entre elles ;
+  - `cake` : une instance unique ;
+  - `cake-wnd` : `cake` **avec le clamp de fenetre TCP**. Ce n'est pas un kind a part :
+    `cake-wnd` remplace `sch_cake.ko` en gardant le kind `cake` et expose le parametre de
+    module `wnd_clamp` (`999-723`). Le service pose donc `root cake` et ecrit
+    `/sys/module/sch_cake/parameters/wnd_clamp=1`. Trois gardes :
+    `start` refuse `cake-wnd` si ce parametre est absent (module sans le clamp), tout autre
+    choix le remet a `0` (c'est un parametre GLOBAL, qui survit a un redemarrage du service),
+    et `stop` le remet a `0` aussi.
+    ⚠️ Le clamp ne fait rien sans une instance cake **`ingress`** qui jette : c'est
+    `ifb4eth1`, pose par `rc.local`, qui doit porter `ingress` et un `bandwidth` sous le
+    debit reel de la ligne. Mesure du 25/11 : `ifb` a 100 Mbit ⇒ `wnd_flagged` et
+    `wnd_clamped` montent sur du trafic route malgre HFO.
 * Les reglages debugfs de cake_mq (`sync_time_ns`, `active_window_ns`, `active_release`,
   `active_hold`, `tin_share`, `tin_hold`, `tin_cap`, `rebalance`, `ewma_shift`,
   `v1_headroom_shift`, `v1_sat_shift`, `v2_spare_pct`) sont ecrits avec `printf` apres le

@@ -22,6 +22,8 @@ NAME=qos-mt6000
 TC=${QOS_TC:-tc}
 UCI=${QOS_UCI:-uci}
 DEBUGFS=${QOS_DEBUGFS:-/sys/kernel/debug/cake_mq}
+# cake-wnd: module parameter of sch_cake (global, one per module, not per qdisc)
+WND_PARAM=${QOS_WND_PARAM:-/sys/module/sch_cake/parameters/wnd_clamp}
 SYSNET=${QOS_SYSNET:-/sys/class/net}
 LOCKDIR=${QOS_LOCKDIR:-/tmp/qos-mt6000.lock}
 LOCK_TRIES=${QOS_LOCK_TRIES:-15}
@@ -110,9 +112,13 @@ validate() {
 
 	is_ifname "$DEV" || { log "device invalide : '$DEV'"; err=1; }
 	case "$QDISC" in
-	cake_mq | cake) ;;
-	*) log "qdisc invalide : '$QDISC' (cake_mq ou cake)"; err=1 ;;
+	cake_mq | cake | cake-wnd) ;;
+	*) log "qdisc invalide : '$QDISC' (cake_mq, cake ou cake-wnd)"; err=1 ;;
 	esac
+	if [ "$QDISC" = cake-wnd ] && [ ! -w "$WND_PARAM" ]; then
+		log "cake-wnd demande mais $WND_PARAM absent : ce module sch_cake n'a pas le clamp"
+		err=1
+	fi
 	is_rate "$BW" || { log "bandwidth invalide : '$BW' (ex. 850Mbit ou unlimited)"; err=1; }
 	case "$DIFF" in
 	besteffort | diffserv3 | diffserv4 | diffserv8 | precedence) ;;
@@ -254,6 +260,33 @@ current_qdisc() {
 	"$TC" qdisc show dev "$DEV" root 2> /dev/null | head -n 1
 }
 
+# cake-wnd is not a qdisc of its own: cake-wnd ships a replacement sch_cake.ko
+# that keeps the 'cake' kind and adds the wnd_clamp module parameter.
+tc_kind() {
+	case "$1" in
+	cake-wnd) echo cake ;;
+	*) echo "$1" ;;
+	esac
+}
+
+# The clamp is a module parameter: global to every cake instance on the box and
+# kept until reboot, so every apply writes it -- including back to 0 for the two
+# other choices, which must not inherit a clamp left by an earlier run.
+apply_wnd() {
+	local want=0
+	[ "$QDISC" = cake-wnd ] && want=1
+	if [ ! -e "$WND_PARAM" ]; then
+		[ "$want" = 1 ] && return 1
+		return 0
+	fi
+	if ! printf '%s' "$want" > "$WND_PARAM" 2> /dev/null; then
+		log "echec d'ecriture de $WND_PARAM"
+		return 1
+	fi
+	log "wnd_clamp=$want ($WND_PARAM)"
+	return 0
+}
+
 apply_knobs() {
 	local k v f
 	[ "$QDISC" = cake_mq ] || return 0
@@ -338,18 +371,19 @@ do_start() {
 		return 1
 	fi
 	# shellcheck disable=SC2086
-	if ! out=$("$TC" qdisc replace dev "$DEV" root "$QDISC" $ARGS 2>&1); then
+	if ! out=$("$TC" qdisc replace dev "$DEV" root "$(tc_kind "$QDISC")" $ARGS 2>&1); then
 		log "echec de tc qdisc replace : $out"
 		return 1
 	fi
 	cur=$(current_qdisc)
 	case "$cur" in
-	"qdisc $QDISC "*) ;;
+	"qdisc $(tc_kind "$QDISC") "*) ;;
 	*)
 		log "verification echouee, qdisc racine de $DEV : '$cur'"
 		return 1
 		;;
 	esac
+	apply_wnd || return 1
 	apply_knobs
 	apply_ecn_filters
 	log "actif sur $DEV : $QDISC $ARGS"
@@ -362,13 +396,17 @@ do_stop() {
 	is_ifname "$DEV" || { log "device invalide : '$DEV'"; return 1; }
 	cur=$(current_qdisc)
 	case "$cur" in
-	"qdisc $QDISC "*)
+	"qdisc $(tc_kind "$QDISC") "*)
 		"$TC" qdisc del dev "$DEV" root && log "qdisc racine supprime sur $DEV"
 		;;
 	*)
-		log "pas de qdisc $QDISC racine sur $DEV, rien a supprimer"
+		log "pas de qdisc $(tc_kind "$QDISC") racine sur $DEV, rien a supprimer"
 		;;
 	esac
+	# the clamp is a module parameter: stopping must not leave it armed
+	if [ -e "$WND_PARAM" ]; then
+		printf '0' > "$WND_PARAM" 2> /dev/null && log "wnd_clamp=0"
+	fi
 	ecn_del_filters egress
 	ecn_del_filters ingress
 	return 0
@@ -384,7 +422,8 @@ do_check() {
 	fi
 	validate || return 1
 	build_args
-	echo "tc qdisc replace dev $DEV root $QDISC $ARGS"
+	echo "tc qdisc replace dev $DEV root $(tc_kind "$QDISC") $ARGS"
+	[ -e "$WND_PARAM" ] && echo "printf '$([ "$QDISC" = cake-wnd ] && echo 1 || echo 0)' > $WND_PARAM"
 	if [ "$QDISC" = cake_mq ]; then
 		for k in $KNOBS; do
 			v=$(cfg "$k")
@@ -414,6 +453,12 @@ do_status() {
 	do_check
 	echo "== qdisc reel sur $DEV =="
 	current_qdisc
+	echo "== clamp (sch_cake) =="
+	if [ -r "$WND_PARAM" ]; then
+		echo "wnd_clamp=$(cat "$WND_PARAM")"
+	else
+		echo "wnd_clamp absent (module sans clamp)"
+	fi
 	echo "== reglages debugfs =="
 	for k in $KNOBS; do
 		if [ -r "$DEBUGFS/$k" ]; then

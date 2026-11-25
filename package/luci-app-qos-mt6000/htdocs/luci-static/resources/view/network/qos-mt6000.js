@@ -88,6 +88,7 @@ return view.extend({
 		o = s.taboption('qdisc', form.ListValue, 'qdisc', _('Qdisc'));
 		o.value('cake_mq', _('cake_mq (one instance per queue)'));
 		o.value('cake', _('cake (single instance)'));
+		o.value('cake-wnd', _('cake with TCP window clamp (cake-wnd)'));
 		o.default = 'cake_mq';
 
 		o = s.taboption('qdisc', form.Value, 'bandwidth', _('Bandwidth'),

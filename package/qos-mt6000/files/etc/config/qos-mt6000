@@ -4,6 +4,9 @@ config global 'global'
 	option enabled '1'
 	option device 'eth1'
 	option trigger_iface 'wan'
+	# cake_mq | cake | cake-wnd. cake-wnd n'est pas une qdisc distincte :
+	# c'est 'cake' avec le parametre de module wnd_clamp=1 (clamp de la
+	# fenetre TCP des flux vus en file sur une instance ingress).
 	option qdisc 'cake_mq'
 	option bandwidth '850Mbit'
 	option diffserv 'diffserv4'
