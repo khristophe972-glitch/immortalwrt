@@ -1,0 +1,30 @@
+From: Daniel Gabay <daniel.gabay@intel.com>
+Date: Thu, 8 Oct 2026 12:37:43 +0300
+Subject: [PATCH] nl80211: Verify frame length before reading auth_alg
+
+mlme_event() decides whether an Authentication frame belongs to PASN by
+reading auth_alg from a frame it has only checked to be at least the
+24-octet header long. auth_alg sits right after the header, so the read
+can go past the end of a short frame.
+
+Require IEEE80211_HDRLEN + 2 octets.
+
+Adapted from OddBlueDog/openwrt milkflint-25.12
+082-nl80211-Verify-frame-length-before-reading-auth_alg.patch: this tree's
+comment above the check also covers NAN USD frames, so the hunk is
+re-anchored on the check itself.
+
+---
+--- a/src/drivers/driver_nl80211_event.c
++++ b/src/drivers/driver_nl80211_event.c
+@@ -1900,7 +1900,9 @@
+ 	 * be addressed to the NAN Network ID or unicast to a forced address
+ 	 * (e.g., solicited publish replies, follow-ups), allow those, too.
+ 	 */
+-	if (cmd == NL80211_CMD_FRAME && len >= 24) {
++	/* auth_alg is the 2 octets right after the 24-octet header */
++	if (cmd == NL80211_CMD_FRAME &&
++	    len >= IEEE80211_HDRLEN + 2) {
+ 		u16 fc;
+ 
+ 		mgmt = (const struct ieee80211_mgmt *) data;
