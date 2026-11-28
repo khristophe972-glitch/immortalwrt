@@ -49,8 +49,10 @@ X
 	chmod +x "$T/bin/uci" "$T/bin/tc" "$T/bin/logger"
 	for k in sync_time_ns active_window_ns active_release active_hold tin_share tin_hold tin_cap rebalance ewma_shift v1_headroom_shift v1_sat_shift v2_spare_pct; do : > "$T/dbg/$k"; done
 	printf '0' > "$T/wnd"
+	printf '0' > "$T/dim"
 	export QOS_T="$T" QOS_TC="$T/bin/tc" QOS_UCI="$T/bin/uci" QOS_SYSNET="$T/sys" \
-		QOS_DEBUGFS="$T/dbg" QOS_WND_PARAM="$T/wnd" QOS_LOCKDIR="$T/lock" \
+		QOS_DEBUGFS="$T/dbg" QOS_WND_PARAM="$T/wnd" QOS_MTK_DIM_PARAM="$T/dim" \
+		QOS_LOCKDIR="$T/lock" \
 		QOS_LOCK_TRIES=2 PATH="$T/bin:$PATH"
 	unset TC_FAIL
 }
@@ -359,6 +361,30 @@ run start
 expect_rc 1 "cake-wnd refuse sans le parametre du module"
 expect_out "n'a pas le clamp" "le refus est explicite"
 expect_no_tc "aucun qdisc pose quand cake-wnd est indisponible"
+teardown
+
+echo "[qdma_tx_dim]"
+setup
+set_cfg qdma_tx_dim 1
+run start
+expect_rc 0 "qdma_tx_dim=1 demarre"
+[ "$(cat "$T/dim")" = 1 ] && ok "parametre ecrit a 1" || ko "parametre=$(cat "$T/dim"), attendu 1"
+expect_out "qdma_tx_dim=1" "le journal dit que la moderation QDMA est en amont"
+teardown
+
+setup
+set_cfg qdma_tx_dim 1
+rm -f "$T/dim"
+run start
+expect_rc 1 "qdma_tx_dim=1 refuse sans le parametre du noyau"
+expect_out "noyau sans 999-2731" "le refus est explicite"
+teardown
+
+setup
+set_cfg qdma_tx_dim 2
+run check
+expect_rc 1 "valeur hors 0/1 refusee"
+expect_out "qdma_tx_dim invalide" "le message nomme l option"
 teardown
 
 echo "[usage]"

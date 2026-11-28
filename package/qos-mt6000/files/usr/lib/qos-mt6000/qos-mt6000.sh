@@ -24,6 +24,8 @@ UCI=${QOS_UCI:-uci}
 DEBUGFS=${QOS_DEBUGFS:-/sys/kernel/debug/cake_mq}
 # cake-wnd: module parameter of sch_cake (global, one per module, not per qdisc)
 WND_PARAM=${QOS_WND_PARAM:-/sys/module/sch_cake/parameters/wnd_clamp}
+# mtk_eth: QDMA TX interrupt moderation layout (999-2731). Global, not per qdisc.
+MTK_DIM_PARAM=${QOS_MTK_DIM_PARAM:-/sys/module/mtk_eth/parameters/qdma_tx_dim}
 SYSNET=${QOS_SYSNET:-/sys/class/net}
 LOCKDIR=${QOS_LOCKDIR:-/tmp/qos-mt6000.lock}
 LOCK_TRIES=${QOS_LOCK_TRIES:-15}
@@ -62,6 +64,7 @@ load_config() {
 	MEMLIMIT=$(cfg memlimit)
 	ECN_EG=$(get ecn_egress keep)
 	ECN_IG=$(get ecn_ingress keep)
+	QDMA_DIM=$(get qdma_tx_dim 0)
 }
 
 is_uint() {
@@ -128,6 +131,7 @@ validate() {
 	flowblind | srchost | dsthost | hosts | flows | dual-srchost | dual-dsthost | triple-isolate) ;;
 	*) log "flow_isolation invalide : '$FLOW'"; err=1 ;;
 	esac
+	is_bool "$QDMA_DIM" || { log "qdma_tx_dim invalide : '$QDMA_DIM' (0 ou 1)"; err=1; }
 	is_bool "$NAT" || { log "nat invalide : '$NAT' (0 ou 1)"; err=1; }
 	is_bool "$WASH" || { log "wash invalide : '$WASH' (0 ou 1)"; err=1; }
 	case "$ACK" in
@@ -288,6 +292,23 @@ apply_wnd() {
 	return 0
 }
 
+# QDMA's TX moderation layout: 0 keeps the RSS patches' (as before), 1 writes
+# it as upstream. The knob only exists where 999-2731 is built in; without it
+# the in-tree layout is the only one, so asking for 0 is a no-op and asking
+# for 1 is an error rather than a silent lie.
+apply_qdma_dim() {
+	if [ ! -e "$MTK_DIM_PARAM" ]; then
+		[ "$QDMA_DIM" = 1 ] && return 1
+		return 0
+	fi
+	if ! printf '%s' "$QDMA_DIM" > "$MTK_DIM_PARAM" 2> /dev/null; then
+		log "echec d'ecriture de $MTK_DIM_PARAM"
+		return 1
+	fi
+	log "qdma_tx_dim=$QDMA_DIM ($MTK_DIM_PARAM)"
+	return 0
+}
+
 apply_knobs() {
 	local k v f
 	[ "$(tc_kind "$QDISC")" = cake_mq ] || return 0
@@ -385,6 +406,7 @@ do_start() {
 		;;
 	esac
 	apply_wnd || return 1
+	apply_qdma_dim || { log "qdma_tx_dim demande mais $MTK_DIM_PARAM absent : noyau sans 999-2731"; return 1; }
 	apply_knobs
 	apply_ecn_filters
 	log "actif sur $DEV : $(tc_kind "$QDISC") $ARGS"
@@ -425,6 +447,7 @@ do_check() {
 	build_args
 	echo "tc qdisc replace dev $DEV root $(tc_kind "$QDISC") $ARGS"
 	[ -e "$WND_PARAM" ] && echo "printf '$([ "$QDISC" = cake-wnd ] && echo 1 || echo 0)' > $WND_PARAM"
+	[ -e "$MTK_DIM_PARAM" ] && echo "printf '$QDMA_DIM' > $MTK_DIM_PARAM"
 	if [ "$(tc_kind "$QDISC")" = cake_mq ]; then
 		for k in $KNOBS; do
 			v=$(cfg "$k")
@@ -455,6 +478,11 @@ do_status() {
 	echo "== qdisc reel sur $DEV =="
 	current_qdisc
 	echo "== clamp (sch_cake) =="
+	if [ -r "$MTK_DIM_PARAM" ]; then
+		echo "qdma_tx_dim=$(cat "$MTK_DIM_PARAM")"
+	else
+		echo "qdma_tx_dim absent (noyau sans 999-2731)"
+	fi
 	if [ -r "$WND_PARAM" ]; then
 		echo "wnd_clamp=$(cat "$WND_PARAM")"
 	else

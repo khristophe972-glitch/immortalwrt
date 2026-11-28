@@ -8,6 +8,11 @@ config global 'global'
 	# c'est cake_mq avec le parametre de module wnd_clamp=1 (clamp de la
 	# fenetre TCP des flux vus en file sur une instance ingress).
 	option qdisc 'cake_mq'
+	# qdma_tx_dim (0/1) : agencement du registre de moderation QDMA (patch
+	# 999-2731). 0 = celui des patchs RSS (defaut), 1 = comme l'amont.
+	# Global au module mtk_eth, pas propre a eth1. Sans le patch, 0 est neutre
+	# et 1 est refuse explicitement.
+	option qdma_tx_dim '0'
 	option bandwidth '850Mbit'
 	option diffserv 'diffserv4'
 	option flow_isolation 'triple-isolate'

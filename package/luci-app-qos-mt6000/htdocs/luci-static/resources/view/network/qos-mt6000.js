@@ -91,6 +91,13 @@ return view.extend({
 		o.value('cake-wnd', _('cake_mq with the TCP window clamp (cake-wnd)'));
 		o.default = 'cake_mq';
 
+		o = s.taboption('qdisc', form.ListValue, 'qdma_tx_dim', _('QDMA TX moderation'),
+			_('Layout of QDMA\'s delay interrupt register: off keeps the in-tree one, on writes it as upstream. ' +
+			  'No effect on a kernel without the parameter (999-2731).'));
+		o.value('0', _('off (in-tree layout)'));
+		o.value('1', _('on (as upstream)'));
+		o.default = '0';
+
 		o = s.taboption('qdisc', form.Value, 'bandwidth', _('Bandwidth'),
 			_('Shaper rate with its unit, for example 850Mbit, or "unlimited".'));
 		o.placeholder = '850Mbit';
