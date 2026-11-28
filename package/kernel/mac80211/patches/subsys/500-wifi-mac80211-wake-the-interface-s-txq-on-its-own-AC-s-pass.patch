@@ -1,0 +1,38 @@
+From: OddBlueDog <3959851+OddBlueDog@users.noreply.github.com>
+Date: Fri, 23 Oct 2026 19:00:00 +0100
+Subject: [PATCH] wifi: mac80211: wake the interface's txq on its own AC's pass
+
+__ieee80211_wake_txqs() runs once per AC. For the interface's own txq
+(multicast and broadcast) it cleared the dirty mark before checking that
+the pass is for that txq's AC, so the voice pass, which runs first, used
+up the mark of the best-effort txq without waking it, and the best-effort
+pass then found nothing to wake.
+
+Check the AC first.
+
+From OddBlueDog/openwrt milkflint-25.12 395, re-anchored here.
+Downstream patch, no upstream equivalent: absent from mainline
+(v6.18, v7.0, v7.2-rc4, v7.3, v7.4-rc4) and from wireless-next HEAD on
+2026-11-28. Taken from OddBlueDog/openwrt milkflint-25.12, commit de3a6294d690;
+no stable or mainline tracking, so drop it by hand if a real fix lands.
+
+---
+--- a/net/mac80211/util.c
++++ b/net/mac80211/util.c
+@@ -373,9 +373,13 @@
+ 		/* txq and txq_mgmt are mutually exclusive */
+ 		WARN_ON_ONCE(vif->txq_mgmt);
+ 
+-		if (!test_and_clear_bit(IEEE80211_TXQ_DIRTY, &txqi->flags) ||
+-		    (ps && atomic_read(&ps->num_sta_ps)) ||
+-		    ac != vif->txq->ac)
++		/*
++		 * Check the AC first: this runs once per AC, and clearing the bit
++		 * on another AC's pass would lose the wake-up.
++		 */
++		if (ac != vif->txq->ac ||
++		    !test_and_clear_bit(IEEE80211_TXQ_DIRTY, &txqi->flags) ||
++		    (ps && atomic_read(&ps->num_sta_ps)))
+ 			txqi = NULL;
+ 	} else if (vif->txq_mgmt) {
+ 		txqi = to_txq_info(vif->txq_mgmt);
