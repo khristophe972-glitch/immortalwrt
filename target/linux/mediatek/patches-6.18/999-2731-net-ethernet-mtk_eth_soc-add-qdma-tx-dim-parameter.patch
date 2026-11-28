@@ -1,0 +1,82 @@
+net: ethernet: mtk_eth_soc: make QDMA's TX interrupt moderation selectable
+
+The RSS patches (999-2711) changed how mtk_dim_rx()/mtk_dim_tx() write QDMA's
+delay interrupt register: RX's moderation in the high half (TX done, bits
+31:16) and TX's in the low one, the other way round from PDMA. Upstream writes
+one layout to both registers.
+
+On the MT7986 the CPU sends through QDMA and receives through PDMA, so QDMA's
+TX completions are held back by one of the two moderations, and TX's goes
+nowhere. Nothing at hand says which layout the hardware has.
+
+qdma_tx_dim, a module parameter (off by default, as before; writable at
+runtime, taken at each moderation's next change), writes them as upstream.
+Comparing TX completion interrupts per packet sent, with rx_dim_max_us moved,
+under each setting tells them apart.
+
+Ported from OddBlueDog/openwrt, milkflint-25.12,
+990-16-net-ethernet-mtk_eth_soc-QDMA-s-delay-interrupt-halves-RX-events-only-for-a-ring-s-own.patch
+(OddBlueDog, 2026-11-23), keeping only the parameter and the two write sites:
+that patch's other hunk (RX events counted per ring) touches mtk_handle_irq_rx,
+which this tree does not share, and is unrelated to the knob.
+
+No behaviour change while the parameter is off.
+
+---
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -3854,6 +3854,20 @@
+ 	return ret;
+ }
+ 
++/* QDMA's delay interrupt register is written with RX's moderation in the high
++ * half (bits 31:16) and TX's in the low one, unlike PDMA -- and unlike
++ * upstream, which writes the same layout to both. On the MT7986 the CPU sends
++ * through QDMA and receives through PDMA, so QDMA's TX completions are held
++ * back by one of the two moderations. Off: as the RSS patches. On: as
++ * upstream, TX's moderation on TX completions. Each half takes it at its
++ * moderation's next change.
++ * Which the hardware has isn't documented: comparing TX completion interrupts
++ * per packet sent tells them apart; until then it stays as it was.
++ */
++static bool qdma_tx_dim;
++module_param(qdma_tx_dim, bool, 0644);
++MODULE_PARM_DESC(qdma_tx_dim, "QDMA's TX completion delay from TX's adaptive moderation, as upstream (Y), or from RX's, as before (N)");
++
+ static void mtk_dim_rx(struct work_struct *work)
+ {
+ 	struct dim *dim = container_of(work, struct dim, work);
+@@ -3874,9 +3888,13 @@
+ 	cur = min_t(u32, cur_profile.pkts, MTK_PDMA_DELAY_PINT_MASK);
+ 	val |= cur << MTK_PDMA_DELAY_RX_PINT_SHIFT;
+ 
+-	if (MTK_HAS_CAPS(eth->soc->caps, MTK_QDMA))
+-		mtk_m32(eth, MTK_PDMA_DELAY_TX_MASK,
+-			val << MTK_PDMA_DELAY_TX_PTIME_SHIFT, reg_map->qdma.delay_irq);
++	if (MTK_HAS_CAPS(eth->soc->caps, MTK_QDMA)) {
++		if (READ_ONCE(qdma_tx_dim))
++			mtk_m32(eth, MTK_PDMA_DELAY_RX_MASK, val, reg_map->qdma.delay_irq);
++		else
++			mtk_m32(eth, MTK_PDMA_DELAY_TX_MASK,
++				val << MTK_PDMA_DELAY_TX_PTIME_SHIFT, reg_map->qdma.delay_irq);
++	}
+ 
+ 	if (RX_DESC_OFS(eth, 1) == sizeof(struct mtk_rx_dma)) {
+ 		mtk_m32(eth, MTK_PDMA_DELAY_RX_MASK, val, reg_map->pdma.delay_irq);
+@@ -3913,9 +3931,13 @@
+ 	cur = min_t(u32, cur_profile.pkts, MTK_PDMA_DELAY_PINT_MASK);
+ 	val |= cur << MTK_PDMA_DELAY_TX_PINT_SHIFT;
+ 
+-	if (MTK_HAS_CAPS(eth->soc->caps, MTK_QDMA))
+-		mtk_m32(eth, MTK_PDMA_DELAY_RX_MASK,
+-			val >> MTK_PDMA_DELAY_TX_PTIME_SHIFT, reg_map->qdma.delay_irq);
++	if (MTK_HAS_CAPS(eth->soc->caps, MTK_QDMA)) {
++		if (READ_ONCE(qdma_tx_dim))
++			mtk_m32(eth, MTK_PDMA_DELAY_TX_MASK, val, reg_map->qdma.delay_irq);
++		else
++			mtk_m32(eth, MTK_PDMA_DELAY_RX_MASK,
++				val >> MTK_PDMA_DELAY_TX_PTIME_SHIFT, reg_map->qdma.delay_irq);
++	}
+ 
+ 	if (RX_DESC_OFS(eth, 1) == sizeof(struct mtk_rx_dma)) {
+ 		mtk_m32(eth, MTK_PDMA_DELAY_TX_MASK, val, reg_map->pdma.delay_irq);
